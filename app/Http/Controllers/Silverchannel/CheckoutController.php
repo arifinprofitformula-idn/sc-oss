@@ -45,7 +45,7 @@ class CheckoutController extends Controller
         }
 
         // Verify user ownership
-        if ($order->user_id !== Auth::id() && !Auth::user()->hasRole('super_admin')) {
+        if ($order->user_id !== Auth::id() && !Auth::user()->hasRole('admin')) {
              abort(403, 'Unauthorized.');
         }
 

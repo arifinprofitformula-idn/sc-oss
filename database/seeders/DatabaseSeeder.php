@@ -22,9 +22,11 @@ class DatabaseSeeder extends Seeder
         $admin = User::factory()->create([
             'name' => 'Super Admin',
             'email' => 'admin@sc-oss.test',
+            'password' => bcrypt('Password@123'),
             'status' => 'ACTIVE',
         ]);
         
         $admin->assignRole('SUPER_ADMIN');
     }
+
 }
