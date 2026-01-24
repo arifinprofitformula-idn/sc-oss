@@ -1,0 +1,48 @@
+PANDUAN SETUP CRON JOB & QUEUE (CPANEL)
+========================================
+
+Karena shared hosting cPanel umumnya tidak menyediakan Supervisor untuk menjalankan queue worker secara background terus-menerus, kita menggunakan teknik "Cron Job" yang aman.
+
+Langkah-langkah:
+
+1. Login ke cPanel.
+2. Cari menu "Cron Jobs".
+3. Di bagian "Add New Cron Job", buat 2 entri berikut.
+
+---
+
+ENTRI 1: LARAVEL SCHEDULER (Wajib)
+----------------------------------
+Fungsi: Menjalankan tugas terjadwal (seperti generate report, hapus token expired, dll).
+
+- Common Settings: Once Per Minute (* * * * *)
+- Command:
+  /usr/local/bin/php /home/USERNAME/repositories/sc-oss/artisan schedule:run >> /dev/null 2>&1
+
+*CATATAN:*
+- Ganti 'USERNAME' dengan username cPanel Anda.
+- Ganti path '/repositories/sc-oss' sesuai lokasi instalasi Anda.
+- Path PHP '/usr/local/bin/php' mungkin berbeda tergantung hosting (bisa '/usr/bin/php' atau '/opt/alt/php83/usr/bin/php'). Cek "General Information" di sidebar cPanel atau tanya support hosting path PHP CLI yang valid.
+
+---
+
+ENTRI 2: QUEUE WORKER (Wajib untuk Email/Report/Background Process)
+-------------------------------------------------------------------
+Fungsi: Memproses antrian job (kirim email, export CSV) agar user tidak loading lama.
+
+- Common Settings: Once Per Minute (* * * * *)
+- Command:
+  /usr/local/bin/php /home/USERNAME/repositories/sc-oss/artisan queue:work --stop-when-empty --tries=3 --timeout=90 >> /dev/null 2>&1
+
+*PENJELASAN:*
+- Parameter `--stop-when-empty` sangat PENTING. Ini memerintahkan worker untuk memproses semua antrian yang ada SAAT ITU, lalu MATI (exit) jika antrian kosong.
+- Ini mencegah proses PHP menumpuk (zombie process) yang bisa membuat RAM hosting penuh dan akun disuspend.
+- Karena Cron jalan tiap menit, worker akan "hidup lagi" menit berikutnya untuk cek antrian baru.
+
+---
+
+CARA CEK APAKAH JALAN:
+1. Buat order baru atau request export report.
+2. Tunggu 1-2 menit.
+3. Cek apakah email masuk atau status report berubah "Completed".
+4. Jika tidak, cek path PHP di command cron job Anda.

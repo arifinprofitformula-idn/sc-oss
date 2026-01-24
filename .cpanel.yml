@@ -1,0 +1,10 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/USERNAME/repositories/sc-oss/
+    - /bin/cp -R * $DEPLOYPATH
+    - cd $DEPLOYPATH
+    - /usr/local/bin/composer install --optimize-autoloader --no-dev
+    - /usr/local/bin/php artisan migrate --force
+    - /usr/local/bin/php artisan config:cache
+    - /usr/local/bin/php artisan view:cache
