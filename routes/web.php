@@ -50,7 +50,7 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
     Route::get('/profile/locations/villages/{subdistrict}', [\App\Http\Controllers\UserProfileController::class, 'getVillages'])->name('profile.locations.villages');
 
     // Admin Routes
-    Route::middleware(['role:SUPER_ADMIN'])->prefix('admin')->name('admin.')->group(function () {
+    Route::domain(env('ADMIN_DOMAIN'))->middleware(['role:SUPER_ADMIN'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/silverchannels/import', [\App\Http\Controllers\Admin\ImportSilverchannelController::class, 'create'])->name('silverchannels.import');
         Route::post('/silverchannels/import/preview', [\App\Http\Controllers\Admin\ImportSilverchannelController::class, 'preview'])->name('silverchannels.import.preview');
         Route::post('/silverchannels/import', [\App\Http\Controllers\Admin\ImportSilverchannelController::class, 'store'])->name('silverchannels.import.store');
