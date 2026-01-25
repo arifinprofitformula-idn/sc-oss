@@ -1,49 +1,30 @@
-#!/bin/bash
-# Script Deployment Otomatis untuk Shared Hosting (cPanel)
+#!/usr/bin/env bash
+set -eu
+set -o pipefail || true
 
-# Pastikan script berhenti jika ada error
-set -e
+APP_DIR="/home/bisnisem/apps/sc-oss"
+WEB_DIR="/home/bisnisem/silvergram.store"
 
-echo "🚀 Memulai Deployment..."
+cd "$APP_DIR"
 
-# 1. Pull Code Terbaru
-echo "📥 Mengambil kode terbaru dari Git..."
+# ambil code terbaru
 git pull origin main
 
-# 2. Install/Update Composer Dependencies
-echo "📦 Menginstall dependencies..."
+# dependency production
+composer install --no-dev --optimize-autoloader
 
-# Coba deteksi binary PHP 8.3 (sesuaikan path ini dengan hosting Anda jika berbeda)
-PHP_BIN="php"
-if [ -f "/usr/local/bin/php83" ]; then
-    PHP_BIN="/usr/local/bin/php83"
-elif [ -f "/usr/local/bin/ea-php83" ]; then
-    PHP_BIN="/usr/local/bin/ea-php83"
-fi
+# database & cache
+php artisan migrate --force
+php artisan optimize:clear
 
-echo "   Menggunakan PHP: $PHP_BIN"
+# publish public (ikut dotfiles)
+rm -rf "$WEB_DIR"/*
+cp -a "$APP_DIR/public/." "$WEB_DIR/"
 
-# Jalankan composer (asumsi composer ada di path global atau download jika perlu)
-if command -v composer &> /dev/null; then
-    $PHP_BIN $(which composer) install --optimize-autoloader --no-dev
-else
-    echo "⚠️  Composer tidak ditemukan di global path, mencoba local composer.phar..."
-    if [ ! -f "composer.phar" ]; then
-        echo "   Mendownload composer.phar..."
-        $PHP_BIN -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-        $PHP_BIN composer-setup.php
-        $PHP_BIN -r "unlink('composer-setup.php');"
-    fi
-    $PHP_BIN composer.phar install --optimize-autoloader --no-dev
-fi
+# patch index.php agar tidak balik ke ../vendor dan ../bootstrap
+sed -i "s|__DIR__.'/../vendor/autoload.php'|__DIR__.'/../apps/sc-oss/vendor/autoload.php'|g; s|__DIR__.'/../bootstrap/app.php'|__DIR__.'/../apps/sc-oss/bootstrap/app.php'|g" "$WEB_DIR/index.php"
 
-# 3. Migrate Database
-echo "🗄️  Migrasi Database..."
-$PHP_BIN artisan migrate --force
+# permissions (shared hosting friendly)
+chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
 
-# 4. Cache Config & Route
-echo "🧹 Optimasi Cache..."
-$PHP_BIN artisan optimize
-$PHP_BIN artisan view:clear
-
-echo "✅ Deployment Selesai!"
+echo "DEPLOY OK"
