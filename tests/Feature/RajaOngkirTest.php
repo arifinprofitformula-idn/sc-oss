@@ -18,7 +18,7 @@ class RajaOngkirTest extends TestCase
         parent::setUp();
         
         // Seed roles
-        $role = Role::firstOrCreate(['name' => 'super_admin']);
+        $role = Role::firstOrCreate(['name' => 'SUPER_ADMIN']);
         $user = User::factory()->create();
         $user->assignRole($role);
         
@@ -108,7 +108,7 @@ class RajaOngkirTest extends TestCase
             ], 400),
         ]);
 
-        $response = $this->postJson(route('admin.integrations.rajaongkir.test-cost'), [
+        $response = $this->postJson(route('admin.integrations.shipping.test-cost'), [
             'destination_id' => '114',
             'weight' => 1000,
             'courier' => 'jne'

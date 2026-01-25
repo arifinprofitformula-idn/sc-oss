@@ -144,7 +144,7 @@
                     }
                     
                     try {
-                        const response = await fetch(`/admin/integrations/rajaongkir/cities/${this.selectedProvince}`);
+                        const response = await fetch(`/admin/integrations/shipping/cities/${this.selectedProvince}`);
                         const data = await response.json();
                         this.cities = Array.isArray(data) ? data : (data.results || []);
                     } catch (error) {
@@ -162,7 +162,7 @@
                     }
 
                     try {
-                        const response = await fetch(`/admin/integrations/rajaongkir/subdistricts/${this.selectedCity}`);
+                        const response = await fetch(`/admin/integrations/shipping/subdistricts/${this.selectedCity}`);
                         const data = await response.json();
                         this.subdistricts = Array.isArray(data) ? data : (data.results || []);
                     } catch (error) {
