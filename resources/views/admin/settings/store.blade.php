@@ -221,9 +221,10 @@
                     fd.append('name', name);
                     fd.append('description', desc);
                     fd.append('is_open', this.isOpen ? '1' : '0');
+                    fd.append('_method', 'PATCH'); // Method spoofing for FormData
                     if (logo) fd.append('logo', logo);
                     
-                    const response = await this.performSave(this.urls.identity, 'PATCH', fd, 'Identitas toko berhasil disimpan');
+                    const response = await this.performSave(this.urls.identity, 'POST', fd, 'Identitas toko berhasil disimpan');
                     if (response && response.logo_url) {
                          this.logoPreview = response.logo_url;
                          // Reset file input
