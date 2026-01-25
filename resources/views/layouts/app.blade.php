@@ -12,6 +12,9 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
+        @if(auth()->check() && auth()->user()->hasRole('SILVERCHANNEL'))
+            <meta name="enable-cart" content="true">
+        @endif
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
             @vite(['resources/css/app.css', 'resources/js/app.js'])
         @endif

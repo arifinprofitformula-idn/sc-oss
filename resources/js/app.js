@@ -45,7 +45,10 @@ Alpine.store('cart', {
     loading: false,
 
     async init() {
-        await this.fetchItems();
+        // Only fetch items if cart is enabled (Silverchannel role)
+        if (document.querySelector('meta[name="enable-cart"]')) {
+            await this.fetchItems();
+        }
 
         // Check for open_cart query param
         const urlParams = new URLSearchParams(window.location.search);
