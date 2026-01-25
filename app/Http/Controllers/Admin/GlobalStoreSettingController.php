@@ -294,22 +294,115 @@ class GlobalStoreSettingController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'is_open' => 'nullable|boolean',
         ]);
 
         $store = Store::where('user_id', Auth::id())->firstOrFail();
-        $data = $request->only(['name','description']);
+        $data = $request->only(['name', 'description']);
 
+        // Handle Logo Upload with Robust Logic (matching Profile Photo flow)
         if ($request->hasFile('logo')) {
             try {
+                $file = $request->file('logo');
+                
+                if (!$file->isValid()) {
+                    throw new \Exception('File logo tidak valid.');
+                }
+
+                // 1. Prepare Directory
+                if (!Storage::disk('public')->exists('stores/logos')) {
+                    Storage::disk('public')->makeDirectory('stores/logos');
+                }
+
+                // 2. Get File Content (Manual Read to avoid "Path must not be empty" error)
+                $tempPath = $file->getRealPath();
+                if (!$tempPath) {
+                    $tempPath = $file->getPathname();
+                }
+
+                if (!$tempPath || !file_exists($tempPath)) {
+                    throw new \Exception("Gagal membaca lokasi file sementara.");
+                }
+
+                // 3. Compression / Standardization Logic (optional but recommended)
+                // Using simple logic here: if image resource can be created, re-save as optimized JPG
+                // Otherwise just use raw content
+                $imageContents = '';
+                $extension = $file->getClientOriginalExtension();
+                $targetExtension = 'jpg'; // Standardize to JPG for consistency
+
+                // Basic compression if GD is available and file is image
+                if (extension_loaded('gd') && in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'webp'])) {
+                     try {
+                        $imageResource = imagecreatefromstring(file_get_contents($tempPath));
+                        if ($imageResource) {
+                            $width = imagesx($imageResource);
+                            $height = imagesy($imageResource);
+                            $maxDim = 1000;
+
+                            // Resize logic
+                            if ($width > $maxDim || $height > $maxDim) {
+                                $ratio = $width / $height;
+                                if ($ratio > 1) {
+                                    $newWidth = $maxDim;
+                                    $newHeight = $maxDim / $ratio;
+                                } else {
+                                    $newHeight = $maxDim;
+                                    $newWidth = $maxDim * $ratio;
+                                }
+                                $newImage = imagecreatetruecolor((int)$newWidth, (int)$newHeight);
+                            } else {
+                                $newWidth = $width;
+                                $newHeight = $height;
+                                $newImage = imagecreatetruecolor($width, $height);
+                            }
+
+                            // Handle transparency
+                            $white = imagecolorallocate($newImage, 255, 255, 255);
+                            imagefill($newImage, 0, 0, $white);
+                            imagecopyresampled($newImage, $imageResource, 0, 0, 0, 0, (int)$newWidth, (int)$newHeight, $width, $height);
+
+                            // Output
+                            ob_start();
+                            imagejpeg($newImage, null, 85);
+                            $imageContents = ob_get_clean();
+                            
+                            imagedestroy($imageResource);
+                            imagedestroy($newImage);
+                        } else {
+                            $imageContents = file_get_contents($tempPath);
+                            $targetExtension = $extension;
+                        }
+                     } catch (\Throwable $e) {
+                         // Fallback to raw content if GD fails
+                         $imageContents = file_get_contents($tempPath);
+                         $targetExtension = $extension;
+                     }
+                } else {
+                    $imageContents = file_get_contents($tempPath);
+                    $targetExtension = $extension;
+                }
+
+                // 4. Save New File
+                $filename = 'store_' . $store->id . '_' . time() . '.' . $targetExtension;
+                $path = 'stores/logos/' . $filename;
+
+                if (!Storage::disk('public')->put($path, $imageContents)) {
+                    throw new \Exception("Gagal menyimpan file ke storage.");
+                }
+
+                // 5. Delete Old Logo
                 $oldPath = $store->logo_path;
                 if (is_string($oldPath) && trim($oldPath) !== '' && Storage::disk('public')->exists($oldPath)) {
                     Storage::disk('public')->delete($oldPath);
                 }
-                $data['logo_path'] = $request->file('logo')->store('stores/logos', 'public');
+
+                $data['logo_path'] = $path;
+
             } catch (\Throwable $e) {
-                return response()->json(['error' => $e->getMessage()], 422);
+                Log::error('Store Logo Update Error: ' . $e->getMessage());
+                return response()->json(['error' => 'Gagal upload logo: ' . $e->getMessage()], 422);
             }
         }
 
@@ -328,7 +421,11 @@ class GlobalStoreSettingController extends Controller
             ]);
         }
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Identitas toko berhasil diperbarui.',
+            'logo_url' => isset($data['logo_path']) ? Storage::url($data['logo_path']) : null
+        ]);
     }
 
     public function updateContact(Request $request)

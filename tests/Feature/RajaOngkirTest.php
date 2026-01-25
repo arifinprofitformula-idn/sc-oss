@@ -32,7 +32,7 @@ class RajaOngkirTest extends TestCase
 
     public function test_admin_can_view_rajaongkir_settings()
     {
-        $response = $this->get(route('admin.integrations.rajaongkir'));
+        $response = $this->get(route('admin.integrations.shipping'));
         $response->assertStatus(200);
         $response->assertSee('RajaOngkir Settings');
     }
@@ -61,7 +61,7 @@ class RajaOngkirTest extends TestCase
             ], 200),
         ]);
 
-        $response = $this->postJson(route('admin.integrations.rajaongkir.test-cost'), [
+        $response = $this->postJson(route('admin.integrations.shipping.test-cost'), [
             'destination_id' => '114', // Denpasar
             'weight' => 1000,
             'courier' => 'jne'
@@ -86,7 +86,7 @@ class RajaOngkirTest extends TestCase
 
     public function test_calculate_shipping_cost_validation_error()
     {
-        $response = $this->postJson(route('admin.integrations.rajaongkir.test-cost'), [
+        $response = $this->postJson(route('admin.integrations.shipping.test-cost'), [
             'destination_id' => '', // Empty
             'weight' => '',
             'courier' => ''

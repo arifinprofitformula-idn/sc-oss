@@ -17,6 +17,7 @@
             'payment_timeout' => (int) ($settings['store_payment_timeout'] ?? 60),
             'bank_details' => $bankDetails ?? [],
             'payment_methods' => $store->payment_methods ?? [],
+            'logo_url' => $store->logo_path ? asset('storage/' . $store->logo_path) : null,
         ];
     @endphp
 
@@ -87,6 +88,36 @@
 
                 paymentMethods: initialData.payment_methods || [],
                 banks: initialData.bank_details || [],
+
+                // Logo Upload State
+                logoPreview: initialData.logo_url,
+                logoValid: false,
+                logoError: null,
+                
+                validateLogo(event) {
+                    const file = event.target.files[0];
+                    this.logoError = null;
+                    this.logoValid = false;
+                    
+                    if (!file) return;
+                    
+                    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+                    if (!validTypes.includes(file.type)) {
+                        this.logoError = 'Format file harus JPEG, PNG, atau WEBP.';
+                        return;
+                    }
+                    
+                    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                        this.logoError = 'Ukuran file maksimal 2MB.';
+                        return;
+                    }
+                    
+                    this.logoValid = true;
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => { this.logoPreview = e.target.result; };
+                    reader.readAsDataURL(file);
+                },
 
                 init() {
                     this.$watch('activeTab', (val) => {
@@ -161,12 +192,15 @@
                         
                         if (res.ok && data.success) {
                             Alpine.store('toast').show(successMessage, 'success');
+                            return data;
                         } else {
                             Alpine.store('toast').show(data.error || data.message || 'Gagal menyimpan pengaturan', 'error');
+                            return null;
                         }
                     } catch (e) {
                         console.error('Save error:', e);
                         Alpine.store('toast').show('Terjadi kesalahan jaringan: ' + (e.message || 'Unknown error'), 'error');
+                        return null;
                     } finally {
                         this.isLoading = false;
                     }
@@ -189,7 +223,13 @@
                     fd.append('is_open', this.isOpen ? '1' : '0');
                     if (logo) fd.append('logo', logo);
                     
-                    await this.performSave(this.urls.identity, 'PATCH', fd, 'Identitas toko berhasil disimpan');
+                    const response = await this.performSave(this.urls.identity, 'PATCH', fd, 'Identitas toko berhasil disimpan');
+                    if (response && response.logo_url) {
+                         this.logoPreview = response.logo_url;
+                         // Reset file input
+                         const fileInput = document.getElementById('logo_input');
+                         if (fileInput) fileInput.value = '';
+                    }
                 },
 
                 async saveContact() {
@@ -333,33 +373,36 @@
                         <div class="mt-6">
 
                         <div x-show="activeTab === 'identity'" x-transition:enter="transition ease-out duration-300">
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Identitas Toko</h3>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-6">Identitas Toko</h3>
 
                             <div class="grid grid-cols-1 gap-6">
-                                <div>
-                                    <x-input-label for="logo" :value="__('Logo Toko')" />
-                                    <div class="mt-2 flex items-center space-x-6">
-                                        <div class="shrink-0">
-                                            @if($store->logo_path)
-                                                <img class="h-16 w-16 object-cover rounded-full" src="{{ asset('storage/' . $store->logo_path) }}" alt="Current Logo" />
-                                            @else
-                                                <div class="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center">
-                                                    <span class="text-gray-500 text-xs">No Logo</span>
+                                <!-- Logo Section (Centered & Circular like Profile) -->
+                                <div class="flex flex-col items-center mb-4">
+                                    <div class="relative w-32 h-32 mb-4 group">
+                                        <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-gray-700 shadow-lg bg-gray-100 dark:bg-gray-700 relative">
+                                            <!-- Preview Image -->
+                                            <template x-if="logoPreview">
+                                                <img :src="logoPreview" class="w-full h-full object-cover">
+                                            </template>
+                                            
+                                            <!-- Fallback Icon -->
+                                            <template x-if="!logoPreview">
+                                                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                                    <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
                                                 </div>
-                                            @endif
+                                            </template>
+
+                                            <!-- Overlay Upload Icon -->
+                                            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer rounded-full" onclick="document.getElementById('logo_input').click()">
+                                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                            </div>
                                         </div>
-                                        <label class="block">
-                                            <span class="sr-only">Choose logo</span>
-                                            <input type="file" name="logo" class="block w-full text-sm text-gray-500
-                                                file:mr-4 file:py-2 file:px-4
-                                                file:rounded-full file:border-0
-                                                file:text-sm file:font-semibold
-                                                file:bg-indigo-50 file:text-indigo-700
-                                                hover:file:bg-indigo-100
-                                            "/>
-                                        </label>
                                     </div>
-                                    <p class="mt-1 text-sm text-gray-500">PNG, JPG up to 2MB</p>
+
+                                    <input type="file" id="logo_input" name="logo" class="hidden" accept="image/png, image/jpeg, image/jpg, image/webp" @change="validateLogo">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Klik gambar untuk mengubah logo</p>
+                                    <p class="text-xs text-gray-400">JPG, PNG, WEBP (Max 2MB)</p>
+                                    <p x-show="logoError" x-text="logoError" class="text-red-500 text-xs mt-2"></p>
                                 </div>
 
                                 <div>

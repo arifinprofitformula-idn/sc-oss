@@ -5,12 +5,7 @@
         <!-- Logo -->
         <div class="mb-8">
             <a href="/" class="flex items-center space-x-2">
-                <div class="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    <span class="text-white font-bold text-lg">EPI</span>
-                </div>
-                <span class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                    EPI-OSS
-                </span>
+                <x-application-logo />
             </a>
         </div>
 
@@ -23,7 +18,12 @@
                 </p>
             </div>
 
-            <form method="POST" action="{{ route('register.silver.store') }}" x-data="locationSelector()" class="space-y-6">
+            <form method="POST" action="{{ route('register.silver.store') }}" x-data="locationSelector({
+                oldProvinceId: {{ json_encode(old('province_id')) }},
+                oldProvinceName: {{ json_encode(old('province_name')) }},
+                oldCityId: {{ json_encode(old('city_id')) }},
+                oldCityName: {{ json_encode(old('city_name')) }}
+            })" class="space-y-6">
                 @csrf
 
                 <!-- Name -->
@@ -194,7 +194,7 @@
 
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('locationSelector', () => ({
+            Alpine.data('locationSelector', (initialData = {}) => ({
                 provinces: [],
                 cities: [],
                 selectedProvince: '',
@@ -212,11 +212,11 @@
                         .then(data => {
                             this.provinces = data;
                             // Check for old value
-                            @if(old('province_id'))
-                                this.selectedProvince = '{{ old('province_id') }}';
-                                this.selectedProvinceName = '{{ old('province_name') }}';
+                            if (initialData.oldProvinceId) {
+                                this.selectedProvince = String(initialData.oldProvinceId);
+                                this.selectedProvinceName = initialData.oldProvinceName;
                                 this.fetchCities();
-                            @endif
+                            }
                         });
                 },
 
@@ -236,12 +236,10 @@
                         .then(data => {
                             this.cities = data;
                              // Check for old value
-                             @if(old('city_id'))
-                                if (this.selectedProvince == '{{ old('province_id') }}') {
-                                    this.selectedCity = '{{ old('city_id') }}';
-                                    this.selectedCityName = '{{ old('city_name') }}';
-                                }
-                            @endif
+                             if (initialData.oldCityId && this.selectedProvince == initialData.oldProvinceId) {
+                                this.selectedCity = String(initialData.oldCityId);
+                                this.selectedCityName = initialData.oldCityName;
+                             }
                         });
                 },
 

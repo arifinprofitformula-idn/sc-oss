@@ -67,7 +67,7 @@
                                     <ol class="list-decimal ml-5 space-y-1">
                                         <li>Register at RajaOngkir (or Komerce for V2).</li>
                                         <li>Go to API Key menu and copy your key.</li>
-                                        <li>Paste the key in the <a href="{{ route('admin.integrations.rajaongkir') }}" class="text-indigo-600 hover:text-indigo-900">RajaOngkir Settings</a> tab.</li>
+                                        <li>Paste the key in the <a href="{{ route('admin.integrations.shipping') }}" class="text-indigo-600 hover:text-indigo-900">RajaOngkir Settings</a> tab.</li>
                                         <li>Set the Base URL (Default V2: <code>https://rajaongkir.komerce.id/api/v1</code>).</li>
                                         <li>Search and select your <strong>Store Origin</strong> (Subdistrict).</li>
                                         <li>Select <strong>Active Couriers</strong> you want to use.</li>
