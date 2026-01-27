@@ -185,8 +185,8 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('productForm', () => ({
-                selectedBrand: '{{ old('brand_id') }}',
-                selectedCategory: '{{ old('category_id') }}',
+                selectedBrand: "{{ old('brand_id') }}",
+                selectedCategory: "{{ old('category_id') }}",
                 showBrandModal: false,
                 showCategoryModal: false,
                 newBrandName: '',
@@ -226,7 +226,7 @@
                     }
 
                     try {
-                        const response = await fetch('{{ route('admin.brands.store') }}', {
+                        const response = await fetch("{{ route('admin.brands.store') }}", {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -270,7 +270,7 @@
                     }
 
                     try {
-                        const response = await fetch('{{ route('admin.categories.store') }}', {
+                        const response = await fetch("{{ route('admin.categories.store') }}", {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
