@@ -39,7 +39,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'sku' => 'required|string|max:100|unique:products,sku',
             'description' => 'nullable|string',
-            'price_msrp' => 'required|numeric|min:0',
+            'price_msrp' => 'nullable|numeric|min:0',
             'weight' => 'required|integer|min:0',
             'price_silverchannel' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
@@ -56,6 +56,10 @@ class ProductController extends Controller
     {
         $brands = Brand::where('is_active', true)->get();
         $categories = Category::where('is_active', true)->get();
+        $product->load(['stockLogs' => function($q) {
+            $q->latest();
+        }, 'stockLogs.user']);
+        
         return view('admin.products.edit', compact('product', 'brands', 'categories'));
     }
 
@@ -67,7 +71,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'sku' => 'required|string|max:100|unique:products,sku,' . $product->id,
             'description' => 'nullable|string',
-            'price_msrp' => 'required|numeric|min:0',
+            'price_msrp' => 'nullable|numeric|min:0',
             'weight' => 'required|integer|min:0',
             'price_silverchannel' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',

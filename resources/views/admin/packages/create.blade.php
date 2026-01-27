@@ -9,8 +9,21 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <form method="POST" action="{{ route('admin.packages.store') }}" x-data="packageForm()">
+                    <form method="POST" action="{{ route('admin.packages.store') }}" x-data="packageForm()" enctype="multipart/form-data">
                         @csrf
+
+                        <!-- Image Upload -->
+                        <div class="mb-4" x-data="imageUpload()">
+                            <label class="block text-sm font-medium text-gray-700">Foto Paket (1:1 atau 3:4) <span class="text-gray-400 text-xs">(Max 2MB, JPG/PNG/WEBP)</span></label>
+                            <input type="file" name="image" accept="image/png, image/jpeg, image/webp" @change="validateAndPreview($event)" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <p x-show="error" x-text="error" class="text-red-500 text-sm mt-1" style="display: none;"></p>
+                            <template x-if="preview">
+                                <div class="mt-2">
+                                    <img :src="preview" class="h-40 object-cover rounded-md border border-gray-200">
+                                </div>
+                            </template>
+                            @error('image') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
 
                         <!-- Name -->
                         <div class="mb-4">
@@ -27,19 +40,36 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <!-- Original Price -->
+                            <div>
+                                <label for="original_price" class="block text-sm font-medium text-gray-700">Harga Normal (Rp) <span class="text-gray-400 text-xs">(Opsional)</span></label>
+                                <input type="number" name="original_price" id="original_price" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="{{ old('original_price') }}">
+                                <p class="text-xs text-gray-500 mt-1">Harga sebelum diskon (dicoret).</p>
+                                @error('original_price') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
                             <!-- Price -->
                             <div>
-                                <label for="price" class="block text-sm font-medium text-gray-700">Harga (Rp) <span class="text-red-500">*</span></label>
+                                <label for="price" class="block text-sm font-medium text-gray-700">Harga Jual / Promo (Rp) <span class="text-red-500">*</span></label>
                                 <input type="number" name="price" id="price" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required value="{{ old('price') }}">
+                                <p class="text-xs text-gray-500 mt-1">Harga yang harus dibayar pengguna.</p>
                                 @error('price') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
-                            <!-- Duration -->
+                            <!-- Weight -->
                             <div>
-                                <label for="duration_days" class="block text-sm font-medium text-gray-700">Durasi (Hari) <span class="text-red-500">*</span></label>
-                                <input type="number" name="duration_days" id="duration_days" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required value="{{ old('duration_days', 30) }}">
-                                @error('duration_days') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                <label for="weight" class="block text-sm font-medium text-gray-700">Weight/Berat (Gram) <span class="text-red-500">*</span></label>
+                                <input type="number" name="weight" id="weight" min="1" max="30000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required value="{{ old('weight', 1000) }}">
+                                <p class="text-xs text-gray-500 mt-1">Berat paket untuk hitung ongkir (Min 1g).</p>
+                                @error('weight') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
+                        </div>
+
+                        <!-- Duration -->
+                        <div class="mb-4">
+                            <label for="duration_days" class="block text-sm font-medium text-gray-700">Durasi (Hari) <span class="text-red-500">*</span></label>
+                            <input type="number" name="duration_days" id="duration_days" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required value="{{ old('duration_days', 30) }}">
+                            @error('duration_days') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
 
                         <!-- Benefits -->
@@ -81,10 +111,56 @@
         </div>
     </div>
 
+    <script type="application/json" id="benefits-data">
+        {!! json_encode(old('benefits', [''])) !!}
+    </script>
+
     <script>
+        function imageUpload() {
+            return {
+                preview: null,
+                error: null,
+                validateAndPreview(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    // Size validation (2MB)
+                    if (file.size > 2 * 1024 * 1024) {
+                        this.error = 'Ukuran file maksimal 2MB.';
+                        event.target.value = '';
+                        this.preview = null;
+                        return;
+                    }
+
+                    const img = new Image();
+                    img.onload = () => {
+                        const ratio = img.width / img.height;
+                        // 1:1 = 1.0, 3:4 = 0.75
+                        const is1x1 = Math.abs(ratio - 1) < 0.05;
+                        const is3x4 = Math.abs(ratio - 0.75) < 0.05;
+
+                        if (!is1x1 && !is3x4) {
+                            this.error = 'Rasio aspek gambar harus 1:1 atau 3:4.';
+                            event.target.value = '';
+                            this.preview = null;
+                        } else {
+                            this.error = null;
+                            this.preview = img.src;
+                        }
+                    };
+                    img.onerror = () => {
+                        this.error = 'File bukan gambar yang valid.';
+                        event.target.value = '';
+                        this.preview = null;
+                    };
+                    img.src = URL.createObjectURL(file);
+                }
+            }
+        }
+
         function packageForm() {
             return {
-                benefits: {!! json_encode(old('benefits', [''])) !!},
+                benefits: JSON.parse(document.getElementById('benefits-data').textContent),
                 addBenefit() {
                     this.benefits.push('');
                 },

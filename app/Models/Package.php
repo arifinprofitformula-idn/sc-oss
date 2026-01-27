@@ -12,8 +12,11 @@ class Package extends Model
 
     protected $fillable = [
         'name',
+        'image',
         'description',
         'price',
+        'weight',
+        'original_price',
         'duration_days',
         'benefits',
         'is_active',
@@ -23,6 +26,8 @@ class Package extends Model
         'benefits' => 'array',
         'is_active' => 'boolean',
         'price' => 'decimal:2',
+        'weight' => 'integer',
+        'original_price' => 'decimal:2',
         'duration_days' => 'integer',
     ];
 

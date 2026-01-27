@@ -10,6 +10,7 @@ use App\Http\Requests\Admin\StoreSilverchannelRequest;
 use App\Http\Requests\Admin\UpdateSilverchannelRequest;
 use App\Services\RajaOngkirService;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 use App\Models\AuditLog;
 
@@ -25,6 +26,10 @@ class SilverchannelController extends Controller
     public function index(Request $request)
     {
         $query = User::role('SILVERCHANNEL')->with('referrer')->latest();
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
 
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
@@ -134,15 +139,36 @@ class SilverchannelController extends Controller
             'city_id' => $validated['city_id'],
             'city_name' => $validated['city_name'],
             'referrer_id' => $referrerId,
+            'nik' => $validated['nik'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'postal_code' => $validated['postal_code'] ?? null,
         ];
+
+        // Handle Profile Photo
+        if ($request->hasFile('photo')) {
+            if ($user->profile && $user->profile->photo_path) {
+                Storage::disk('public')->delete($user->profile->photo_path);
+            }
+            $photoPath = $request->file('photo')->store('profile-photos', 'public');
+            $user->profile()->updateOrCreate([], ['photo_path' => $photoPath]);
+        }
 
         // Handle password update if provided
         if (!empty($validated['password'])) {
             $updateData['password'] = Hash::make($validated['password']);
-            AuditLog::log('UPDATE_PASSWORD', $user, null, ['password_changed' => true, 'by' => auth()->user()->name]);
+            AuditLog::log('UPDATE_PASSWORD', $user, null, ['password_changed' => true, 'by' => optional($request->user())->name]);
         }
 
         $user->update($updateData);
+
+        $user->profile()->updateOrCreate([], [
+            'birth_place' => $validated['birth_place'] ?? null,
+            'birth_date' => $validated['birth_date'] ?? null,
+            'gender' => $validated['gender'] ?? null,
+            'religion' => $validated['religion'] ?? null,
+            'marital_status' => $validated['marital_status'] ?? null,
+            'job' => $validated['job'] ?? null,
+        ]);
 
         return redirect()->route('admin.silverchannels.index')->with('success', 'Silverchannel updated successfully.');
     }
@@ -154,7 +180,6 @@ class SilverchannelController extends Controller
         }
 
         $request->validate([
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user->update([

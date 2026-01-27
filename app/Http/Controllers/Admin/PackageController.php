@@ -8,6 +8,9 @@ use App\Models\AuditLog;
 use App\Http\Requests\Admin\StorePackageRequest;
 use App\Http\Requests\Admin\UpdatePackageRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class PackageController extends Controller
 {
@@ -41,7 +44,17 @@ class PackageController extends Controller
 
     public function store(StorePackageRequest $request)
     {
-        $package = Package::create($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            try {
+                $data['image'] = $this->processImage($request->file('image'));
+            } catch (\Exception $e) {
+                return back()->withInput()->withErrors(['image' => 'Gagal memproses gambar: ' . $e->getMessage()]);
+            }
+        }
+
+        $package = Package::create($data);
 
         AuditLog::log('CREATE_PACKAGE', $package, null, $package->toArray());
 
@@ -56,7 +69,22 @@ class PackageController extends Controller
     public function update(UpdatePackageRequest $request, Package $package)
     {
         $oldValues = $package->toArray();
-        $package->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            // Secure delete old image
+            if (!empty($package->image) && Storage::disk('public')->exists($package->image)) {
+                Storage::disk('public')->delete($package->image);
+            }
+            
+            try {
+                $data['image'] = $this->processImage($request->file('image'));
+            } catch (\Exception $e) {
+                return back()->withInput()->withErrors(['image' => 'Gagal memproses gambar: ' . $e->getMessage()]);
+            }
+        }
+
+        $package->update($data);
         
         AuditLog::log('UPDATE_PACKAGE', $package, $oldValues, $package->toArray());
 
@@ -81,5 +109,89 @@ class PackageController extends Controller
         AuditLog::log('RESTORE_PACKAGE', $package, null, $package->toArray());
 
         return redirect()->route('admin.packages.index')->with('success', 'Paket berhasil dipulihkan.');
+    }
+
+    /**
+     * Process image upload with compression and resizing.
+     * Mirrors logic from UserProfileController.
+     */
+    private function processImage($file)
+    {
+        $imageContents = '';
+        $extension = $file->getClientOriginalExtension();
+        $targetExtension = 'jpg'; // Standardize to JPG for consistency
+
+        // If > 1MB, compress
+        if ($file->getSize() > 1024 * 1024) {
+            $imageResource = imagecreatefromstring($file->get());
+            if (!$imageResource) {
+                 // Fallback if GD fails or format not supported, try standard store
+                 // But user reported error with store(), so we prefer explicit put
+                 return $file->store('packages', 'public');
+            }
+
+            $width = imagesx($imageResource);
+            $height = imagesy($imageResource);
+            $maxDim = 1000;
+
+            // Resize if too big (e.g. > 1000px)
+            if ($width > $maxDim || $height > $maxDim) {
+                $ratio = $width / $height;
+                if ($ratio > 1) {
+                    $newWidth = $maxDim;
+                    $newHeight = $maxDim / $ratio;
+                } else {
+                    $newHeight = $maxDim;
+                    $newWidth = $maxDim * $ratio;
+                }
+                
+                $newImage = imagecreatetruecolor((int)$newWidth, (int)$newHeight);
+                
+                // Handle transparency
+                $white = imagecolorallocate($newImage, 255, 255, 255);
+                imagefill($newImage, 0, 0, $white);
+                
+                imagecopyresampled($newImage, $imageResource, 0, 0, 0, 0, (int)$newWidth, (int)$newHeight, $width, $height);
+                $imageResource = $newImage;
+            } else {
+                $newImage = imagecreatetruecolor($width, $height);
+                $white = imagecolorallocate($newImage, 255, 255, 255);
+                imagefill($newImage, 0, 0, $white);
+                imagecopy($newImage, $imageResource, 0, 0, 0, 0, $width, $height);
+                $imageResource = $newImage;
+            }
+
+            // Output to buffer
+            ob_start();
+            imagejpeg($imageResource, null, 80); // 80% quality
+            $imageContents = ob_get_clean();
+        } else {
+            // If < 1MB, convert to JPG for consistency
+             $imageResource = @imagecreatefromstring($file->get());
+             if ($imageResource) {
+                $width = imagesx($imageResource);
+                $height = imagesy($imageResource);
+                
+                $newImage = imagecreatetruecolor($width, $height);
+                $white = imagecolorallocate($newImage, 255, 255, 255);
+                imagefill($newImage, 0, 0, $white);
+                imagecopy($newImage, $imageResource, 0, 0, 0, 0, $width, $height);
+                
+                ob_start();
+                imagejpeg($newImage, null, 90); 
+                $imageContents = ob_get_clean();
+             } else {
+                 $imageContents = $file->get();
+                 $targetExtension = $extension;
+             }
+        }
+
+        $filename = 'packages/' . Str::uuid() . '.' . $targetExtension;
+        
+        if (!Storage::disk('public')->put($filename, $imageContents)) {
+             throw new \Exception('Gagal menyimpan file gambar paket.');
+        }
+        
+        return $filename;
     }
 }

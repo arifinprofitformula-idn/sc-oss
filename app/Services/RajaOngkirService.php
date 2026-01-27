@@ -289,7 +289,7 @@ class RajaOngkirService implements ShippingProviderInterface
         }
     }
 
-    public function getCost($origin, $destination, $weight, $courier = null)
+    public function getCost($origin, $destination, $weight, $courier = null, $originType = 'city', $destinationType = 'city')
     {
         $isV2 = str_contains($this->baseUrl, 'komerce.id');
         $path = $isV2 ? '/calculate/domestic-cost' : '/cost';
@@ -303,7 +303,7 @@ class RajaOngkirService implements ShippingProviderInterface
             // We should ideally check config/settings.
             
             // For efficiency, we'll try to use Http pool
-            $responses = Http::pool(function ($pool) use ($supportedCouriers, $origin, $destination, $weight, $path, $isV2) {
+            $responses = Http::pool(function ($pool) use ($supportedCouriers, $origin, $destination, $weight, $path, $isV2, $originType, $destinationType) {
                 $requests = [];
                 foreach ($supportedCouriers as $c) {
                     $payload = [
@@ -313,8 +313,12 @@ class RajaOngkirService implements ShippingProviderInterface
                         'courier' => $c,
                     ];
                     if ($isV2) {
-                        $payload['originType'] = 'district'; 
-                        $payload['destinationType'] = 'district';
+                        $payload['originType'] = $originType === 'subdistrict' ? 'district' : $originType; 
+                        $payload['destinationType'] = $destinationType === 'subdistrict' ? 'district' : $destinationType;
+                    } else {
+                        // V1 Pro support
+                        $payload['originType'] = $originType;
+                        $payload['destinationType'] = $destinationType;
                     }
                     
                     $requests[] = $pool->asForm()
@@ -377,16 +381,22 @@ class RajaOngkirService implements ShippingProviderInterface
         ];
 
         if ($isV2) {
-            $payload['originType'] = 'district'; 
-            $payload['destinationType'] = 'district';
+            $payload['originType'] = $originType === 'subdistrict' ? 'district' : $originType; 
+            $payload['destinationType'] = $destinationType === 'subdistrict' ? 'district' : $destinationType;
+        } else {
+             $payload['originType'] = $originType;
+             $payload['destinationType'] = $destinationType;
         }
+
         $cacheKey = sprintf(
-            'rajaongkir_cost_%s_%s_%s_%s_%s',
+            'rajaongkir_cost_%s_%s_%s_%s_%s_%s_%s',
             md5($this->baseUrl),
             $origin,
             $destination,
             $weight,
-            $courier
+            $courier,
+            $originType,
+            $destinationType
         );
 
         return Cache::remember($cacheKey, 600, function () use ($path, $payload) {

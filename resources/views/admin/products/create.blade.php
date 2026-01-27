@@ -68,9 +68,9 @@
                                 <!-- Price MSRP (Renamed to Customer Price) -->
                                 <div class="mt-4">
                                     <label class="block font-medium text-sm text-gray-700" for="price_msrp">
-                                        {{ __('Customer Price') }} <span class="text-red-500">*</span>
+                                        {{ __('Customer Price') }}
                                     </label>
-                                    <x-text-input id="price_msrp" class="block mt-1 w-full" type="number" name="price_msrp" :value="old('price_msrp')" required min="0" step="0.01" />
+                                    <x-text-input id="price_msrp" class="block mt-1 w-full" type="number" name="price_msrp" :value="old('price_msrp')" min="0" step="0.01" />
                                     <x-input-error :messages="$errors->get('price_msrp')" class="mt-2" />
                                 </div>
 

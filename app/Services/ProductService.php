@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductStockLog;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -73,27 +75,63 @@ class ProductService
 
         if (!$product) {
             $data['slug'] = Str::slug($data['name']) . '-' . Str::random(6);
-            return Product::create($data);
+            $product = Product::create($data);
+
+            // Log Initial Stock
+            if (isset($data['stock']) && $data['stock'] != 0) {
+                $this->logStockChange($product, (int)$data['stock'], (int)$data['stock'], 'initial', 'Initial stock creation');
+            }
+
+            return $product;
         }
+
+        // Check for stock change before update
+        $oldStock = $product->stock;
+        $newStock = isset($data['stock']) ? (int)$data['stock'] : $oldStock;
 
         if (isset($data['name']) && $data['name'] !== $product->name) {
             $data['slug'] = Str::slug($data['name']) . '-' . Str::random(6);
         }
 
         $product->update($data);
+
+        if ($newStock !== $oldStock) {
+            $diff = $newStock - $oldStock;
+            $this->logStockChange($product, $diff, $newStock, 'manual_adjustment', 'Updated via admin panel');
+        }
+
         return $product;
     }
 
     /**
      * Adjust Stock
      */
-    public function adjustStock(Product $product, int $quantity, string $reason = 'adjustment'): Product
+    public function adjustStock(Product $product, int $quantity, string $type = 'manual_adjustment', ?string $note = null, ?array $meta = null): Product
     {
         // Positive quantity adds stock, negative removes stock
-        $product->increment('stock', $quantity);
+        $oldStock = $product->stock;
+        $newStock = $oldStock + $quantity;
         
-        // TODO: Log stock history here if needed later
+        $product->stock = $newStock;
+        $product->save();
+        
+        $this->logStockChange($product, $quantity, $newStock, $type, $note, $meta);
         
         return $product;
+    }
+
+    /**
+     * Log Stock Change
+     */
+    protected function logStockChange(Product $product, int $quantity, int $finalStock, string $type, ?string $note = null, ?array $meta = null)
+    {
+        $product->stockLogs()->create([
+            'user_id' => Auth::id(),
+            'type' => $type,
+            'quantity' => $quantity,
+            'final_stock' => $finalStock,
+            'note' => $note,
+            'meta' => $meta,
+        ]);
     }
 }

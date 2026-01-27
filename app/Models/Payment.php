@@ -27,6 +27,15 @@ class Payment extends Model
         'paid_at' => 'datetime',
     ];
 
+    protected static function booted()
+    {
+        static::creating(function ($payment) {
+            if (empty($payment->payment_number)) {
+                $payment->payment_number = 'PAY-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
+            }
+        });
+    }
+
     public function order()
     {
         return $this->belongsTo(Order::class);

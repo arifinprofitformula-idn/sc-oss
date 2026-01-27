@@ -100,9 +100,9 @@
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                                                     ACTIVE
                                                 </span>
-                                            @elseif($user->status === 'PENDING_REVIEW')
+                                            @elseif($user->status === 'PENDING_REVIEW' || $user->status === 'WAITING_VERIFICATION')
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                                    PENDING REVIEW
+                                                    {{ str_replace('_', ' ', $user->status) }}
                                                 </span>
                                             @else
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
@@ -119,7 +119,7 @@
                                                 
 
 
-                                                @if($user->status === 'PENDING_REVIEW')
+                                                @if($user->status === 'PENDING_REVIEW' || $user->status === 'WAITING_VERIFICATION')
                                                     <form action="{{ route('admin.silverchannels.approve', $user) }}" method="POST" class="inline-block">
                                                         @csrf
                                                         <button type="submit" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 ml-2" onclick="return confirm('Approve this user?')">Approve</button>
@@ -170,7 +170,7 @@
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
                 <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
-                    <form :action="editMode ? '{{ url('admin/silverchannels') }}/' + form.id : '{{ route('admin.silverchannels.store') }}'" method="POST">
+                    <form :action="editMode ? '{{ url('admin/silverchannels') }}/' + form.id : '{{ route('admin.silverchannels.store') }}'" method="POST" enctype="multipart/form-data">
                         @csrf
                         <template x-if="editMode">
                             <input type="hidden" name="_method" value="PUT">
@@ -179,57 +179,137 @@
                         <div class="bg-white dark:bg-gray-800 px-6 pt-6 pb-6 sm:p-8">
                             <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-6" x-text="editMode ? 'Edit Silverchannel' : 'Add New Silverchannel'"></h3>
                             
-                            <div class="space-y-4">
-                                <!-- Name -->
+                            <div class="space-y-6">
+                                <!-- Account Information -->
                                 <div>
-                                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name <span class="text-red-500">*</span></label>
-                                    <input type="text" name="name" id="name" x-model="form.name" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <!-- Email -->
-                                    <div>
-                                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email <span class="text-red-500">*</span></label>
-                                        <input type="email" name="email" id="email" x-model="form.email" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    </div>
-
-                                    <!-- Whatsapp -->
-                                    <div>
-                                        <label for="whatsapp" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Whatsapp Number <span class="text-red-500">*</span></label>
-                                        <input type="text" name="whatsapp" id="whatsapp" x-model="form.whatsapp" required placeholder="e.g. 628123456789" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <!-- Province -->
-                                    <div>
-                                        <label for="province_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Province <span class="text-red-500">*</span></label>
-                                        <select name="province_id" id="province_id" x-model="form.province_id" @change="onProvinceChange($event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                            <option value="">Select Province</option>
-                                            <template x-for="province in provinces" :key="province.province_id">
-                                                <option :value="province.province_id" x-text="province.province"></option>
-                                            </template>
-                                        </select>
-                                        <input type="hidden" name="province_name" x-model="form.province_name">
-                                    </div>
-
-                                    <!-- City -->
-                                    <div>
-                                        <label for="city_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">City/District <span class="text-red-500">*</span></label>
-                                        <select name="city_id" id="city_id" x-model="form.city_id" @change="onCityChange($event)" required :disabled="!form.province_id" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm disabled:opacity-50">
-                                            <option value="">Select City</option>
-                                            <template x-for="city in cities" :key="city.city_id">
-                                                <option :value="city.city_id" x-text="city.type + ' ' + city.city_name"></option>
-                                            </template>
-                                        </select>
-                                        <input type="hidden" name="city_name" x-model="form.city_name">
+                                    <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4 border-b pb-2">Account Information</h4>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <!-- Name -->
+                                        <div>
+                                            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name <span class="text-red-500">*</span></label>
+                                            <input type="text" name="name" id="name" x-model="form.name" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        </div>
+                                        <!-- Email -->
+                                        <div>
+                                            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email <span class="text-red-500">*</span></label>
+                                            <input type="email" name="email" id="email" x-model="form.email" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        </div>
+                                        <!-- Whatsapp -->
+                                        <div>
+                                            <label for="whatsapp" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Whatsapp Number <span class="text-red-500">*</span></label>
+                                            <input type="text" name="whatsapp" id="whatsapp" x-model="form.whatsapp" required placeholder="e.g. 628123456789" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        </div>
+                                        <!-- Referrer -->
+                                        <div>
+                                            <label for="referrer_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Referrer Code (Optional)</label>
+                                            <input type="text" name="referrer_code" id="referrer_code" x-model="form.referrer_code" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Referrer -->
+                                <!-- Personal Information -->
                                 <div>
-                                    <label for="referrer_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Referrer Code (Optional)</label>
-                                    <input type="text" name="referrer_code" id="referrer_code" x-model="form.referrer_code" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                    <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4 border-b pb-2">Personal Information</h4>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <!-- NIK -->
+                                        <div>
+                                            <label for="nik" class="block text-sm font-medium text-gray-700 dark:text-gray-300">NIK</label>
+                                            <input type="text" name="nik" id="nik" x-model="form.nik" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        </div>
+                                        <!-- Job -->
+                                        <div>
+                                            <label for="job" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Job</label>
+                                            <input type="text" name="job" id="job" x-model="form.job" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        </div>
+                                        <!-- Birth Place -->
+                                        <div>
+                                            <label for="birth_place" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Birth Place</label>
+                                            <input type="text" name="birth_place" id="birth_place" x-model="form.birth_place" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        </div>
+                                        <!-- Birth Date -->
+                                        <div>
+                                            <label for="birth_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Birth Date</label>
+                                            <input type="date" name="birth_date" id="birth_date" x-model="form.birth_date" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        </div>
+                                        <!-- Gender -->
+                                        <div>
+                                            <label for="gender" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gender</label>
+                                            <select name="gender" id="gender" x-model="form.gender" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                <option value="">Select Gender</option>
+                                                <option value="Laki-laki">Laki-laki</option>
+                                                <option value="Perempuan">Perempuan</option>
+                                            </select>
+                                        </div>
+                                        <!-- Religion -->
+                                        <div>
+                                            <label for="religion" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Religion</label>
+                                            <select name="religion" id="religion" x-model="form.religion" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                <option value="">Select Religion</option>
+                                                <option value="Islam">Islam</option>
+                                                <option value="Kristen">Kristen</option>
+                                                <option value="Katolik">Katolik</option>
+                                                <option value="Hindu">Hindu</option>
+                                                <option value="Buddha">Buddha</option>
+                                                <option value="Konghucu">Konghucu</option>
+                                            </select>
+                                        </div>
+                                        <!-- Marital Status -->
+                                        <div>
+                                            <label for="marital_status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Marital Status</label>
+                                            <select name="marital_status" id="marital_status" x-model="form.marital_status" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                <option value="">Select Status</option>
+                                                <option value="Belum Menikah">Belum Menikah</option>
+                                                <option value="Menikah">Menikah</option>
+                                                <option value="Cerai Hidup">Cerai Hidup</option>
+                                                <option value="Cerai Mati">Cerai Mati</option>
+                                            </select>
+                                        </div>
+                                        <!-- Photo -->
+                                        <div>
+                                            <label for="photo" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Profile Photo</label>
+                                            <input type="file" name="photo" id="photo" class="mt-1 block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
+                                            <p class="text-xs text-gray-500 mt-1">Leave blank to keep current photo</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Address Information -->
+                                <div>
+                                    <h4 class="text-md font-medium text-gray-900 dark:text-gray-100 mb-4 border-b pb-2">Address Information</h4>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <!-- Province -->
+                                        <div>
+                                            <label for="province_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Province <span class="text-red-500">*</span></label>
+                                            <select name="province_id" id="province_id" x-model="form.province_id" @change="onProvinceChange($event)" required class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                                <option value="">Select Province</option>
+                                                <template x-for="province in provinces" :key="province.province_id">
+                                                    <option :value="province.province_id" x-text="province.province"></option>
+                                                </template>
+                                            </select>
+                                            <input type="hidden" name="province_name" x-model="form.province_name">
+                                        </div>
+                                        <!-- City -->
+                                        <div>
+                                            <label for="city_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300">City/District <span class="text-red-500">*</span></label>
+                                            <select name="city_id" id="city_id" x-model="form.city_id" @change="onCityChange($event)" required :disabled="!form.province_id" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm disabled:opacity-50">
+                                                <option value="">Select City</option>
+                                                <template x-for="city in cities" :key="city.city_id">
+                                                    <option :value="city.city_id" x-text="city.type + ' ' + city.city_name"></option>
+                                                </template>
+                                            </select>
+                                            <input type="hidden" name="city_name" x-model="form.city_name">
+                                        </div>
+                                        <!-- Postal Code -->
+                                        <div>
+                                            <label for="postal_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Postal Code</label>
+                                            <input type="text" name="postal_code" id="postal_code" x-model="form.postal_code" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                        </div>
+                                        <!-- Address -->
+                                        <div class="sm:col-span-2">
+                                            <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Address</label>
+                                            <textarea name="address" id="address" x-model="form.address" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Password Management (Super Admin Only) -->
@@ -282,6 +362,11 @@
     </div>
 
     <script>
+        const API_ROUTES = {
+            provinces: "{{ route('admin.silverchannels.locations.provinces') }}",
+            cities: "{{ url('admin/silverchannels/locations/cities') }}"
+        };
+
         function silverchannelManager() {
             return {
                 showModal: false,
@@ -308,7 +393,7 @@
                 
 
                 fetchProvinces() {
-                    fetch('{{ route('admin.silverchannels.locations.provinces') }}')
+                    fetch(API_ROUTES.provinces)
                         .then(response => response.json())
                         .then(data => {
                             this.provinces = data;
@@ -321,7 +406,7 @@
                         this.cities = [];
                         return;
                     }
-                    fetch('{{ url('admin/silverchannels/locations/cities') }}/' + provinceId)
+                    fetch(`${API_ROUTES.cities}/${provinceId}`)
                         .then(response => response.json())
                         .then(data => {
                             this.cities = data;
@@ -381,7 +466,16 @@
                         city_name: user.city_name,
                         referrer_code: user.referrer ? user.referrer.referral_code : '',
                         password: '',
-                        password_confirmation: ''
+                        password_confirmation: '',
+                        nik: user.nik || '',
+                        job: user.profile ? user.profile.job : '',
+                        birth_place: user.profile ? user.profile.birth_place : '',
+                        birth_date: user.profile && user.profile.birth_date ? user.profile.birth_date.split('T')[0] : '',
+                        gender: user.profile ? user.profile.gender : '',
+                        religion: user.profile ? user.profile.religion : '',
+                        marital_status: user.profile ? user.profile.marital_status : '',
+                        address: user.address || '',
+                        postal_code: user.postal_code || ''
                     };
                     
                     // Pre-fill cities

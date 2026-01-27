@@ -4,41 +4,57 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Package;
-use App\Services\RajaOngkirService;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Payment;
+use App\Models\StoreSetting;
+use App\Services\ApiIdService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\RegistrationPendingApproval;
+use App\Mail\NewRegistrationAlert;
 use Illuminate\Validation\Rules;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
+use App\Models\AuditLog;
 
 class SilverChannelRegistrationController extends Controller
 {
-    protected $rajaOngkir;
+    protected $shippingService;
 
-    public function __construct(RajaOngkirService $rajaOngkir)
+    public function __construct(ApiIdService $shippingService)
     {
-        $this->rajaOngkir = $rajaOngkir;
+        $this->shippingService = $shippingService;
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        // Check if registration is active (can be a setting, for now assume true or check a package)
-        $packages = Package::active()->get();
+        // 1. Get Active Package
+        $package = Package::active()->first();
         
-        if ($packages->isEmpty()) {
-             // Create default package if none exists for MVP
-             $package = Package::create([
+        if (!$package) {
+             // Fallback if no package exists (Safety net)
+             $package = new Package([
                  'name' => 'Silverchannel Basic',
-                 'price' => 500000,
-                 'benefits' => ['Akses Produk Silver', 'Komisi Referral', 'Support Prioritas'],
-                 'is_active' => true
-             ]);
-             $packages = collect([$package]);
+                'price' => 500000,
+                'weight' => 1000,
+                'benefits' => ['Akses Produk Silver', 'Komisi Referral', 'Support Prioritas'],
+                'description' => 'Paket pendaftaran standar',
+                'is_active' => true
+            ]);
         }
 
-        return view('auth.register-silver', compact('packages'));
+        // 2. Handle Referral Code
+        // Priority: URL Param > Cookie > Null
+        $referralCode = $request->query('ref', Cookie::get('referral_code'));
+
+        return view('auth.register-silver', compact('package', 'referralCode'));
     }
 
     public function store(Request $request)
@@ -52,71 +68,216 @@ class SilverChannelRegistrationController extends Controller
             'province_name' => ['required', 'string'],
             'city_id' => ['required', 'string'],
             'city_name' => ['required', 'string'],
-            // 'address' => ['required', 'string', 'min:10'], // Address not strictly requested in prompt "Form Pendaftaran Wajib" list, but usually part of city selection or separate? Prompt says "City (Kota) ... wajib diisi". Let's keep address if it's there or make it optional. User didn't list Address in "Form Pendaftaran Wajib", only City. But usually we need full address. I will make it optional or just stick to City for now to strictly follow prompt, but User model has address. Let's make it nullable or inferred.
-            'referral_code' => ['nullable', 'string', 'max:10', 'exists:users,referral_code'],
+            'subdistrict_id' => ['nullable', 'string'],
+            'subdistrict_name' => ['nullable', 'string'],
+            'postal_code' => ['nullable', 'string'],
+            // Address is optional in prompt but good to have if user provides it
+            'address' => ['nullable', 'string'],
+            'referral_code' => ['nullable', 'string', 'max:20', 'exists:users,referral_code'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'package_id' => ['required', 'exists:packages,id'],
+            'shipping_service' => ['required', 'string'],
+            'shipping_cost' => ['required', 'numeric', 'min:0'],
+            'shipping_courier' => ['required', 'string'],
+            'shipping_etd' => ['nullable', 'string'],
+        ], [
+            'referral_code.exists' => 'Kode referral tidak valid.',
+            'nik.unique' => 'NIK sudah terdaftar.',
+            'email.unique' => 'Email sudah terdaftar.',
+            'shipping_service.required' => 'Silakan pilih layanan pengiriman.',
         ]);
 
-        $referrer = null;
-        if ($request->referral_code) {
-            $referrer = User::where('referral_code', $request->referral_code)->first();
+        // Generate Token
+        $token = Str::random(40);
+        $cacheKey = 'silver_reg_' . $token;
+
+        // Store in cache for 2 hours (enough for checkout)
+        // Using Cache instead of Session for better isolation and no-cookie dependency for data persistence across potential browser issues
+        \Illuminate\Support\Facades\Cache::put($cacheKey, $request->except(['password_confirmation']), 7200);
+
+        return redirect()->route('register.silver.checkout', ['token' => $token]);
+    }
+
+    public function checkout($token)
+    {
+        $cacheKey = 'silver_reg_' . $token;
+        $data = \Illuminate\Support\Facades\Cache::get($cacheKey);
+
+        if (!$data) {
+            return redirect()->route('register.silver')->withErrors(['error' => 'Sesi pendaftaran kadaluarsa, silakan ulangi.']);
         }
 
-        // Generate ID Silverchannel
-        $silverChannelId = $this->generateSilverChannelId($request->name);
+        $package = Package::find($data['package_id']);
+        if (!$package) {
+             return redirect()->route('register.silver')->withErrors(['package_id' => 'Paket tidak ditemukan.']);
+        }
+        
+        // Get Bank Info from Store Settings or Hardcode fallback
+        $bankDetails = StoreSetting::first(); 
+        
+        return view('auth.register-checkout', compact('data', 'package', 'bankDetails', 'token'));
+    }
 
-        // Use ID as Referral Code
-        $referralCode = $silverChannelId;
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'nik' => $request->nik,
-            'whatsapp' => $request->whatsapp,
-            'phone' => $request->whatsapp,
-            'province_id' => $request->province_id,
-            'province_name' => $request->province_name,
-            'city_id' => $request->city_id,
-            'city_name' => $request->city_name,
-            'address' => $request->address ?? $request->city_name, // Fallback
-            'referrer_id' => $referrer ? $referrer->id : null,
-            'referral_code' => $referralCode,
-            'silver_channel_id' => $silverChannelId,
-            'password' => Hash::make($request->password),
-            'status' => 'PENDING_PAYMENT', // User asked for flow: Register -> Profile. Payment might come later or "PENDING_REVIEW". Prompt says "Setelah registrasi berhasil, redirect ke /profile".
+    public function payment(Request $request, $token)
+    {
+        $request->validate([
+            'payment_proof' => ['required', 'image', 'max:2048'], // 2MB
         ]);
 
-        // Create empty profile
-        $user->profile()->create();
+        $cacheKey = 'silver_reg_' . $token;
+        $data = \Illuminate\Support\Facades\Cache::get($cacheKey);
 
-        // Assign Role
-        // Ensure role exists
-        $role = Role::firstOrCreate(['name' => 'SILVERCHANNEL']);
-        $user->assignRole($role);
+        if (!$data) {
+            return redirect()->route('register.silver')->withErrors(['error' => 'Sesi pendaftaran kadaluarsa, silakan ulangi.']);
+        }
 
-        event(new Registered($user));
+        $package = Package::find($data['package_id']);
 
-        Auth::login($user);
+        DB::beginTransaction();
+        try {
+            // 1. Create User
+            $referrer = null;
+            if (!empty($data['referral_code'])) {
+                $referrer = User::where('referral_code', $data['referral_code'])->first();
+            }
 
-        // Audit Log
-        AuditLog::create([
-            'user_id' => $user->id,
-            'action' => 'REGISTER_SILVERCHANNEL',
-            'model_type' => User::class,
-            'model_id' => $user->id,
-            'new_values' => $user->toArray(),
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
-        ]);
+            $silverChannelId = $this->generateSilverChannelId($data['name']);
 
-        return redirect()->route('profile.edit');
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'nik' => $data['nik'],
+                'whatsapp' => $data['whatsapp'],
+                'phone' => $data['whatsapp'],
+                'province_id' => $data['province_id'],
+                'province_name' => $data['province_name'],
+                'city_id' => $data['city_id'],
+                'city_name' => $data['city_name'],
+                'subdistrict_id' => $data['subdistrict_id'] ?? null,
+                'subdistrict_name' => $data['subdistrict_name'] ?? null,
+                'postal_code' => $data['postal_code'] ?? null,
+                'address' => $data['address'] ?? $data['city_name'],
+                'referrer_id' => $referrer ? $referrer->id : null,
+                'referral_code' => $silverChannelId, // Self referral code
+                'silver_channel_id' => $silverChannelId,
+                'password' => Hash::make($data['password']),
+                'status' => 'WAITING_VERIFICATION', // Active after payment verification
+            ]);
+
+            $user->profile()->create();
+            
+            $role = Role::firstOrCreate(['name' => 'SILVERCHANNEL']);
+            $user->assignRole($role);
+
+            // 2. Create Order for Package
+            $shippingCost = $data['shipping_cost'] ?? 0;
+            $grandTotal = $package->price + $shippingCost;
+
+            $shippingAddress = $data['address'];
+            if (!empty($data['village_name'])) {
+                $shippingAddress .= ', ' . $data['village_name'];
+            }
+            if (!empty($data['subdistrict_name'])) {
+                $shippingAddress .= ', ' . $data['subdistrict_name'];
+            }
+            $shippingAddress .= ', ' . $data['city_name'] . ', ' . $data['province_name'];
+            if (!empty($data['postal_code'])) {
+                $shippingAddress .= ' ' . $data['postal_code'];
+            }
+
+            $order = Order::create([
+                'user_id' => $user->id,
+                // 'store_id' => 1, // Default store / Head office (Disabled: Column missing in MVP)
+                'order_number' => 'REG-' . strtoupper(Str::random(10)),
+                'total_amount' => $grandTotal, // Final amount to pay
+                'subtotal' => $package->price, // Base price
+                'status' => 'WAITING_VERIFICATION', // Waiting for admin to verify payment
+                'payment_status' => 'PAID', // Marked as paid by user (uploaded proof), pending verification
+                'shipping_cost' => $shippingCost,
+                'shipping_courier' => $data['shipping_courier'] ?? 'jne',
+                'shipping_service' => $data['shipping_service'] ?? null,
+                'shipping_address' => $shippingAddress,
+            ]);
+
+            // Add Order Item
+            OrderItem::create([
+                'order_id' => $order->id,
+                'product_id' => null, // It's a package
+                'product_name' => $package->name,
+                'quantity' => 1,
+                'price' => $package->price,
+                'total' => $package->price,
+            ]);
+
+            // 3. Store Payment Proof
+            try {
+                $proofPath = $this->processPaymentProof($request->file('payment_proof'));
+            } catch (\Exception $e) {
+                // Fallback to simple store if processing fails, though unlikely
+                 $proofPath = $request->file('payment_proof')->store('payment-proofs', 'public');
+            }
+
+            Payment::create([
+                'order_id' => $order->id,
+                'amount' => $grandTotal,
+                'method' => 'MANUAL_TRANSFER',
+                'proof_file' => $proofPath,
+                'status' => 'PENDING_VERIFICATION', // Admin needs to verify
+            ]);
+
+            event(new Registered($user));
+
+            // Log
+            AuditLog::create([
+                'user_id' => $user->id,
+                'action' => 'REGISTER_SILVERCHANNEL_WITH_PAYMENT',
+                'model_type' => User::class,
+                'model_id' => $user->id,
+                'new_values' => ['package_id' => $package->id, 'order_id' => $order->id],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            DB::commit();
+
+            // Clear session/cache
+            \Illuminate\Support\Facades\Cache::forget($cacheKey);
+
+            // Send Emails
+            try {
+                // To User
+                Mail::to($user->email)->send(new RegistrationPendingApproval($user, $order));
+
+                // To Admins (Super Admin)
+                $admins = User::role('SUPER_ADMIN')->get();
+                if ($admins->isEmpty()) {
+                    // Fallback to a system notification email if no admin user found
+                     Mail::to(config('mail.from.address'))->send(new NewRegistrationAlert($user, $order));
+                } else {
+                    foreach ($admins as $admin) {
+                        Mail::to($admin->email)->send(new NewRegistrationAlert($user, $order));
+                    }
+                }
+            } catch (\Exception $e) {
+                // Log email error but don't fail the transaction
+                \Illuminate\Support\Facades\Log::error('Registration Email Failed: ' . $e->getMessage());
+            }
+
+            // Log the user in
+            Auth::login($user);
+
+            // Redirect to a specific "Waiting Approval" page instead of login
+            return redirect()->route('approval.notice')->with('success', 'Pendaftaran berhasil! Mohon tunggu verifikasi admin.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+        }
     }
 
     private function generateSilverChannelId($name)
     {
-        // EPISC + 2 huruf pertama nama (uppercase) + 2 huruf random (A-Z) + 2 angka random (0-9)
         $namePart = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $name), 0, 2));
-        // Pad if name is too short (though validation min 3)
         if (strlen($namePart) < 2) {
             $namePart = str_pad($namePart, 2, 'X');
         }
@@ -129,14 +290,12 @@ class SilverChannelRegistrationController extends Controller
             $randomNums = str_pad(rand(0, 99), 2, '0', STR_PAD_LEFT);
             $id = 'EPISC' . $namePart . $randomChars . $randomNums;
             
-            // Check uniqueness
             if (!User::where('silver_channel_id', $id)->exists() && !User::where('referral_code', $id)->exists()) {
                 return $id;
             }
             $attempt++;
         } while ($attempt < $maxRetries);
 
-        // Fallback if collision persists (unlikely)
         return 'EPISC' . $namePart . strtoupper(Str::random(4));
     }
 
@@ -144,7 +303,7 @@ class SilverChannelRegistrationController extends Controller
     public function getProvinces()
     {
         try {
-            $provinces = $this->rajaOngkir->getProvinces();
+            $provinces = $this->shippingService->getProvinces();
             return response()->json($provinces);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -154,10 +313,150 @@ class SilverChannelRegistrationController extends Controller
     public function getCities($provinceId)
     {
         try {
-            $cities = $this->rajaOngkir->getCities($provinceId);
+            $cities = $this->shippingService->getCities($provinceId);
             return response()->json($cities);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    public function getSubdistricts($cityId)
+    {
+        try {
+            $subdistricts = $this->shippingService->getSubdistricts($cityId);
+            return response()->json($subdistricts);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getVillages($subdistrictId)
+    {
+        try {
+            $villages = $this->shippingService->getVillages($subdistrictId);
+            return response()->json($villages);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getShippingServices(Request $request)
+    {
+        $request->validate([
+            'destination' => 'required', // village_id
+            'destination_type' => 'nullable|in:city,subdistrict,village',
+            'weight' => 'required|integer|min:1',
+            'courier' => 'nullable|string'
+        ]);
+
+        // Get Origin from StoreSetting (Assuming Central Store/Admin)
+        $storeSetting = StoreSetting::first();
+        
+        // Default to Pademangan, Jakarta Utara (3172051003) for API ID context if not configured
+        // Validated working code for API ID
+        $origin = '3172051003'; 
+
+        // If using API ID, we need village code.
+        // If we were using RajaOngkir, we would use city/subdistrict.
+        // Ideally we check which service is active, but here we are injected with ApiIdService
+        
+        $courier = $request->courier ?? 'jne'; // Default to JNE if not specified
+        
+        try {
+            // ApiIdService::getCost($origin, $destination, $weight, $courier)
+            // Origin and Destination must be Village Codes
+            $costs = $this->shippingService->getCost(
+                $origin,
+                $request->destination,
+                $request->weight,
+                $courier
+            );
+            return response()->json($costs);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Process payment proof image with compression and resizing.
+     * Mirrors logic from PackageController/UserProfileController.
+     */
+    private function processPaymentProof($file)
+    {
+        $imageContents = '';
+        $extension = $file->getClientOriginalExtension();
+        $targetExtension = 'jpg'; // Standardize to JPG for consistency
+
+        // If > 1MB, compress
+        if ($file->getSize() > 1024 * 1024) {
+            $imageResource = imagecreatefromstring($file->get());
+            if (!$imageResource) {
+                 // Fallback if GD fails or format not supported
+                 return $file->store('payment-proofs', 'public');
+            }
+
+            $width = imagesx($imageResource);
+            $height = imagesy($imageResource);
+            $maxDim = 1000;
+
+            // Resize if too big (e.g. > 1000px)
+            if ($width > $maxDim || $height > $maxDim) {
+                $ratio = $width / $height;
+                if ($ratio > 1) {
+                    $newWidth = $maxDim;
+                    $newHeight = $maxDim / $ratio;
+                } else {
+                    $newHeight = $maxDim;
+                    $newWidth = $maxDim * $ratio;
+                }
+                
+                $newImage = imagecreatetruecolor((int)$newWidth, (int)$newHeight);
+                
+                // Handle transparency
+                $white = imagecolorallocate($newImage, 255, 255, 255);
+                imagefill($newImage, 0, 0, $white);
+                
+                imagecopyresampled($newImage, $imageResource, 0, 0, 0, 0, (int)$newWidth, (int)$newHeight, $width, $height);
+                $imageResource = $newImage;
+            } else {
+                $newImage = imagecreatetruecolor($width, $height);
+                $white = imagecolorallocate($newImage, 255, 255, 255);
+                imagefill($newImage, 0, 0, $white);
+                imagecopy($newImage, $imageResource, 0, 0, 0, 0, $width, $height);
+                $imageResource = $newImage;
+            }
+
+            // Output to buffer
+            ob_start();
+            imagejpeg($imageResource, null, 80); // 80% quality
+            $imageContents = ob_get_clean();
+        } else {
+            // If < 1MB, convert to JPG for consistency
+             $imageResource = @imagecreatefromstring($file->get());
+             if ($imageResource) {
+                $width = imagesx($imageResource);
+                $height = imagesy($imageResource);
+                
+                $newImage = imagecreatetruecolor($width, $height);
+                $white = imagecolorallocate($newImage, 255, 255, 255);
+                imagefill($newImage, 0, 0, $white);
+                imagecopy($newImage, $imageResource, 0, 0, 0, 0, $width, $height);
+                
+                ob_start();
+                imagejpeg($newImage, null, 90); 
+                $imageContents = ob_get_clean();
+             } else {
+                 $imageContents = $file->get();
+                 $targetExtension = $extension;
+             }
+        }
+
+        $filename = 'payment-proofs/' . Str::uuid() . '.' . $targetExtension;
+        
+        if (!Storage::disk('public')->put($filename, $imageContents)) {
+             throw new \Exception('Gagal menyimpan file bukti pembayaran.');
+        }
+        
+        return $filename;
     }
 }

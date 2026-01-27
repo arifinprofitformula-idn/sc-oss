@@ -174,10 +174,14 @@ class ApiIdService implements ShippingProviderInterface
                 $data = $response->json('data') ?? [];
                 
                 return array_map(function($item) use ($idKey, $nameKey) {
+                    // Robust ID/Code handling
+                    $rawCode = $item['code'] ?? $item['id'] ?? '';
+                    $rawId = $item[$idKey] ?? $item['id'] ?? $item['code'] ?? '';
+
                     return [
-                        'id' => $item[$idKey] ?? '',
+                        'id' => $rawId,
                         'name' => $item[$nameKey] ?? '',
-                        'code' => $item['code'] ?? '',
+                        'code' => $rawCode,
                         'full_name' => $item['name'] ?? '', 
                         // Additional fields for frontend compatibility if needed
                         'province_id' => $item['province_code'] ?? '',
@@ -204,7 +208,7 @@ class ApiIdService implements ShippingProviderInterface
             $path = '/regional/indonesia/villages';
             $params = ['name' => $query];
             /** @var Response $response */
-            $response = Http::withHeaders(['x-api-co-id' => $this->apiKey])
+            $response = Http::withoutVerifying()->withHeaders(['x-api-co-id' => $this->apiKey])
                             ->get($this->regionalBaseUrl . $path, $params);
             
             if ($response->successful()) {
@@ -221,7 +225,7 @@ class ApiIdService implements ShippingProviderInterface
             $path = '/regional/indonesia/districts';
             $params = ['name' => $query];
             /** @var Response $response */
-            $response = Http::withHeaders(['x-api-co-id' => $this->apiKey])
+            $response = Http::withoutVerifying()->withHeaders(['x-api-co-id' => $this->apiKey])
                             ->get($this->regionalBaseUrl . $path, $params);
             
             if ($response->successful()) {
@@ -235,7 +239,7 @@ class ApiIdService implements ShippingProviderInterface
                      if (strlen($lastWord) >= 3) {
                          try {
                             /** @var Response $res2 */
-                            $res2 = Http::withHeaders(['x-api-co-id' => $this->apiKey])
+                            $res2 = Http::withoutVerifying()->withHeaders(['x-api-co-id' => $this->apiKey])
                                             ->get($this->regionalBaseUrl . $path, ['name' => $lastWord]);
                              if ($res2->successful()) {
                                  $districts = $res2->json('data') ?? [];
@@ -251,7 +255,7 @@ class ApiIdService implements ShippingProviderInterface
                     // Fetch villages for this district manually to ensure we get parent names
                     try {
                         /** @var Response $vResponse */
-                        $vResponse = Http::withHeaders(['x-api-co-id' => $this->apiKey])
+                        $vResponse = Http::withoutVerifying()->withHeaders(['x-api-co-id' => $this->apiKey])
                                          ->get($this->regionalBaseUrl . '/regional/indonesia/villages', ['district_code' => $district['code']]);
                         
                         if ($vResponse->successful()) {
@@ -319,7 +323,7 @@ class ApiIdService implements ShippingProviderInterface
         
         try {
             /** @var Response $response */
-            $response = Http::withHeaders([
+            $response = Http::withoutVerifying()->withHeaders([
                 'x-api-co-id' => $this->apiKey,
                 'Accept' => 'application/json'
             ])->get($this->baseUrl . $path, $payload);

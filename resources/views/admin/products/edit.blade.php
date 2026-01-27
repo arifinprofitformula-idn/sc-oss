@@ -67,9 +67,9 @@
                                 <!-- Price MSRP (Renamed to Customer Price) -->
                                 <div class="mt-4">
                                     <label class="block font-medium text-sm text-gray-700" for="price_msrp">
-                                        {{ __('Customer Price') }} <span class="text-red-500">*</span>
+                                        {{ __('Customer Price') }}
                                     </label>
-                                    <x-text-input id="price_msrp" class="block mt-1 w-full" type="number" name="price_msrp" :value="old('price_msrp', $product->price_msrp)" required min="0" step="0.01" />
+                                    <x-text-input id="price_msrp" class="block mt-1 w-full" type="number" name="price_msrp" :value="old('price_msrp', $product->price_msrp)" min="0" step="0.01" />
                                     <x-input-error :messages="$errors->get('price_msrp')" class="mt-2" />
                                 </div>
 
@@ -122,6 +122,45 @@
                             </x-primary-button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Stock History -->
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mt-6">
+                <div class="p-6 text-gray-900">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Stock History</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Final Stock</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Note</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @forelse ($product->stockLogs as $log)
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $log->created_at->format('d M Y H:i') }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ ucwords(str_replace('_', ' ', $log->type)) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium {{ $log->quantity > 0 ? 'text-green-600' : 'text-red-600' }}">
+                                            {{ $log->quantity > 0 ? '+' : '' }}{{ $log->quantity }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $log->final_stock }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $log->user ? $log->user->name : 'System' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $log->note ?? '-' }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">No stock history available.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

@@ -25,11 +25,15 @@ class EnsureUserIsActive
                 return $next($request);
             }
 
-            // If not active
-            if ($user->status !== 'ACTIVE') {
+            // If not active (case insensitive)
+            if (strtoupper($user->status) !== 'ACTIVE') {
                 // Allow access to approval notice and logout
                 if ($request->routeIs('approval.notice') || $request->routeIs('logout')) {
                     return $next($request);
+                }
+
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => 'Your account is pending approval.'], 403);
                 }
                 
                 return redirect()->route('approval.notice');

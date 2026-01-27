@@ -13,13 +13,10 @@ use App\Http\Controllers\SilverChannelRegistrationController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('register', function () {
-        return redirect()->route('register.silver');
-    })->name('register');
+    Route::get('register', [RegisteredUserController::class, 'create'])
+        ->name('register');
 
-    Route::post('register', function () {
-        return redirect()->route('register.silver');
-    });
+    Route::post('register', [RegisteredUserController::class, 'store']);
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
@@ -36,19 +33,29 @@ Route::middleware('guest')->group(function () {
         ->name('password.reset');
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
-        ->name('password.store');
-
-    // Silver Channel Registration
+        ->name('password.update');
+        
+    // Silverchannel Registration
     Route::get('register-silver', [SilverChannelRegistrationController::class, 'create'])
         ->name('register.silver');
     Route::post('register-silver', [SilverChannelRegistrationController::class, 'store'])
         ->name('register.silver.store');
-    
-    // Public Location API for Registration
-    Route::get('api/locations/provinces', [SilverChannelRegistrationController::class, 'getProvinces'])
-        ->name('api.locations.provinces');
-    Route::get('api/locations/cities/{province}', [SilverChannelRegistrationController::class, 'getCities'])
-        ->name('api.locations.cities');
+    Route::get('register-silver/checkout/{token}', [SilverChannelRegistrationController::class, 'checkout'])
+        ->name('register.silver.checkout');
+    Route::post('register-silver/payment/{token}', [SilverChannelRegistrationController::class, 'payment'])
+        ->name('register.silver.payment');
+        
+    // Location API
+    Route::get('api/provinces', [SilverChannelRegistrationController::class, 'getProvinces'])
+        ->name('api.provinces');
+    Route::get('api/cities/{province}', [SilverChannelRegistrationController::class, 'getCities'])
+        ->name('api.cities');
+    Route::get('api/subdistricts/{city}', [SilverChannelRegistrationController::class, 'getSubdistricts'])
+        ->name('api.subdistricts');
+    Route::get('api/villages/{subdistrict}', [SilverChannelRegistrationController::class, 'getVillages'])
+        ->name('api.villages');
+    Route::post('register-silver/shipping-services', [SilverChannelRegistrationController::class, 'getShippingServices'])
+        ->name('register.silver.shipping-services');
 });
 
 Route::middleware('auth')->group(function () {

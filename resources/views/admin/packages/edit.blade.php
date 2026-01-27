@@ -28,19 +28,36 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <!-- Original Price -->
+                            <div>
+                                <label for="original_price" class="block text-sm font-medium text-gray-700">Harga Normal (Rp) <span class="text-gray-400 text-xs">(Opsional)</span></label>
+                                <input type="number" name="original_price" id="original_price" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" value="{{ old('original_price', $package->original_price) }}">
+                                <p class="text-xs text-gray-500 mt-1">Harga sebelum diskon (dicoret).</p>
+                                @error('original_price') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
                             <!-- Price -->
                             <div>
-                                <label for="price" class="block text-sm font-medium text-gray-700">Harga (Rp) <span class="text-red-500">*</span></label>
+                                <label for="price" class="block text-sm font-medium text-gray-700">Harga Jual / Promo (Rp) <span class="text-red-500">*</span></label>
                                 <input type="number" name="price" id="price" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required value="{{ old('price', $package->price) }}">
+                                <p class="text-xs text-gray-500 mt-1">Harga yang harus dibayar pengguna.</p>
                                 @error('price') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
-                            <!-- Duration -->
+                            <!-- Weight -->
                             <div>
-                                <label for="duration_days" class="block text-sm font-medium text-gray-700">Durasi (Hari) <span class="text-red-500">*</span></label>
-                                <input type="number" name="duration_days" id="duration_days" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required value="{{ old('duration_days', $package->duration_days) }}">
-                                @error('duration_days') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                <label for="weight" class="block text-sm font-medium text-gray-700">Weight/Berat (Gram) <span class="text-red-500">*</span></label>
+                                <input type="number" name="weight" id="weight" min="1" max="30000" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required value="{{ old('weight', $package->weight ?? 1000) }}">
+                                <p class="text-xs text-gray-500 mt-1">Berat paket untuk hitung ongkir (Min 1g).</p>
+                                @error('weight') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
+                        </div>
+
+                        <!-- Duration -->
+                        <div class="mb-4">
+                            <label for="duration_days" class="block text-sm font-medium text-gray-700">Durasi (Hari) <span class="text-red-500">*</span></label>
+                            <input type="number" name="duration_days" id="duration_days" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required value="{{ old('duration_days', $package->duration_days) }}">
+                            @error('duration_days') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
 
                         <!-- Benefits -->
@@ -82,10 +99,56 @@
         </div>
     </div>
 
+    <script id="benefits-data" type="application/json">
+        {!! json_encode(old('benefits', $package->benefits ?? [])) !!}
+    </script>
+
     <script>
+        function imageUpload(initialPreview = null) {
+            return {
+                preview: initialPreview,
+                error: null,
+                validateAndPreview(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    // Size validation (2MB)
+                    if (file.size > 2 * 1024 * 1024) {
+                        this.error = 'Ukuran file maksimal 2MB.';
+                        event.target.value = '';
+                        this.preview = initialPreview; // Revert to initial
+                        return;
+                    }
+
+                    const img = new Image();
+                    img.onload = () => {
+                        const ratio = img.width / img.height;
+                        // 1:1 = 1.0, 3:4 = 0.75
+                        const is1x1 = Math.abs(ratio - 1) < 0.05;
+                        const is3x4 = Math.abs(ratio - 0.75) < 0.05;
+
+                        if (!is1x1 && !is3x4) {
+                            this.error = 'Rasio aspek gambar harus 1:1 atau 3:4.';
+                            event.target.value = '';
+                            this.preview = initialPreview;
+                        } else {
+                            this.error = null;
+                            this.preview = img.src;
+                        }
+                    };
+                    img.onerror = () => {
+                        this.error = 'File bukan gambar yang valid.';
+                        event.target.value = '';
+                        this.preview = initialPreview;
+                    };
+                    img.src = URL.createObjectURL(file);
+                }
+            }
+        }
+
         function packageForm() {
             return {
-                benefits: {!! json_encode(old('benefits', $package->benefits ?? [''])) !!},
+                benefits: JSON.parse(document.getElementById('benefits-data').textContent),
                 addBenefit() {
                     this.benefits.push('');
                 },
