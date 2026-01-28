@@ -6,6 +6,25 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
+// Admin Domain Root Access
+Route::domain(env('ADMIN_DOMAIN'))->group(function () {
+    Route::get('/', function () {
+        if (Auth::check()) {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+            if ($user && $user->hasRole('SUPER_ADMIN')) {
+                return redirect()->route('admin.silverchannels.index');
+            }
+            return redirect()->route('dashboard');
+        }
+        return redirect()->route('login');
+    });
+
+    Route::get('/admin', function () {
+        return redirect()->route('admin.silverchannels.index');
+    })->middleware(['auth', 'role:SUPER_ADMIN']);
+});
+
 Route::get('/', function () {
     // Log redirect activity
     Log::info('Root access redirect', [
@@ -197,6 +216,11 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::post('/orders', [\App\Http\Controllers\Silverchannel\OrderController::class, 'store'])->name('orders.store');
             Route::get('/orders/{order}', [\App\Http\Controllers\Silverchannel\OrderController::class, 'show'])->name('orders.show');
             Route::post('/orders/{order}/cancel', [\App\Http\Controllers\Silverchannel\OrderController::class, 'cancel'])->name('orders.cancel');
+
+            // My Referrals
+            Route::get('/referrals', [\App\Http\Controllers\Silverchannel\ReferralController::class, 'index'])->name('referrals.index');
+            Route::post('/referrals/{referredUser}/follow-up', [\App\Http\Controllers\Silverchannel\ReferralController::class, 'updateFollowUp'])->name('referrals.follow-up');
+            Route::get('/referrals/export', [\App\Http\Controllers\Silverchannel\ReferralController::class, 'export'])->name('referrals.export');
 
             // Store Settings
             Route::get('/store/settings', [\App\Http\Controllers\Silverchannel\StoreSettingController::class, 'edit'])->name('store.settings');

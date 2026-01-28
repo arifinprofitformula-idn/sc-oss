@@ -17,7 +17,8 @@ class PackageSeeder extends Seeder
             Package::create([
                 'name' => 'Silverchannel Basic',
                 'price' => 500000,
-                'benefits' => json_encode(['Akses Produk Silver', 'Komisi Referral', 'Support Prioritas']), // Casted to array in model likely, but let's be safe
+                'original_price' => 750000,
+                'benefits' => ['Akses Produk Silver', 'Komisi Referral', 'Support Prioritas'],
                 'description' => 'Paket pendaftaran standar untuk menjadi Silverchannel resmi.',
                 'is_active' => true,
             ]);

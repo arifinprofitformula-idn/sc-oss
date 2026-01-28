@@ -4,6 +4,7 @@ namespace App\Services\Payout;
 
 use App\Models\Payout;
 use App\Models\User;
+use App\Models\AuditLog;
 use App\Services\Commission\CommissionService;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -40,11 +41,26 @@ class PayoutService
             $this->commissionService->recordEntry(
                 $user,
                 -$amount,
-                'PAYOUT',
+                'WITHDRAW', // Label as Withdraw
                 $payout,
-                'Payout Request ' . $payout->payout_number,
+                'Withdraw Request ' . $payout->payout_number,
                 'PENDING' // Included in debits calculation
             );
+
+            // Audit Log
+            AuditLog::create([
+                'user_id' => $user->id,
+                'action' => 'WITHDRAW',
+                'model_type' => Payout::class,
+                'model_id' => $payout->id,
+                'new_values' => [
+                    'amount' => $amount,
+                    'status' => 'REQUESTED',
+                    'payout_number' => $payout->payout_number
+                ],
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+            ]);
 
             return $payout;
         });

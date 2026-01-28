@@ -46,6 +46,7 @@ class IntegrationController extends Controller
             'active' => $this->integrationService->get('shipping_insurance_active', 0),
             'percentage' => $this->integrationService->get('shipping_insurance_percentage', 0),
             'description' => $this->integrationService->get('shipping_insurance_description', 'Biaya asuransi pengiriman'),
+            'packing_fee' => $this->integrationService->get('shipping_packing_fee', 0),
         ];
 
         $rajaOngkirSettings = [
@@ -124,6 +125,7 @@ class IntegrationController extends Controller
         $request->validate([
             'shipping_provider' => 'nullable|in:rajaongkir,api_id',
             'shipping_insurance_percentage' => 'nullable|numeric|min:0|max:100',
+            'shipping_packing_fee' => 'nullable|numeric|min:0',
             'shipping_insurance_description' => 'nullable|string|max:255',
             'rajaongkir_api_key' => 'nullable|string',
             'rajaongkir_base_url' => 'nullable|url',

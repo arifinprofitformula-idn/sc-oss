@@ -74,6 +74,7 @@
                                         <div class="flex gap-2">
                                             <form action="{{ route('admin.payments.verify', $payment) }}" method="POST">
                                                 @csrf
+                                                @method('PATCH')
                                                 <button type="submit" class="text-green-600 hover:text-green-900" onclick="return confirm('Verify this payment?')">Approve</button>
                                             </form>
                                             

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -85,9 +86,19 @@ class User extends Authenticatable
         return $this->belongsTo(User::class, 'referrer_id');
     }
 
-    public function referrals()
+    public function referrals(): HasMany
     {
         return $this->hasMany(User::class, 'referrer_id');
+    }
+
+    public function referralFollowUps(): HasMany
+    {
+        return $this->hasMany(ReferralFollowUp::class, 'referrer_id');
+    }
+
+    public function referralFollowUpAsReferred(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ReferralFollowUp::class, 'referred_user_id');
     }
 
     public function orders()

@@ -36,9 +36,9 @@
                     <x-input-label for="referral_code" :value="__('Kode Referral Saya')" />
                     <x-text-input id="referral_code" class="block mt-1 w-full bg-gray-200 cursor-not-allowed" type="text" :value="$user->referral_code" readonly />
                 </div>
-                 <div>
+                <div>
                     <x-input-label for="referrer" :value="__('Referred By')" />
-                    <x-text-input id="referrer" class="block mt-1 w-full bg-gray-200 cursor-not-allowed" type="text" :value="$user->referrer ? $user->referrer->name . ' (' . $user->referrer->referral_code . ')' : '-'" readonly />
+                    <x-text-input id="referrer" class="block mt-1 w-full bg-gray-200 cursor-not-allowed" type="text" :value="$user->referrer ? $user->referrer->name . ' - ' . ($user->referrer->silver_channel_id ?? '-') : '-'" readonly />
                 </div>
             </div>
         </div>

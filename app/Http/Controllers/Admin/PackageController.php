@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Package;
+use App\Models\Product;
 use App\Models\AuditLog;
 use App\Http\Requests\Admin\StorePackageRequest;
 use App\Http\Requests\Admin\UpdatePackageRequest;
@@ -39,7 +40,8 @@ class PackageController extends Controller
 
     public function create()
     {
-        return view('admin.packages.create');
+        $products = Product::where('is_active', true)->orderBy('name')->get();
+        return view('admin.packages.create', compact('products'));
     }
 
     public function store(StorePackageRequest $request)
@@ -56,14 +58,32 @@ class PackageController extends Controller
 
         $package = Package::create($data);
 
-        AuditLog::log('CREATE_PACKAGE', $package, null, $package->toArray());
+        if ($request->has('products')) {
+            $syncData = [];
+            foreach ($request->products as $product) {
+                $syncData[$product['id']] = ['quantity' => $product['quantity']];
+            }
+            $package->products()->attach($syncData);
+        }
+
+        AuditLog::log('CREATE_PACKAGE', $package, null, $package->load('products')->toArray());
+
+        if ($request->wantsJson()) {
+            session()->flash('success', 'Paket berhasil dibuat.');
+            return response()->json([
+                'message' => 'Paket berhasil dibuat.',
+                'redirect' => route('admin.packages.index'),
+            ]);
+        }
 
         return redirect()->route('admin.packages.index')->with('success', 'Paket berhasil dibuat.');
     }
 
     public function edit(Package $package)
     {
-        return view('admin.packages.edit', compact('package'));
+        $package->load('products');
+        $products = Product::where('is_active', true)->orderBy('name')->get();
+        return view('admin.packages.edit', compact('package', 'products'));
     }
 
     public function update(UpdatePackageRequest $request, Package $package)
@@ -84,9 +104,44 @@ class PackageController extends Controller
             }
         }
 
-        $package->update($data);
-        
-        AuditLog::log('UPDATE_PACKAGE', $package, $oldValues, $package->toArray());
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            $package->update($data);
+
+            if ($request->has('products')) {
+                $syncData = [];
+                foreach ($request->products as $product) {
+                    $syncData[$product['id']] = ['quantity' => $product['quantity']];
+                }
+                $package->products()->sync($syncData);
+            } else {
+                $package->products()->detach();
+            }
+            
+            AuditLog::log('UPDATE_PACKAGE', $package, $oldValues, $package->load('products')->toArray());
+            
+            \Illuminate\Support\Facades\DB::commit();
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            Log::error('Package Update Error: ' . $e->getMessage());
+            
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Terjadi kesalahan saat menyimpan paket.',
+                    'errors' => ['system' => [$e->getMessage()]]
+                ], 500);
+            }
+            
+            return back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan paket: ' . $e->getMessage());
+        }
+
+        if ($request->wantsJson()) {
+            session()->flash('success', 'Paket berhasil diperbarui.');
+            return response()->json([
+                'message' => 'Paket berhasil diperbarui.',
+                'redirect' => route('admin.packages.index'),
+            ]);
+        }
 
         return redirect()->route('admin.packages.index')->with('success', 'Paket berhasil diperbarui.');
     }

@@ -28,9 +28,8 @@
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Number</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">User / Referrer</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Bank Details</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
@@ -41,8 +40,9 @@
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $payout->payout_number }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        {{ $payout->user->name }}<br>
-                                        <span class="text-xs text-gray-500">{{ $payout->user->email }}</span>
+                                        <div class="font-medium text-gray-900 dark:text-white">{{ $payout->user->name }}</div>
+                                        <div class="text-xs text-gray-500">{{ $payout->user->email }}</div>
+                                        <div class="text-xs text-indigo-600 dark:text-indigo-400 font-mono mt-1">{{ $payout->user->silver_channel_id ?? '-' }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">Rp {{ number_format($payout->amount, 0, ',', '.') }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">

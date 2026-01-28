@@ -45,7 +45,10 @@ class CheckoutController extends Controller
         }
 
         // Verify user ownership
-        if ($order->user_id !== Auth::id() && !Auth::user()->hasRole('admin')) {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        if ($order->user_id !== Auth::id() && (!$user || !$user->hasRole('SUPER_ADMIN'))) {
              abort(403, 'Unauthorized.');
         }
 
@@ -120,6 +123,7 @@ class CheckoutController extends Controller
             'active' => (bool) $integrationService->get('shipping_insurance_active', 0),
             'percentage' => (float) $integrationService->get('shipping_insurance_percentage', 0),
             'description' => $integrationService->get('shipping_insurance_description', 'Layanan Asuransi Pengiriman'),
+            'packing_fee' => (int) $integrationService->get('shipping_packing_fee', 0),
         ];
 
         if ($userStore && !empty($userStore->shipping_couriers)) {
@@ -457,6 +461,10 @@ class CheckoutController extends Controller
             }
 
             $shippingCost = $verifiedCost;
+
+            // Add Packing Fee
+            $packingFee = (int) $integrationService->get('shipping_packing_fee', 0);
+            $shippingCost += $packingFee;
             
             // Tax Calculation (If applicable)
             // For MVP, we default to 0 or use config if set.

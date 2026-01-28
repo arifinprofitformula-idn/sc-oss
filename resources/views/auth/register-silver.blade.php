@@ -1,6 +1,15 @@
 @extends('layouts.guest')
 
 @section('content')
+    <style>
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+            animation: shimmer 1s ease-in-out infinite;
+        }
+    </style>
     <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
         <!-- Logo -->
         <div class="mb-8 flex justify-center">
@@ -10,12 +19,44 @@
         </div>
 
         <div class="max-w-7xl mx-auto">
+            @if(!$package)
+                <!-- Empty State -->
+                <div class="bg-gray-900/70 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl p-8 text-center max-w-2xl mx-auto">
+                    <div class="mb-6">
+                        <svg class="w-20 h-20 text-gray-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-4">{{ __('Pendaftaran Ditutup') }}</h2>
+                    <p class="text-gray-300 text-lg mb-8">
+                        {{ __('Pendaftaran SilverChannel sedang tidak tersedia. Silakan hubungi admin untuk informasi lebih lanjut.') }}
+                    </p>
+                    <a href="/" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-gray-900 bg-cyan-400 hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors">
+                        {{ __('Kembali ke Beranda') }}
+                    </a>
+                </div>
+            @else
             <form method="POST" action="{{ route('register.silver.store') }}" x-data="locationSelector({
+                oldName: {{ json_encode(old('name')) }},
+                oldNik: {{ json_encode(old('nik')) }},
+                oldEmail: {{ json_encode(old('email')) }},
+                oldWhatsapp: {{ json_encode(old('whatsapp')) }},
+                oldAddress: {{ json_encode(old('address')) }},
                 oldProvinceId: {{ json_encode(old('province_id')) }},
                 oldProvinceName: {{ json_encode(old('province_name')) }},
                 oldCityId: {{ json_encode(old('city_id')) }},
                 oldCityName: {{ json_encode(old('city_name')) }},
-                packageWeight: {{ $package->weight ?? 1000 }}
+                oldSubdistrictId: {{ json_encode(old('subdistrict_id')) }},
+                oldSubdistrictName: {{ json_encode(old('subdistrict_name')) }},
+                oldVillageId: {{ json_encode(old('village_id')) }},
+                oldVillageName: {{ json_encode(old('village_name')) }},
+                oldPostalCode: {{ json_encode(old('postal_code')) }},
+                oldShippingService: {{ json_encode(old('shipping_service')) }},
+                oldShippingCost: {{ json_encode(old('shipping_cost')) }},
+                oldShippingCourier: {{ json_encode(old('shipping_courier')) }},
+                oldShippingEtd: {{ json_encode(old('shipping_etd')) }},
+                packageWeight: {{ $package->total_weight ?? 1000 }},
+                packingFee: {{ $packingFee ?? 0 }}
             })">
                 @csrf
                 <input type="hidden" name="package_id" value="{{ $package->id }}">
@@ -40,7 +81,7 @@
                                         class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
                                         type="text" 
                                         name="name" 
-                                        :value="old('name')" 
+                                        x-model="name"
                                         required 
                                         autofocus 
                                         placeholder="Masukkan nama lengkap"
@@ -56,7 +97,7 @@
                                         class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
                                         type="number" 
                                         name="nik" 
-                                        :value="old('nik')" 
+                                        x-model="nik"
                                         required 
                                         maxlength="16" 
                                         placeholder="Masukkan NIK"
@@ -73,7 +114,7 @@
                                             class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
                                             type="email" 
                                             name="email" 
-                                            :value="old('email')" 
+                                            x-model="email"
                                             required 
                                             placeholder="contoh@email.com"
                                         />
@@ -88,7 +129,7 @@
                                             class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
                                             type="text" 
                                             name="whatsapp" 
-                                            :value="old('whatsapp')" 
+                                            x-model="whatsapp"
                                             required 
                                             placeholder="+628..." 
                                         />
@@ -172,10 +213,11 @@
                                     <textarea 
                                         id="address" 
                                         name="address" 
+                                        x-model="address"
                                         rows="2"
                                         class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent rounded-md shadow-sm"
                                         placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan..."
-                                    >{{ old('address') }}</textarea>
+                                    ></textarea>
                                     <x-input-error :messages="$errors->get('address')" class="mt-2 text-red-400" />
                                 </div>
 
@@ -210,22 +252,28 @@
                                                             class="relative rounded-lg border p-4 cursor-pointer hover:border-cyan-500 transition-all duration-200"
                                                             :class="selectedShippingService === cost.service && selectedShippingCourier === courier.code ? 'bg-cyan-900/20 border-cyan-500 ring-1 ring-cyan-500' : 'bg-gray-800/30 border-gray-700'"
                                                         >
-                                                            <div class="flex justify-between items-start">
-                                                                <div>
+                                                            <div class="flex justify-between items-center">
+                                                                <div class="flex-1">
                                                                     <p class="text-white font-bold" x-text="cost.service"></p>
                                                                     <p class="text-gray-400 text-xs mt-1" x-text="cost.description"></p>
                                                                     <p class="text-gray-500 text-xs mt-1" x-text="'Estimasi: ' + (cost.cost[0].etd ? cost.cost[0].etd + ' hari' : '-')"></p>
                                                                 </div>
-                                                                <div class="text-right">
-                                                                    <p class="text-cyan-400 font-bold" x-text="'Rp ' + new Intl.NumberFormat('id-ID').format(cost.cost[0].value)"></p>
+                                                                <div class="flex items-center space-x-3">
+                                                                    <div class="text-right">
+                                                                        <p class="text-cyan-400 font-bold" x-text="'Rp ' + new Intl.NumberFormat('id-ID').format(cost.cost[0].value)"></p>
+                                                                    </div>
+                                                                    <!-- Selected Indicator -->
+                                                                    <div class="w-6 h-6 flex items-center justify-center">
+                                                                        <div x-show="selectedShippingService === cost.service && selectedShippingCourier === courier.code" 
+                                                                             x-transition:enter="transition ease-out duration-200"
+                                                                             x-transition:enter-start="opacity-0 scale-50"
+                                                                             x-transition:enter-end="opacity-100 scale-100">
+                                                                            <svg class="w-6 h-6 text-cyan-500" fill="currentColor" viewBox="0 0 20 20">
+                                                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                                            </svg>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            
-                                                            <!-- Selected Indicator -->
-                                                            <div x-show="selectedShippingService === cost.service && selectedShippingCourier === courier.code" class="absolute top-2 right-2">
-                                                                <svg class="w-5 h-5 text-cyan-500" fill="currentColor" viewBox="0 0 20 20">
-                                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                                                </svg>
                                                             </div>
                                                         </div>
                                                     </template>
@@ -302,7 +350,7 @@
                             <!-- Package Image -->
                             <div class="mb-6 -mx-6 -mt-6 sm:-mx-8 sm:-mt-8 rounded-t-2xl overflow-hidden relative group">
                                 @if($package->image)
-                                    <img src="{{ asset('storage/' . $package->image) }}" alt="{{ $package->name }}" class="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105">
+                                    <img src="{{ asset('storage/' . $package->image) }}" alt="{{ $package->name }}" class="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105 rounded-2xl shadow-lg hover:shadow-cyan-400/50 hover:shadow-2xl">
                                 @else
                                     <!-- Fallback Placeholder -->
                                     <div class="w-full aspect-[4/3] bg-gray-800 flex items-center justify-center">
@@ -312,7 +360,7 @@
                                     </div>
                                 @endif
                                 @if($package->original_price && $package->original_price > $package->price)
-                                    <div class="absolute top-4 right-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                                    <div class="absolute top-4 left-6 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                                         PROMO
                                     </div>
                                 @endif
@@ -324,19 +372,27 @@
                                 @if($package->original_price && $package->original_price > $package->price)
                                     <div class="flex flex-col items-center justify-center">
                                          <span class="text-gray-400 line-through text-sm">Rp {{ number_format($package->original_price, 0, ',', '.') }}</span>
-                                         <div class="text-3xl font-extrabold text-cyan-400">
-                                            Rp {{ number_format($package->price, 0, ',', '.') }}
+                                        <div class="text-3xl font-bold text-cyan-400">
+                                           Rp {{ number_format($package->base_total, 0, ',', '.') }}
                                         </div>
-                                         <span class="bg-red-500/20 text-red-300 text-xs px-2 py-0.5 rounded-full mt-1 border border-red-500/30">
+                                         <span class="bg-red-500/20 text-white text-xs px-2 py-0.5 rounded-full mt-1 border border-red-500/30">
                                             Hemat Rp {{ number_format($package->original_price - $package->price, 0, ',', '.') }}
                                          </span>
+                                         @if($package->promo_start_date || $package->promo_end_date)
+                                            <div class="mt-2 text-xs text-yellow-400 font-medium">
+                                                Promo: 
+                                                {{ $package->promo_start_date ? \Carbon\Carbon::parse($package->promo_start_date)->translatedFormat('d M') : 'Sekarang' }} 
+                                                - 
+                                                {{ $package->promo_end_date ? \Carbon\Carbon::parse($package->promo_end_date)->translatedFormat('d M Y') : 'Seterusnya' }}
+                                            </div>
+                                         @endif
                                     </div>
                                 @else
                                     <div class="text-3xl font-extrabold text-cyan-400">
-                                        Rp {{ number_format($package->price, 0, ',', '.') }}
+                                        Rp {{ number_format($package->base_total, 0, ',', '.') }}
                                     </div>
                                 @endif
-                                <p class="text-gray-400 text-sm mt-2">Biaya Pendaftaran</p>
+                                <p class="text-gray-400 text-sm mt-2">Biaya Paket + Produk</p>
                             </div>
 
                             <div class="space-y-4 mb-8">
@@ -350,6 +406,66 @@
                                         </div>
                                     @endforeach
                                 @endif
+
+                                {{-- Bundled Products List --}}
+                                @if($package->products->count() > 0)
+                                    <div class="pt-4 border-t border-gray-700">
+                                        <h4 class="text-xs font-semibold text-gray-300 uppercase mb-3">{{ __('Produk Termasuk') }}</h4>
+                                        <div class="space-y-3">
+                                            @foreach($package->products as $product)
+                                                <div class="flex items-center bg-gray-800/50 p-2 rounded-lg border border-gray-700">
+                                                    @if($product->image)
+                                                        <img src="{{ asset('storage/' . $product->image) }}" class="w-10 h-10 rounded-md object-cover mr-3">
+                                                    @else
+                                                        <div class="w-10 h-10 rounded-md bg-gray-700 flex items-center justify-center mr-3 text-gray-500 text-xs">IMG</div>
+                                                    @endif
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="text-sm font-medium text-white truncate">{{ $product->name }}</p>
+                                                        <p class="text-xs text-gray-400">{{ $product->pivot->quantity }} x Rp {{ number_format($product->price_silverchannel, 0, ',', '.') }}</p>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                {{-- Cost Summary --}}
+                                <div class="pt-4 border-t border-gray-700">
+                                    <h4 class="text-xs font-semibold text-gray-300 uppercase mb-3">{{ __('Ringkasan Biaya') }}</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between text-gray-400">
+                                            <span>Paket Pendaftaran</span>
+                                            <span>Rp {{ number_format($package->price, 0, ',', '.') }}</span>
+                                        </div>
+                                        @if($package->products_total > 0)
+                                            <div class="flex justify-between text-gray-400">
+                                                <span>Produk Tambahan</span>
+                                                <span>Rp {{ number_format($package->products_total, 0, ',', '.') }}</span>
+                                            </div>
+                                        @endif
+                                        <div class="flex justify-between text-gray-400" x-show="selectedShippingCost > 0" x-transition>
+                                            <span>Ongkos Kirim</span>
+                                            <span x-text="'Rp ' + new Intl.NumberFormat('id-ID').format(selectedShippingCost)"></span>
+                                        </div>
+                                        @if($package->insurance_cost > 0)
+                                            <div class="flex justify-between text-gray-400">
+                                                <span>Asuransi Pengiriman (LM)</span>
+                                                <span>Rp {{ number_format($package->insurance_cost, 0, ',', '.') }}</span>
+                                            </div>
+                                        @endif
+                                        
+                                        <!-- Packing Fee -->
+                                        <div class="flex justify-between text-gray-400">
+                                            <span>Biaya Packing</span>
+                                            <span x-text="'Rp ' + new Intl.NumberFormat('id-ID').format(packingFee)"></span>
+                                        </div>
+
+                                        <div class="pt-2 border-t border-gray-700 flex justify-between font-bold text-white text-base">
+                                            <span>Total Bayar</span>
+                                            <span x-text="'Rp ' + new Intl.NumberFormat('id-ID').format({{ $package->base_total + $package->insurance_cost }} + parseInt(selectedShippingCost || 0) + parseInt(packingFee || 0))"></span>
+                                        </div>
+                                    </div>
+                                </div>
                                 
                                 @if($package->description)
                                     <div class="pt-4 border-t border-gray-700">
@@ -358,14 +474,26 @@
                                         </p>
                                     </div>
                                 @endif
+
+                                @if($package->terms)
+                                    <div class="pt-4 border-t border-gray-700">
+                                        <h4 class="text-xs font-semibold text-gray-300 uppercase mb-2">{{ __('Syarat & Ketentuan') }}</h4>
+                                        <p class="text-gray-400 text-xs">
+                                            {{ $package->terms }}
+                                        </p>
+                                    </div>
+                                @endif
                             </div>
 
                             <button 
                                 type="submit" 
-                                class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 focus:ring-offset-gray-900 shadow-lg hover:shadow-cyan-500/25 flex items-center justify-center"
+                                class="group relative w-full overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-4 px-6 rounded-xl shadow-[0_6px_0_#0891b2] hover:shadow-[0_8px_0_#0891b2] hover:-translate-y-1 active:shadow-[0_0px_0_#0891b2] active:translate-y-[6px] transition-all duration-150 flex items-center justify-center"
                             >
-                                <span>{{ __('Lanjut ke Pembayaran') }}</span>
-                                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <!-- Shimmer Overlay (Active on Hover) -->
+                                <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none"></div>
+                                
+                                <span class="relative text-lg tracking-wide uppercase">{{ __('Lanjut ke Pembayaran') }}</span>
+                                <svg class="relative w-6 h-6 ml-2 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                                 </svg>
                             </button>
@@ -379,12 +507,20 @@
                     </div>
                 </div>
             </form>
+            @endif
         </div>
     </div>
 
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('locationSelector', (initialData = {}) => ({
+                // Non-location fields for persistence
+                name: initialData.oldName || '',
+                nik: initialData.oldNik || '',
+                email: initialData.oldEmail || '',
+                whatsapp: initialData.oldWhatsapp || '',
+                address: initialData.oldAddress || '',
+
                 provinces: [],
                 cities: [],
                 subdistricts: [],
@@ -399,6 +535,7 @@
                 selectedVillageName: initialData.oldVillageName || '',
                 postalCode: initialData.oldPostalCode || '',
                 packageWeight: initialData.packageWeight || 1000,
+                packingFee: initialData.packingFee || 0,
                 
                 selectedShippingService: initialData.oldShippingService || '',
                 selectedShippingCost: initialData.oldShippingCost || 0,
@@ -421,17 +558,108 @@
                 },
 
                 init() {
+                    // Load from session if no old input
+                    this.loadFromSession();
+
                     this.fetchProvinces();
+                    
+                    // Chain the dependent fetches if data exists (e.g. from validation error or session)
                     if (this.selectedProvince) {
                         this.fetchCities().then(() => {
                             if (this.selectedCity) {
                                 this.fetchSubdistricts().then(() => {
                                     if (this.selectedSubdistrict) {
-                                        this.fetchVillages();
+                                        this.fetchVillages().then(() => {
+                                            if (this.selectedVillage) {
+                                                this.fetchShippingServices();
+                                            }
+                                        });
                                     }
                                 });
                             }
                         });
+                    }
+
+                    // Watchers for auto-save
+                    this.$watch('name', () => this.saveToSession());
+                    this.$watch('nik', () => this.saveToSession());
+                    this.$watch('email', () => this.saveToSession());
+                    this.$watch('whatsapp', () => this.saveToSession());
+                    this.$watch('address', () => this.saveToSession());
+                    this.$watch('selectedProvince', () => this.saveToSession());
+                    this.$watch('selectedCity', () => this.saveToSession());
+                    this.$watch('selectedSubdistrict', () => this.saveToSession());
+                    this.$watch('selectedVillage', () => this.saveToSession());
+                    this.$watch('postalCode', () => this.saveToSession());
+
+                    // Auto-focus on first error if exists
+                    this.$nextTick(() => {
+                        const firstError = document.querySelector('.text-red-400');
+                        if (firstError) {
+                            // Try to find the input associated with this error
+                            // Assuming structure: Label -> Input -> Error
+                            const parent = firstError.closest('div');
+                            if (parent) {
+                                const input = parent.querySelector('input, select, textarea');
+                                if (input) {
+                                    input.focus();
+                                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            }
+                        }
+                    });
+                },
+
+                saveToSession() {
+                    const state = {
+                        name: this.name,
+                        nik: this.nik,
+                        email: this.email,
+                        whatsapp: this.whatsapp,
+                        address: this.address,
+                        selectedProvince: this.selectedProvince,
+                        selectedProvinceName: this.selectedProvinceName,
+                        selectedCity: this.selectedCity,
+                        selectedCityName: this.selectedCityName,
+                        selectedSubdistrict: this.selectedSubdistrict,
+                        selectedSubdistrictName: this.selectedSubdistrictName,
+                        selectedVillage: this.selectedVillage,
+                        selectedVillageName: this.selectedVillageName,
+                        postalCode: this.postalCode
+                    };
+                    sessionStorage.setItem('register_silver_form', JSON.stringify(state));
+                },
+
+                loadFromSession() {
+                    // If we have server-side old input (validation error), DO NOT load from session, 
+                    // because old input is the most recent attempt.
+                    const hasOldInput = initialData.oldName || initialData.oldNik || initialData.oldEmail || initialData.oldProvinceId;
+                    
+                    if (hasOldInput) {
+                        return;
+                    }
+            
+                    const saved = sessionStorage.getItem('register_silver_form');
+                    if (saved) {
+                        try {
+                            const state = JSON.parse(saved);
+                            this.name = state.name || '';
+                            this.nik = state.nik || '';
+                            this.email = state.email || '';
+                            this.whatsapp = state.whatsapp || '';
+                            this.address = state.address || '';
+                            this.selectedProvince = state.selectedProvince || '';
+                            this.selectedProvinceName = state.selectedProvinceName || '';
+                            this.selectedCity = state.selectedCity || '';
+                            this.selectedCityName = state.selectedCityName || '';
+                            this.selectedSubdistrict = state.selectedSubdistrict || '';
+                            this.selectedSubdistrictName = state.selectedSubdistrictName || '';
+                            this.selectedVillage = state.selectedVillage || '';
+                            this.selectedVillageName = state.selectedVillageName || '';
+                            this.postalCode = state.postalCode || '';
+                        } catch (e) {
+                            console.error('Error parsing session data', e);
+                        }
                     }
                 },
 
@@ -614,4 +842,11 @@
             }));
         });
     </script>
+
+    <style>
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) skewX(-15deg); }
+            100% { transform: translateX(200%) skewX(-15deg); }
+        }
+    </style>
 @endsection

@@ -1,11 +1,11 @@
 @extends('layouts.guest')
 
 @section('content')
-    <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gray-900">
         <!-- Logo -->
         <div class="mb-8 flex justify-center">
             <a href="/" class="flex items-center space-x-2">
-                <x-application-logo />
+                <x-application-logo class="w-20 h-20 fill-current text-cyan-400" />
             </a>
         </div>
 
@@ -69,18 +69,62 @@
 
                         <div class="pt-2 border-t border-gray-700/50">
                             <div class="flex justify-between items-center mb-1">
-                                <span class="text-gray-400 text-sm">Harga Paket</span>
+                                <span class="text-gray-400 text-sm">Harga Paket Dasar</span>
                                 <span class="text-white font-medium">Rp {{ number_format($package->price, 0, ',', '.') }}</span>
                             </div>
+                            @if($package->products_total > 0)
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-400 text-sm">Produk Tambahan (Bundling)</span>
+                                    <span class="text-white font-medium">Rp {{ number_format($package->products_total, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
                             <div class="flex justify-between items-center mb-1">
                                 <span class="text-gray-400 text-sm">Ongkos Kirim ({{ strtoupper($data['shipping_courier'] ?? '') }} - {{ strtoupper($data['shipping_service'] ?? '-') }})</span>
                                 <span class="text-white font-medium">Rp {{ number_format($data['shipping_cost'] ?? 0, 0, ',', '.') }}</span>
                             </div>
+                            @if(($data['packing_fee'] ?? 0) > 0)
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-400 text-sm">Biaya Packing</span>
+                                    <span class="text-white font-medium">Rp {{ number_format($data['packing_fee'], 0, ',', '.') }}</span>
+                                </div>
+                            @endif
+                            @if($package->insurance_cost > 0)
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-gray-400 text-sm">Asuransi Pengiriman (LM)</span>
+                                    <span class="text-white font-medium">Rp {{ number_format($package->insurance_cost, 0, ',', '.') }}</span>
+                                </div>
+                            @endif
                         </div>
                         
-                        <div class="pt-4 border-t border-gray-700 flex justify-between items-center">
+                        <div class="pt-4 border-t border-gray-700 flex justify-between items-center" x-data="{ copied: false }">
                             <span class="text-gray-300">Total Pembayaran</span>
-                            <span class="text-2xl font-bold text-white">Rp {{ number_format($package->price + ($data['shipping_cost'] ?? 0), 0, ',', '.') }}</span>
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl font-bold text-white">Rp {{ number_format($package->base_total + $package->insurance_cost + ($data['shipping_cost'] ?? 0) + ($data['packing_fee'] ?? 0), 0, ',', '.') }}</span>
+                                <div class="relative">
+                                    <button @click="copyToClipboard('{{ $package->base_total + $package->insurance_cost + ($data['shipping_cost'] ?? 0) + ($data['packing_fee'] ?? 0) }}').then(() => { copied = true; setTimeout(() => copied = false, 2000) })" 
+                                            class="text-gray-400 hover:text-cyan-400 transition-colors p-2 hover:bg-gray-800 rounded-lg group" 
+                                            title="Salin Nominal">
+                                        <template x-if="!copied">
+                                            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                        </template>
+                                        <template x-if="copied">
+                                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        </template>
+                                    </button>
+                                    <div x-show="copied" 
+                                         style="display: none;"
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0 translate-y-2"
+                                         x-transition:enter-end="opacity-100 translate-y-0"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-100 translate-y-0"
+                                         x-transition:leave-end="opacity-0 translate-y-2"
+                                         class="absolute bottom-full right-0 mb-2 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded shadow-lg whitespace-nowrap z-10">
+                                        Berhasil disalin!
+                                        <div class="absolute -bottom-1 right-3 w-2 h-2 bg-green-500 rotate-45"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -94,31 +138,60 @@
                     
                     <div class="mb-6 bg-blue-900/30 border border-blue-800 rounded-xl p-4">
                         <p class="text-gray-300 text-sm mb-2">Silakan transfer ke rekening berikut:</p>
-                        @if($bankDetails)
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-gray-400">Bank</span>
-                                <span class="text-white font-bold">{{ $bankDetails->bank_name ?? 'BCA' }}</span>
-                            </div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-gray-400">No. Rekening</span>
-                                <span class="text-white font-bold text-lg tracking-wider">{{ $bankDetails->bank_account_no ?? '1234567890' }}</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-400">Atas Nama</span>
-                                <span class="text-white font-bold">{{ $bankDetails->bank_account_name ?? 'PT Emas Perak Indonesia' }}</span>
-                            </div>
+                        @if(!empty($banks) && is_array($banks))
+                            @foreach($banks as $bank)
+                                <div class="mb-6 border-b border-gray-700 pb-6 last:border-0 last:pb-0 last:mb-0">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center gap-3">
+                                            @if(!empty($bank['logo']))
+                                                <div class="bg-white p-2 rounded-lg shadow-sm">
+                                                    <img src="{{ \Illuminate\Support\Str::startsWith($bank['logo'], ['http', '/']) ? $bank['logo'] : Storage::url($bank['logo']) }}" 
+                                                         alt="{{ $bank['bank'] ?? 'Bank' }}" 
+                                                         class="h-8 w-auto object-contain">
+                                                </div>
+                                            @endif
+                                            <span class="text-cyan-400 font-bold text-xl">{{ $bank['bank'] ?? 'Bank' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between mb-2" x-data="{ copied: false }">
+                                        <span class="text-gray-400">No. Rekening</span>
+                                        <div class="flex items-center gap-2 relative">
+                                            <span class="text-white font-bold text-lg tracking-wider">{{ $bank['number'] ?? '-' }}</span>
+                                            <div class="relative">
+                                                <button @click="copyToClipboard('{{ $bank['number'] ?? '' }}').then(() => { copied = true; setTimeout(() => copied = false, 2000) })" 
+                                                        class="text-gray-500 hover:text-cyan-400 transition-colors p-2 hover:bg-gray-800 rounded-lg group" 
+                                                        title="Salin No. Rekening">
+                                                    <template x-if="!copied">
+                                                        <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                                    </template>
+                                                    <template x-if="copied">
+                                                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                    </template>
+                                                </button>
+                                                <div x-show="copied" 
+                                                     style="display: none;"
+                                                     x-transition:enter="transition ease-out duration-200"
+                                                     x-transition:enter-start="opacity-0 translate-y-2"
+                                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                                     x-transition:leave="transition ease-in duration-150"
+                                                     x-transition:leave-start="opacity-100 translate-y-0"
+                                                     x-transition:leave-end="opacity-0 translate-y-2"
+                                                     class="absolute bottom-full right-0 mb-2 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded shadow-lg whitespace-nowrap z-10">
+                                                    Berhasil disalin!
+                                                    <div class="absolute -bottom-1 right-3 w-2 h-2 bg-green-500 rotate-45"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-400">Atas Nama</span>
+                                        <span class="text-white font-bold">{{ $bank['name'] ?? '-' }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
                         @else
-                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-gray-400">Bank</span>
-                                <span class="text-white font-bold">BCA</span>
-                            </div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-gray-400">No. Rekening</span>
-                                <span class="text-white font-bold text-lg tracking-wider">8000 1234 5678</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-400">Atas Nama</span>
-                                <span class="text-white font-bold">PT Emas Perak Indonesia</span>
+                            <div class="text-center text-gray-400 py-4">
+                                Informasi rekening belum tersedia. Silakan hubungi admin.
                             </div>
                         @endif
                     </div>
@@ -163,6 +236,44 @@
     </div>
 
     <script>
+        // Global copy function with fallback for HTTP
+        window.copyToClipboard = function(text) {
+            return new Promise((resolve, reject) => {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(resolve).catch(() => {
+                        // If writeText fails, try fallback
+                        fallbackCopy(text, resolve, reject);
+                    });
+                } else {
+                    fallbackCopy(text, resolve, reject);
+                }
+            });
+        }
+
+        function fallbackCopy(text, resolve, reject) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    resolve();
+                } else {
+                    reject(new Error('Copy failed'));
+                }
+            } catch (err) {
+                reject(err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
         function previewImage(input) {
             const placeholder = document.getElementById('upload-placeholder');
             const preview = document.getElementById('image-preview');

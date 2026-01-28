@@ -18,11 +18,17 @@ class PayoutController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $payouts = $user->payouts()->latest()->paginate(10);
+        $payouts = $user->payouts()->latest()->paginate(10, ['*'], 'payouts_page');
+        
+        $commissions = $user->commissionLedgers()
+            ->with('reference')
+            ->latest()
+            ->paginate(10, ['*'], 'commissions_page');
+
         $balance = $user->wallet_balance;
         $pendingCommission = $user->pending_commission;
 
-        return view('payouts.index', compact('payouts', 'balance', 'pendingCommission'));
+        return view('payouts.index', compact('payouts', 'commissions', 'balance', 'pendingCommission'));
     }
 
     public function store(Request $request)

@@ -27,7 +27,7 @@
                                     <tr>
                                         <td class="px-4 py-3">
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $item->product_name }}</div>
-                                            <div class="text-xs text-gray-500">{{ $item->product->sku }}</div>
+                                            <div class="text-xs text-gray-500">{{ $item->product?->sku ?? '-' }}</div>
                                         </td>
                                         <td class="px-4 py-3 text-right text-sm text-gray-900 dark:text-gray-100">
                                             IDR {{ number_format($item->price, 0, ',', '.') }}

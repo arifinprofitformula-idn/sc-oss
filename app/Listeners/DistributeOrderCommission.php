@@ -40,6 +40,14 @@ class DistributeOrderCommission implements ShouldQueue
             return;
         }
 
+        // BLOCK: Commission for Silverchannel orders is disabled per business rule
+        // "Transaksi order yang berasal dari silverchannel tidak boleh menghasilkan komisi untuk pereferral."
+        // "Hanya transaksi yang berasal dari sistem referral yang memicu pembayaran komisi."
+        if ($user->hasRole('SILVERCHANNEL')) {
+            Log::info("Commission skipped for Order #{$order->order_number} (User #{$user->id} is Silverchannel - Transaction Commission Disabled)");
+            return;
+        }
+
         $referrer = $user->referrer;
         
         // Calculate Commission (e.g., 5% of Total Amount)

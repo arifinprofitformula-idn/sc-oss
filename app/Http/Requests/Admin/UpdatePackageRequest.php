@@ -55,6 +55,11 @@ class UpdatePackageRequest extends FormRequest
             'benefits' => ['nullable', 'array'],
             'benefits.*' => ['string', 'max:255'],
             'is_active' => ['boolean'],
+            'commission_type' => ['required', 'string', 'in:percentage,fixed'],
+            'commission_value' => ['required', 'numeric', 'min:0'],
+            'products' => ['nullable', 'array'],
+            'products.*.id' => ['required', 'exists:products,id'],
+            'products.*.quantity' => ['required', 'integer', 'min:1'],
         ];
     }
 }

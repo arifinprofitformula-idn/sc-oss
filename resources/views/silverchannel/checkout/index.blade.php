@@ -335,6 +335,12 @@
                                         <span class="font-medium text-gray-900 dark:text-gray-100" x-text="shippingCost > 0 ? formatMoney(shippingCost) : '-'"></span>
                                     </div>
 
+                                    <!-- Packing Fee -->
+                                    <div x-show="insuranceSettings.packing_fee > 0" class="flex justify-between text-gray-600 dark:text-gray-400">
+                                        <span>Biaya Packing</span>
+                                        <span class="font-medium text-gray-900 dark:text-gray-100" x-text="formatMoney(insuranceSettings.packing_fee)"></span>
+                                    </div>
+
                                     <!-- Mandatory Insurance -->
                                     <div x-show="insuranceSettings.active" class="flex justify-between text-gray-600 dark:text-gray-400">
                                         <div class="flex items-center gap-1">
@@ -678,7 +684,7 @@
                 paymentMethod: 'transfer',
                 
                 // Insurance
-                insuranceSettings: { active: false, percentage: 0, description: '' },
+                insuranceSettings: { active: false, percentage: 0, description: '', packing_fee: 0 },
 
                 // Address Provider
                 addressProvider: '',
@@ -728,7 +734,7 @@
                 async init() {
                     const bs = window.checkoutBootstrap;
                     this.uniqueCode = bs.uniqueCode;
-                    this.insuranceSettings = bs.insuranceSettings || { active: false, percentage: 0, description: '' };
+                    this.insuranceSettings = bs.insuranceSettings || { active: false, percentage: 0, description: '', packing_fee: 0 };
                     this.addressProvider = bs.addressProvider || 'rajaongkir';
 
                     this.availableCouriers = Array.isArray(bs.couriers) ? bs.couriers : [];
@@ -804,7 +810,7 @@
                 },
 
                 get grandTotal() {
-                    return this.subtotal + this.shippingCost + this.uniqueCode + this.insuranceCost;
+                    return this.subtotal + this.shippingCost + this.uniqueCode + this.insuranceCost + (this.insuranceSettings.packing_fee || 0);
                 },
                 
                 formatMoney(amount) {

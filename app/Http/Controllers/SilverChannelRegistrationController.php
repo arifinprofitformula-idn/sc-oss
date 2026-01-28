@@ -7,6 +7,7 @@ use App\Models\Package;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Models\Store;
 use App\Models\StoreSetting;
 use App\Services\ApiIdService;
 use Illuminate\Http\Request;
@@ -24,6 +25,9 @@ use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use App\Models\AuditLog;
 
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+
 class SilverChannelRegistrationController extends Controller
 {
     protected $shippingService;
@@ -35,26 +39,28 @@ class SilverChannelRegistrationController extends Controller
 
     public function create(Request $request)
     {
-        // 1. Get Active Package
-        $package = Package::active()->first();
-        
-        if (!$package) {
-             // Fallback if no package exists (Safety net)
-             $package = new Package([
-                 'name' => 'Silverchannel Basic',
-                'price' => 500000,
-                'weight' => 1000,
-                'benefits' => ['Akses Produk Silver', 'Komisi Referral', 'Support Prioritas'],
-                'description' => 'Paket pendaftaran standar',
-                'is_active' => true
-            ]);
-        }
+        // 1. Get Active Package with Caching (30 mins)
+        // Eager load products.category for insurance calculation
+        $package = Cache::remember('active_silver_package', 1800, function () {
+            return Package::active()->with('products.category')->first();
+        });
 
+        // Log the access
+        Log::info('SilverChannel Registration Page Accessed', [
+            'ip' => $request->ip(),
+            'package_available' => $package ? true : false,
+            'package_id' => $package ? $package->id : null
+        ]);
+        
         // 2. Handle Referral Code
         // Priority: URL Param > Cookie > Null
         $referralCode = $request->query('ref', Cookie::get('referral_code'));
 
-        return view('auth.register-silver', compact('package', 'referralCode'));
+        // 3. Get Packing Fee
+        $integrationService = app(\App\Services\IntegrationService::class);
+        $packingFee = (int) $integrationService->get('shipping_packing_fee', 0);
+
+        return view('auth.register-silver', compact('package', 'referralCode', 'packingFee'));
     }
 
     public function store(Request $request)
@@ -90,10 +96,17 @@ class SilverChannelRegistrationController extends Controller
         // Generate Token
         $token = Str::random(40);
         $cacheKey = 'silver_reg_' . $token;
+        
+        $data = $request->except(['password_confirmation']);
+        
+        // Add Packing Fee
+        $integrationService = app(\App\Services\IntegrationService::class);
+        $packingFee = (int) $integrationService->get('shipping_packing_fee', 0);
+        $data['packing_fee'] = $packingFee;
 
         // Store in cache for 2 hours (enough for checkout)
         // Using Cache instead of Session for better isolation and no-cookie dependency for data persistence across potential browser issues
-        \Illuminate\Support\Facades\Cache::put($cacheKey, $request->except(['password_confirmation']), 7200);
+        \Illuminate\Support\Facades\Cache::put($cacheKey, $data, 7200);
 
         return redirect()->route('register.silver.checkout', ['token' => $token]);
     }
@@ -107,15 +120,29 @@ class SilverChannelRegistrationController extends Controller
             return redirect()->route('register.silver')->withErrors(['error' => 'Sesi pendaftaran kadaluarsa, silakan ulangi.']);
         }
 
-        $package = Package::find($data['package_id']);
+        $package = Package::with('products.category')->find($data['package_id']);
         if (!$package) {
              return redirect()->route('register.silver')->withErrors(['package_id' => 'Paket tidak ditemukan.']);
         }
         
-        // Get Bank Info from Store Settings or Hardcode fallback
-        $bankDetails = StoreSetting::first(); 
+        // Get Main Store Bank Details (Super Admin's Store)
+        $mainStore = Store::whereHas('user.roles', function($q) {
+            $q->where('name', 'SUPER_ADMIN');
+        })->first();
+
+        $banks = [];
+
+        // Fallback to StoreSetting if Store model is empty (legacy support)
+        if ($mainStore && !empty($mainStore->bank_details)) {
+            $banks = $mainStore->bank_details;
+        } else {
+            $storeSetting = StoreSetting::first();
+            if ($storeSetting && !empty($storeSetting->bank_info)) {
+                 $banks = $storeSetting->bank_info;
+            }
+        }
         
-        return view('auth.register-checkout', compact('data', 'package', 'bankDetails', 'token'));
+        return view('auth.register-checkout', compact('data', 'package', 'banks', 'token'));
     }
 
     public function payment(Request $request, $token)
@@ -131,7 +158,7 @@ class SilverChannelRegistrationController extends Controller
             return redirect()->route('register.silver')->withErrors(['error' => 'Sesi pendaftaran kadaluarsa, silakan ulangi.']);
         }
 
-        $package = Package::find($data['package_id']);
+        $package = Package::with('products.category')->find($data['package_id']);
 
         DB::beginTransaction();
         try {
@@ -171,7 +198,13 @@ class SilverChannelRegistrationController extends Controller
 
             // 2. Create Order for Package
             $shippingCost = $data['shipping_cost'] ?? 0;
-            $grandTotal = $package->price + $shippingCost;
+            $packingFee = $data['packing_fee'] ?? 0;
+            $shippingCost += $packingFee; // Merge packing fee into shipping cost
+            
+            // Calculate totals
+            $baseTotal = $package->base_total;
+            $insuranceCost = $package->insurance_cost;
+            $grandTotal = $baseTotal + $insuranceCost + $shippingCost;
 
             $shippingAddress = $data['address'];
             if (!empty($data['village_name'])) {
@@ -190,7 +223,8 @@ class SilverChannelRegistrationController extends Controller
                 // 'store_id' => 1, // Default store / Head office (Disabled: Column missing in MVP)
                 'order_number' => 'REG-' . strtoupper(Str::random(10)),
                 'total_amount' => $grandTotal, // Final amount to pay
-                'subtotal' => $package->price, // Base price
+                'subtotal' => $baseTotal, // Base price + Products
+                'insurance_amount' => $insuranceCost,
                 'status' => 'WAITING_VERIFICATION', // Waiting for admin to verify payment
                 'payment_status' => 'PAID', // Marked as paid by user (uploaded proof), pending verification
                 'shipping_cost' => $shippingCost,
@@ -199,15 +233,27 @@ class SilverChannelRegistrationController extends Controller
                 'shipping_address' => $shippingAddress,
             ]);
 
-            // Add Order Item
+            // Add Order Item (Package)
             OrderItem::create([
                 'order_id' => $order->id,
                 'product_id' => null, // It's a package
-                'product_name' => $package->name,
+                'product_name' => $package->name . ' (Paket Pendaftaran)',
                 'quantity' => 1,
                 'price' => $package->price,
                 'total' => $package->price,
             ]);
+
+            // Add Order Items (Bundled Products)
+            foreach ($package->products as $product) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'product_name' => $product->name . ' (Bundling Paket)',
+                    'quantity' => $product->pivot->quantity,
+                    'price' => $product->price_silverchannel,
+                    'total' => $product->price_silverchannel * $product->pivot->quantity,
+                ]);
+            }
 
             // 3. Store Payment Proof
             try {

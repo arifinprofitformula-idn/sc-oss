@@ -96,6 +96,20 @@
                                             class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white rounded-md">
                                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Text displayed to customer during checkout.</p>
                                     </div>
+
+                                    <!-- Packing Fee -->
+                                    <div class="md:col-span-2">
+                                        <label for="shipping_packing_fee" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Biaya Packing (Packing Fee)</label>
+                                        <div class="mt-1 relative rounded-md shadow-sm">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 sm:text-sm">Rp</span>
+                                            </div>
+                                            <input type="number" step="1" min="0" name="shipping_packing_fee" id="shipping_packing_fee" 
+                                                value="{{ $insuranceSettings['packing_fee'] ?? 0 }}" 
+                                                class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white rounded-md" placeholder="0">
+                                        </div>
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Fixed cost added to shipping total for packing.</p>
+                                    </div>
                                 </div>
                             </div>
 

@@ -11,9 +11,14 @@ Ada pendaftaran Silverchannel baru yang perlu diverifikasi.
 
 **Detail Pembayaran:**
 - **No. Order:** {{ $order->order_number }}
-- **Total:** Rp {{ number_format($order->grand_total, 0, ',', '.') }}
+- **Paket & Produk:** Rp {{ number_format($order->subtotal, 0, ',', '.') }}
+- **Ongkos Kirim:** Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}
+@if($order->insurance_amount > 0)
+- **Asuransi Pengiriman (LM):** Rp {{ number_format($order->insurance_amount, 0, ',', '.') }}
+@endif
+- **Total:** Rp {{ number_format($order->total_amount, 0, ',', '.') }}
 - **Metode:** Manual Transfer
-- **Status:** {{ $order->payment_status }}
+- **Status:** {{ $order->status }}
 
 Silakan login ke dashboard admin untuk memverifikasi pembayaran dan mengaktifkan akun ini.
 

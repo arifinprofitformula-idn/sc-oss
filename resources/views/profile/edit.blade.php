@@ -137,19 +137,68 @@
                     </div>
 
                     <!-- Referral Code (Copyable) -->
-                    <div class="mt-6 bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-100 dark:border-green-800 relative group cursor-pointer text-left" onclick="navigator.clipboard.writeText('{{ $user->referral_code }}'); alert('Kode referral disalin!');">
+                    <div class="mt-6 bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-100 dark:border-green-800 relative group cursor-pointer text-left"
+                         x-data="{
+                            code: '{{ $user->referral_code ?? '-' }}',
+                            copied: false,
+                            copy() {
+                                if (!this.code || this.code === '-') return;
+                                
+                                if (navigator.clipboard && navigator.clipboard.writeText) {
+                                    navigator.clipboard.writeText(this.code)
+                                        .then(() => this.success())
+                                        .catch(() => this.fallback());
+                                } else {
+                                    this.fallback();
+                                }
+                            },
+                            fallback() {
+                                const ta = document.createElement('textarea');
+                                ta.value = this.code;
+                                ta.style.position = 'fixed';
+                                ta.style.opacity = '0';
+                                document.body.appendChild(ta);
+                                ta.focus();
+                                ta.select();
+                                try {
+                                    document.execCommand('copy');
+                                    this.success();
+                                } catch (e) {
+                                    console.error('Copy failed', e);
+                                    if (Alpine.store('toast')) {
+                                        Alpine.store('toast').show('Gagal menyalin kode', 'error');
+                                    } else {
+                                        alert('Gagal menyalin kode');
+                                    }
+                                }
+                                document.body.removeChild(ta);
+                            },
+                            success() {
+                                this.copied = true;
+                                if (Alpine.store('toast')) {
+                                    Alpine.store('toast').show('Kode Referral Tersalin', 'success');
+                                } else {
+                                    alert('Kode Referral Tersalin');
+                                }
+                                setTimeout(() => this.copied = false, 2000);
+                            }
+                         }"
+                         @click="copy()">
                         <span class="text-xs text-green-600 dark:text-green-400 font-bold uppercase tracking-wider">Kode Referral Saya</span>
                         <div class="text-lg font-bold text-gray-800 dark:text-gray-200 mt-1 flex items-center justify-between gap-2">
                             {{ $user->referral_code ?? '-' }}
-                            <svg class="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <div class="relative">
+                                <svg x-show="!copied" class="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                <svg x-show="copied" x-cloak class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Referred By -->
                     <div class="mt-4 bg-gray-50 dark:bg-gray-700/30 p-3 rounded-lg border border-gray-200 dark:border-gray-600 text-left">
                         <span class="text-xs text-gray-500 font-bold uppercase tracking-wider">Promoted By</span>
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-2 truncate" title="{{ $user->referrer ? $user->referrer->name : '-' }}">
-                            {{ $user->referrer ? $user->referrer->name : '-' }}
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mt-2 truncate" title="{{ $user->referrer ? $user->referrer->name . ' - ' . ($user->referrer->silver_channel_id ?? '-') : '-' }}">
+                            {{ $user->referrer ? $user->referrer->name . ' - ' . ($user->referrer->silver_channel_id ?? '-') : '-' }}
                         </div>
                     </div>
 

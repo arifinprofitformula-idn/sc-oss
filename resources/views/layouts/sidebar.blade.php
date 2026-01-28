@@ -79,6 +79,11 @@
                 {{ __('Wallet') }}
             </x-sidebar-link>
 
+            <x-sidebar-link :href="route('silverchannel.referrals.index')" :active="request()->routeIs('silverchannel.referrals.*')">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2a3 3 0 00-5.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2a3 3 0 015.356-1.857M12 7a3 3 0 110-6 3 3 0 010 6zm5 4a3 3 0 100-6 3 3 0 000 6zm-10 0a3 3 0 100-6 3 3 0 000 6z"></path></svg>
+                {{ __('My Referrals') }}
+            </x-sidebar-link>
+
             @php
                 $integrationService = app(\App\Services\IntegrationService::class);
                 $showStoreSettings = $integrationService->get('silverchannel_store_menu_active');
