@@ -28,8 +28,8 @@
             @yield('content')
             
             <!-- Footer -->
-            <div class="absolute bottom-4 w-full text-center">
-                <p class="text-gray-500 text-sm">
+            <div class="absolute bottom-4 w-full text-center z-20 pointer-events-none">
+                <p class="text-gray-400 text-sm">
                     &copy; {{ date('Y') }} PT Emas Perak Indonesia. All rights reserved.
                 </p>
             </div>

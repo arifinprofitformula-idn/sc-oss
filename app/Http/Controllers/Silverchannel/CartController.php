@@ -95,6 +95,13 @@ class CartController extends Controller
 
         $product = Product::findOrFail($request->product_id);
 
+        if (!$product->is_active) {
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'Product is not active.'], 404);
+            }
+            return redirect()->back()->with('error', 'Product is not active.');
+        }
+
         // Check stock
         if ($product->stock < $request->quantity) {
              if ($request->wantsJson()) {
@@ -152,6 +159,13 @@ class CartController extends Controller
         $request->validate([
             'quantity' => 'required|integer|min:1',
         ]);
+
+        if (!$cart->product->is_active) {
+             if ($request->wantsJson()) {
+                 return response()->json(['message' => "Produk tidak aktif"], 422);
+             }
+             return back()->with('error', "Produk tidak aktif");
+        }
 
         // Check Stock
         if ($cart->product->stock < $request->quantity) {
@@ -220,6 +234,13 @@ class CartController extends Controller
         }
 
         foreach ($cartItems as $item) {
+            if (!$item->product->is_active) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => "Produk {$item->product->name} tidak aktif. Mohon hapus dari keranjang."
+                ], 422);
+            }
+
             if ($item->quantity > $item->product->stock) {
                 return response()->json([
                     'success' => false, 

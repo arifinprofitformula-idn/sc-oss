@@ -69,7 +69,19 @@ class SilverChannelRegistrationController extends Controller
             'name' => ['required', 'string', 'min:3', 'max:255'],
             'nik' => ['required', 'numeric', 'digits:16', 'unique:users'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'whatsapp' => ['required', 'string', 'regex:/^\+62[0-9]+$/'],
+            'whatsapp' => [
+                'required', 
+                'string', 
+                'regex:/^62[0-9]+$/', 
+                'min:10', 
+                'max:15',
+                function ($attribute, $value, $fail) {
+                    $formatted = '+' . $value;
+                    if (User::where('phone', $formatted)->orWhere('whatsapp', $formatted)->exists()) {
+                        $fail('Nomor WhatsApp sudah terdaftar. Silakan gunakan nomor lain.');
+                    }
+                },
+            ],
             'province_id' => ['required', 'string'],
             'province_name' => ['required', 'string'],
             'city_id' => ['required', 'string'],
@@ -79,7 +91,7 @@ class SilverChannelRegistrationController extends Controller
             'postal_code' => ['nullable', 'string'],
             // Address is optional in prompt but good to have if user provides it
             'address' => ['nullable', 'string'],
-            'referral_code' => ['nullable', 'string', 'max:20', 'exists:users,referral_code'],
+            'referral_code' => ['required', 'string', 'max:20', 'exists:users,referral_code'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'package_id' => ['required', 'exists:packages,id'],
             'shipping_service' => ['required', 'string'],
@@ -87,6 +99,7 @@ class SilverChannelRegistrationController extends Controller
             'shipping_courier' => ['required', 'string'],
             'shipping_etd' => ['nullable', 'string'],
         ], [
+            'referral_code.required' => 'Kode Referral harus diisi.',
             'referral_code.exists' => 'Kode referral tidak valid.',
             'nik.unique' => 'NIK sudah terdaftar.',
             'email.unique' => 'Email sudah terdaftar.',
@@ -98,6 +111,8 @@ class SilverChannelRegistrationController extends Controller
         $cacheKey = 'silver_reg_' . $token;
         
         $data = $request->except(['password_confirmation']);
+        // Transform whatsapp to standard format +62
+        $data['whatsapp'] = '+' . $data['whatsapp'];
         
         // Add Packing Fee
         $integrationService = app(\App\Services\IntegrationService::class);

@@ -70,7 +70,7 @@
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID / Referral Code</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID / Pereferral</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email / Phone</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
@@ -84,7 +84,14 @@
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $user->silver_channel_id ?? $user->referral_code ?? '-' }}</div>
                                             @if($user->referrer)
-                                                <div class="text-xs text-gray-500 mt-1">Ref: {{ $user->referrer->name }}</div>
+                                                <div class="text-xs mt-1">
+                                                    <a href="#" class="text-blue-600 hover:text-blue-800 underline"
+                                                       @click.prevent="openReferrerModal({{ json_encode($user->referrer) }})">
+                                                        {{ $user->referrer->name }} - {{ $user->referrer->silver_channel_id ?? $user->referrer->id }}
+                                                    </a>
+                                                </div>
+                                            @else
+                                                <div class="text-xs text-gray-500 mt-1">-</div>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -114,23 +121,24 @@
                                             {{ $user->created_at->format('d M Y H:i') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                                            <div class="flex justify-end space-x-2">
-                                                <button @click="openEditModal({{ json_encode($user) }})" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">Edit</button>
-                                                
+                                            <div class="flex justify-end space-x-3">
+                                                <div class="relative group">
+                                                    <button @click="openEditModal({{ json_encode($user) }})" aria-label="Edit" class="p-2 rounded hover:shadow hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4h2M4 20h16M4 20l4-4m0 0l10-10a2.828 2.828 0 114 4L12 20m-4-4l4 4"/></svg>
+                                                    </button>
+                                                    <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 pointer-events-none transition">Edit</span>
+                                                </div>
 
 
-                                                @if($user->status === 'PENDING_REVIEW' || $user->status === 'WAITING_VERIFICATION')
-                                                    <form action="{{ route('admin.silverchannels.approve', $user) }}" method="POST" class="inline-block">
-                                                        @csrf
-                                                        <button type="submit" class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 ml-2" onclick="return confirm('Approve this user?')">Approve</button>
-                                                    </form>
-                                                    <form action="{{ route('admin.silverchannels.reject', $user) }}" method="POST" class="inline-block">
-                                                        @csrf
-                                                        <button type="submit" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 ml-2" onclick="return confirm('Reject this user?')">Reject</button>
-                                                    </form>
-                                                @endif
+                                                {{-- Manual Approval/Reject Removed: Automated via Order Payment Status --}}
 
-                                                <button @click="confirmDelete('{{ route('admin.silverchannels.destroy', $user) }}')" class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 ml-2">Delete</button>
+
+                                                <div class="relative group">
+                                                    <button @click="openConfirmModal('delete', '{{ route('admin.silverchannels.destroy', $user) }}', 'Hapus Silverchannel', 'Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.', 'Ya, Hapus', 'bg-red-600 hover:bg-red-700 focus:ring-red-500', 'DELETE')" aria-label="Delete" class="p-2 rounded hover:shadow hover:bg-red-50 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3m-4 0h10"/></svg>
+                                                    </button>
+                                                    <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 pointer-events-none transition">Delete</span>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -149,6 +157,96 @@
                         {{ $silverchannels->links() }}
                     </div>
 
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div x-show="confirmModal.show" class="fixed inset-0 z-[60] overflow-y-auto" style="display: none;"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @keydown.escape.window="if(!confirmModal.loading) confirmModal.show = false">
+            
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true" @click="if(!confirmModal.loading) confirmModal.show = false">
+                    <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
+                </div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full"
+                     x-transition:enter="transform transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="transform transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+                    
+                    <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10"
+                                 :class="{
+                                    'bg-red-100 text-red-600': confirmModal.type === 'delete' || confirmModal.type === 'danger',
+                                    'bg-yellow-100 text-yellow-600': confirmModal.type === 'warning' || confirmModal.type === 'reject',
+                                    'bg-green-100 text-green-600': confirmModal.type === 'success' || confirmModal.type === 'approve',
+                                    'bg-blue-100 text-blue-600': confirmModal.type === 'info'
+                                 }">
+                                <!-- Heroicon based on type -->
+                                <template x-if="confirmModal.type === 'delete' || confirmModal.type === 'danger'">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                </template>
+                                <template x-if="confirmModal.type === 'reject' || confirmModal.type === 'warning'">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </template>
+                                <template x-if="confirmModal.type === 'approve' || confirmModal.type === 'success'">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </template>
+                                <template x-if="confirmModal.type === 'info'">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </template>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="modal-title" x-text="confirmModal.title">
+                                </h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400" x-text="confirmModal.message">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="button" 
+                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                :class="confirmModal.buttonClass"
+                                :disabled="confirmModal.loading"
+                                @click="submitConfirm()">
+                            <svg x-show="confirmModal.loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span x-text="confirmModal.loading ? 'Memproses...' : confirmModal.buttonText"></span>
+                        </button>
+                        <button type="button" 
+                                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                :disabled="confirmModal.loading"
+                                @click="confirmModal.show = false">
+                            Batal
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -353,11 +451,74 @@
             </div>
         </div>
 
-        <!-- Delete Confirmation Form -->
-        <form id="delete-form" method="POST" style="display: none;">
-            @csrf
-            @method('DELETE')
-        </form>
+
+
+        <div x-show="showRefModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @keydown.escape.window="showRefModal = false">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0" @click.self="showRefModal = false">
+                <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl w-full">
+                    <div class="bg-white dark:bg-gray-800 px-6 pt-6 pb-6 sm:p-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Profil Pereferral</h3>
+                            <button class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700" @click="showRefModal = false">
+                                <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        <template x-if="referrer && referrer.id">
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-4">
+                                    <!-- Photo or Initials -->
+                                    <template x-if="referrer.profile && referrer.profile.photo_path">
+                                         <img :src="'/storage/' + referrer.profile.photo_path" alt="Photo" class="w-16 h-16 rounded-full object-cover border border-gray-200 shadow-sm">
+                                    </template>
+                                    <template x-if="!referrer.profile || !referrer.profile.photo_path">
+                                        <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl font-bold border border-indigo-200" x-text="(referrer.name || '-').substring(0,1).toUpperCase()"></div>
+                                    </template>
+
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-lg font-bold text-gray-900 dark:text-gray-100 truncate" x-text="referrer.name || '-'"></h4>
+                                        <p class="text-sm text-gray-500 truncate" x-text="'ID: ' + (referrer.silver_channel_id || referrer.id)"></p>
+                                        <div class="mt-2 flex flex-wrap gap-2">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800" x-text="referrer.email"></span>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800" x-text="referrer.phone || referrer.whatsapp"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                     <div class="grid grid-cols-1 gap-y-3 text-sm">
+                                         <div class="flex justify-between items-center">
+                                             <span class="text-gray-500">Lokasi</span>
+                                             <span class="text-gray-900 dark:text-gray-100 font-medium text-right truncate pl-4" x-text="(referrer.city_name || '-') + ', ' + (referrer.province_name || '-')"></span>
+                                         </div>
+                                         <div class="flex justify-between items-center">
+                                             <span class="text-gray-500">Referral Code</span>
+                                             <span class="font-mono text-gray-900 dark:text-gray-100 font-medium bg-gray-100 px-2 py-1 rounded" x-text="referrer.referral_code || '-'"></span>
+                                         </div>
+                                     </div>
+                                </div>
+                            </div>
+                        </template>
+                        <template x-if="!referrer || !referrer.id">
+                            <div class="p-4 bg-red-50 text-red-700 rounded">Data pereferral tidak ditemukan.</div>
+                        </template>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 flex justify-end">
+                        <button type="button" @click="showRefModal = false" class="h-10 inline-flex justify-center items-center rounded-md border border-gray-300 shadow-sm px-4 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -370,6 +531,8 @@
         function silverchannelManager() {
             return {
                 showModal: false,
+                showRefModal: false,
+                referrer: null,
                 editMode: false,
                 form: {
                     id: null,
@@ -387,6 +550,19 @@
                 provinces: [],
                 cities: [],
                 
+                // Confirmation Modal State
+                confirmModal: {
+                    show: false,
+                    type: 'info', // info, warning, danger, success
+                    title: '',
+                    message: '',
+                    actionUrl: '',
+                    actionMethod: 'POST',
+                    loading: false,
+                    buttonText: 'Confirm',
+                    buttonClass: 'bg-blue-600 hover:bg-blue-700'
+                },
+
                 init() {
                     this.fetchProvinces();
                 },
@@ -486,13 +662,66 @@
                     this.editMode = true;
                     this.showModal = true;
                 },
+                openReferrerModal(ref) {
+                    if (!ref || !ref.id) {
+                        this.referrer = null;
+                        this.showRefModal = true;
+                        return;
+                    }
+                    this.referrer = ref;
+                    this.showRefModal = true;
+                },
                 
                 confirmDelete(url) {
-                    if (confirm('Are you sure you want to delete this Silverchannel? This action cannot be undone.')) {
-                        const form = document.getElementById('delete-form');
-                        form.action = url;
-                        form.submit();
+                    this.openConfirmModal(
+                        'delete',
+                        url,
+                        'Hapus Silverchannel',
+                        'Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.',
+                        'Ya, Hapus',
+                        'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                    );
+                },
+
+                openConfirmModal(type, url, title, message, buttonText, buttonClass, method = 'POST') {
+                    this.confirmModal = {
+                        show: true,
+                        type: type,
+                        title: title,
+                        message: message,
+                        actionUrl: url,
+                        actionMethod: method,
+                        loading: false,
+                        buttonText: buttonText,
+                        buttonClass: buttonClass
+                    };
+                },
+
+                submitConfirm() {
+                    this.confirmModal.loading = true;
+                    
+                    // Create form and submit
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = this.confirmModal.actionUrl;
+                    
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken;
+                    form.appendChild(csrfInput);
+
+                    if (this.confirmModal.actionMethod !== 'POST') {
+                        const methodInput = document.createElement('input');
+                        methodInput.type = 'hidden';
+                        methodInput.name = '_method';
+                        methodInput.value = this.confirmModal.actionMethod;
+                        form.appendChild(methodInput);
                     }
+
+                    document.body.appendChild(form);
+                    form.submit();
                 }
             }
         }

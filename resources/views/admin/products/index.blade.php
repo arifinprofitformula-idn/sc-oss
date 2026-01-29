@@ -60,10 +60,50 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {{ $product->stock }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $product->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                                {{ $product->is_active ? 'Active' : 'Inactive' }}
-                                            </span>
+                                        <td class="px-6 py-4 whitespace-nowrap" x-data="{
+                                            active: {{ $product->is_active ? 'true' : 'false' }},
+                                            loading: false,
+                                            error: null,
+                                            async toggle() {
+                                                this.error = null;
+                                                const prev = this.active;
+                                                this.active = !this.active;
+                                                this.loading = true;
+                                                try {
+                                                    const res = await fetch('{{ route('admin.products.update-active', $product) }}', {
+                                                        method: 'PATCH',
+                                                        headers: {
+                                                            'Content-Type': 'application/json',
+                                                            'Accept': 'application/json',
+                                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content'),
+                                                        },
+                                                        body: JSON.stringify({ is_active: this.active ? 1 : 0 })
+                                                    });
+                                                    if (!res.ok) { throw new Error('Request failed'); }
+                                                    const data = await res.json();
+                                                    this.active = !!data.is_active;
+                                                } catch (e) {
+                                                    this.active = prev;
+                                                    this.error = 'Gagal memperbarui status. Coba lagi.';
+                                                } finally {
+                                                    this.loading = false;
+                                                }
+                                            }
+                                        }">
+                                            <button type="button" @click="toggle" :aria-pressed="active"
+                                                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none"
+                                                :class="active ? 'bg-green-500' : 'bg-red-500'">
+                                                <span class="sr-only">Toggle Active</span>
+                                                <span class="inline-block h-5 w-5 transform bg-white rounded-full shadow transition duration-200 ease-in-out" 
+                                                    :style="active ? 'transform: translateX(1.25rem);' : 'transform: translateX(0.25rem);'"></span>
+                                            </button>
+                                            <span class="ml-2 text-xs font-semibold" :class="active ? 'text-green-700' : 'text-red-700'" x-text="active ? 'Active' : 'Inactive'"></span>
+                                            <template x-if="loading">
+                                                <span class="ml-2 text-xs text-gray-500">Updating...</span>
+                                            </template>
+                                            <template x-if="error">
+                                                <span class="ml-2 text-xs text-red-600" x-text="error"></span>
+                                            </template>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <a href="{{ route('admin.products.edit', $product) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>

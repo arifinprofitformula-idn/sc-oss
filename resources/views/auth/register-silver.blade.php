@@ -123,16 +123,18 @@
 
                                     <!-- WhatsApp -->
                                     <div>
-                                        <x-input-label for="whatsapp" :value="__('Nomor WhatsApp (awali +62)')" class="text-gray-300 font-medium mb-2" />
+                                        <x-input-label for="whatsapp" :value="__('Nomor WhatsApp (awali 62)')" class="text-gray-300 font-medium mb-2" />
                                         <x-text-input 
                                             id="whatsapp" 
                                             class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
                                             type="text" 
                                             name="whatsapp" 
                                             x-model="whatsapp"
+                                            @input="whatsapp = whatsapp.replace(/[^0-9]/g, '')"
                                             required 
-                                            placeholder="+628..." 
+                                            placeholder="628..." 
                                         />
+                                        <p class="text-xs text-gray-400 mt-1">Format: 6281234567890 (tanpa tanda +)</p>
                                         <x-input-error :messages="$errors->get('whatsapp')" class="mt-2 text-red-400" />
                                     </div>
                                 </div>
@@ -292,7 +294,7 @@
 
                                 <!-- Referral Code -->
                                 <div>
-                                    <x-input-label for="referral_code" :value="__('Kode Referral')" class="text-gray-300 font-medium mb-2" />
+                                    <x-input-label for="referral_code" :value="__('Kode Referral')" class="text-gray-300 font-medium mb-2" required />
                                     <x-text-input 
                                         id="referral_code" 
                                         class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent {{ $referralCode ? 'opacity-50 cursor-not-allowed' : '' }}" 
@@ -300,8 +302,9 @@
                                         name="referral_code" 
                                         :value="old('referral_code', $referralCode)" 
                                         maxlength="20" 
-                                        placeholder="Masukkan kode referral jika ada"
+                                        placeholder="Wajib Masukkan Kode Referral Anda"
                                         :readonly="$referralCode ? true : false"
+                                        required
                                     />
                                     @if($referralCode)
                                         <p class="text-xs text-cyan-400 mt-1">* Kode referral otomatis terisi dari link afiliasi.</p>

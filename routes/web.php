@@ -98,6 +98,8 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             // Catalog Management
             Route::resource('brands', \App\Http\Controllers\Admin\BrandController::class);
             Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
+            Route::patch('products/{product}/active', [\App\Http\Controllers\Admin\ProductController::class, 'updateActive'])
+                ->name('products.update-active');
             Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
             Route::post('packages/{package}/restore', [\App\Http\Controllers\Admin\PackageController::class, 'restore'])->name('packages.restore');
             Route::resource('packages', \App\Http\Controllers\Admin\PackageController::class);

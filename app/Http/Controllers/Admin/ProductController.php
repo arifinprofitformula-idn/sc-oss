@@ -89,4 +89,19 @@ class ProductController extends Controller
         $product->delete();
         return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully.');
     }
+
+    public function updateActive(Request $request, Product $product)
+    {
+        $validated = $request->validate([
+            'is_active' => 'required|boolean',
+        ]);
+
+        $updated = $this->productService->setActiveStatus($product, (bool)$validated['is_active']);
+
+        return response()->json([
+            'status' => 'ok',
+            'id' => $updated->id,
+            'is_active' => (bool)$updated->is_active,
+        ]);
+    }
 }

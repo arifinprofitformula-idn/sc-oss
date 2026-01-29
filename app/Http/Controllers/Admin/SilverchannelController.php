@@ -25,7 +25,7 @@ class SilverchannelController extends Controller
 
     public function index(Request $request)
     {
-        $query = User::role('SILVERCHANNEL')->with('referrer')->latest();
+        $query = User::role('SILVERCHANNEL')->with(['referrer', 'referrer.profile'])->latest();
 
         if ($request->has('status') && $request->status != '') {
             $query->where('status', $request->status);

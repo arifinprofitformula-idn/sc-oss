@@ -5,7 +5,7 @@
 @section('subtitle', 'Sign in to your account')
 
 @section('content')
-    <div class="flex flex-col items-center justify-center min-h-screen">
+    <div class="flex flex-col items-center justify-center min-h-screen relative z-20">
         <!-- Logo -->
         <div class="mb-8">
             <a href="/" class="flex items-center space-x-2">
@@ -100,4 +100,7 @@
     </form>
         </div>
     </div>
+
+    <!-- Animated Wave Effect -->
+    <x-animated-wave speed="25s" />
 @endsection

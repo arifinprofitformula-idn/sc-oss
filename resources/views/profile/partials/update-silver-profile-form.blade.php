@@ -15,7 +15,7 @@
                 <span class="text-sm font-medium text-indigo-700 dark:text-indigo-400">{{ $user->profile_completeness }}%</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                <div class="bg-indigo-600 h-2.5 rounded-full" style="width: {{ $user->profile_completeness }}%"></div>
+                <div class="bg-indigo-600 h-2.5 rounded-full" style="--completeness: {{ $user->profile_completeness }}%; width: var(--completeness);"></div>
             </div>
         </div>
     </header>
@@ -38,7 +38,14 @@
                 </div>
                 <div>
                     <x-input-label for="referrer" :value="__('Referred By')" />
-                    <x-text-input id="referrer" class="block mt-1 w-full bg-gray-200 cursor-not-allowed" type="text" :value="$user->referrer ? $user->referrer->name . ' - ' . ($user->referrer->silver_channel_id ?? '-') : '-'" readonly />
+                    <div class="relative mt-1">
+                        <x-text-input id="referrer" class="block w-full bg-gray-200 text-gray-500 cursor-not-allowed pr-10" type="text" :value="$user->referrer ? $user->referrer->name . ' - ' . ($user->referrer->silver_channel_id ?? '-') : '-'" readonly disabled />
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

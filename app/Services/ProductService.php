@@ -134,4 +134,14 @@ class ProductService
             'meta' => $meta,
         ]);
     }
+
+    /**
+     * Update Product Active Status
+     */
+    public function setActiveStatus(Product $product, bool $isActive): Product
+    {
+        $product->is_active = $isActive;
+        $product->save();
+        return $product;
+    }
 }

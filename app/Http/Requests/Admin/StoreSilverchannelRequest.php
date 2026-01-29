@@ -24,7 +24,25 @@ class StoreSilverchannelRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'whatsapp' => ['required', 'string', 'max:20'],
+            'whatsapp' => [
+                'required', 
+                'string', 
+                'max:20',
+                function ($attribute, $value, $fail) {
+                    // Normalize for uniqueness check
+                    $formatted = $value;
+                    if (!str_starts_with($value, '+')) {
+                         // Assume 62 format if no +
+                         if (str_starts_with($value, '62')) {
+                             $formatted = '+' . $value;
+                         }
+                    }
+                    
+                    if (User::where('whatsapp', $formatted)->exists()) {
+                         $fail('Nomor WhatsApp sudah terdaftar.');
+                    }
+                }
+            ],
             'province_id' => ['required', 'string'],
             'province_name' => ['required', 'string'],
             'city_id' => ['required', 'string'],

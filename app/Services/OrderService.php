@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\OrderTrackingUpdated;
+use App\Events\OrderStatusChanged;
 use Exception;
 
 class OrderService
@@ -167,7 +168,8 @@ class OrderService
 
         $this->logStatusChange($order, $oldStatus, $newStatus, $note, $userId);
 
-        // TODO: Fire events based on status (e.g., OrderPaid, OrderShipped)
+        // Fire OrderStatusChanged event
+        OrderStatusChanged::dispatch($order, $oldStatus, $newStatus);
 
         return $order;
     }
