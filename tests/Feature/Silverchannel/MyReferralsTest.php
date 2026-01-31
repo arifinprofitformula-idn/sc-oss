@@ -101,46 +101,30 @@ class MyReferralsTest extends TestCase
     {
         $referrer = $this->createActiveSilverchannelUser();
 
-        $this->actingAs($referrer)
-            ->get(route('silverchannel.referrals.export'))
-            ->assertStatus(200)
-            ->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $response = $this->actingAs($referrer)
+            ->get(route('silverchannel.referrals.export'));
+
+        $response->assertStatus(200);
+        $this->assertStringStartsWith('text/csv', $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('attachment; filename="my-referrals-', $response->headers->get('Content-Disposition'));
+        $response->assertSee('Nama Lengkap');
     }
 
     public function test_can_filter_referrals_by_status(): void
     {
         $referrer = $this->createActiveSilverchannelUser();
 
-        $userPending = User::factory()->create(['referrer_id' => $referrer->id, 'name' => 'Pending User']);
-        $userConverted = User::factory()->create(['referrer_id' => $referrer->id, 'name' => 'Converted User']);
-
-        // Set status via ReferralFollowUp
-        ReferralFollowUp::create([
-            'referrer_id' => $referrer->id,
-            'referred_user_id' => $userConverted->id,
-            'status' => 'CONVERTED'
-        ]);
+        $userActive = User::factory()->create(['referrer_id' => $referrer->id, 'name' => 'Active User', 'status' => 'ACTIVE']);
+        $userRejected = User::factory()->create(['referrer_id' => $referrer->id, 'name' => 'Rejected User', 'status' => 'REJECTED']);
 
         $this->actingAs($referrer)
-            ->get(route('silverchannel.referrals.index', ['status' => 'CONVERTED']))
+            ->get(route('silverchannel.referrals.index', ['status' => 'ACTIVE']))
             ->assertOk()
-            ->assertSee('Converted User')
-            ->assertDontSee('Pending User');
+            ->assertSee('Active User')
+            ->assertDontSee('Rejected User');
     }
 
-    public function test_can_filter_referrals_by_city(): void
-    {
-        $referrer = $this->createActiveSilverchannelUser();
-
-        $userJakarta = User::factory()->create(['referrer_id' => $referrer->id, 'name' => 'Jakarta User', 'city_name' => 'Jakarta']);
-        $userBandung = User::factory()->create(['referrer_id' => $referrer->id, 'name' => 'Bandung User', 'city_name' => 'Bandung']);
-
-        $this->actingAs($referrer)
-            ->get(route('silverchannel.referrals.index', ['city' => 'Jakarta']))
-            ->assertOk()
-            ->assertSee('Jakarta User')
-            ->assertDontSee('Bandung User');
-    }
+    // City filter removed per latest requirements; replaced by status-based filtering on user model.
 
     public function test_can_sort_referrals_by_name(): void
     {
