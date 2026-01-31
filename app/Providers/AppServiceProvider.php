@@ -45,5 +45,9 @@ class AppServiceProvider extends ServiceProvider
             \App\Events\SilverchannelApproved::class,
             \App\Listeners\AwardRegistrationCommission::class,
         );
+
+        \Illuminate\Support\Facades\RateLimiter::for('password.reset', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perHour(3)->by($request->email);
+        });
     }
 }

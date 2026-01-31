@@ -170,6 +170,12 @@ class UserProfileController extends Controller
 
             // 3. Store New Photo
             $storeStart = microtime(true);
+
+            // Ensure directory exists
+            if (!Storage::disk('public')->exists('user_profile_pictures')) {
+                Storage::disk('public')->makeDirectory('user_profile_pictures');
+            }
+
             $filename = 'user_profile_pictures/' . $user->id . '_' . time() . '.' . $targetExtension;
             
             if (!Storage::disk('public')->put($filename, $imageContents)) {

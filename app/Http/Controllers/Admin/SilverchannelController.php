@@ -149,7 +149,16 @@ class SilverchannelController extends Controller
             if ($user->profile && $user->profile->photo_path) {
                 Storage::disk('public')->delete($user->profile->photo_path);
             }
-            $photoPath = $request->file('photo')->store('profile-photos', 'public');
+            
+            // Robust File Storage
+            $file = $request->file('photo');
+            if (!Storage::disk('public')->exists('profile-photos')) {
+                Storage::disk('public')->makeDirectory('profile-photos');
+            }
+            $filename = 'profile-photos/' . $file->hashName();
+            Storage::disk('public')->put($filename, file_get_contents($file->getRealPath() ?: $file->getPathname()));
+            
+            $photoPath = $filename;
             $user->profile()->updateOrCreate([], ['photo_path' => $photoPath]);
         }
 

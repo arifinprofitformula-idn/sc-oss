@@ -275,7 +275,13 @@ class SilverChannelRegistrationController extends Controller
                 $proofPath = $this->processPaymentProof($request->file('payment_proof'));
             } catch (\Exception $e) {
                 // Fallback to simple store if processing fails, though unlikely
-                 $proofPath = $request->file('payment_proof')->store('payment-proofs', 'public');
+                 $file = $request->file('payment_proof');
+                 if (!Storage::disk('public')->exists('payment-proofs')) {
+                    Storage::disk('public')->makeDirectory('payment-proofs');
+                 }
+                 $filename = 'payment-proofs/' . $file->hashName();
+                 Storage::disk('public')->put($filename, file_get_contents($file->getRealPath() ?: $file->getPathname()));
+                 $proofPath = $filename;
             }
 
             Payment::create([
@@ -452,8 +458,13 @@ class SilverChannelRegistrationController extends Controller
         if ($file->getSize() > 1024 * 1024) {
             $imageResource = imagecreatefromstring($file->get());
             if (!$imageResource) {
-                 // Fallback if GD fails or format not supported
-                 return $file->store('payment-proofs', 'public');
+                 // Fallback if GD fails or format not supported (Robust Storage)
+                 if (!Storage::disk('public')->exists('payment-proofs')) {
+                     Storage::disk('public')->makeDirectory('payment-proofs');
+                 }
+                 $filename = 'payment-proofs/' . $file->hashName();
+                 Storage::disk('public')->put($filename, file_get_contents($file->getRealPath() ?: $file->getPathname()));
+                 return $filename;
             }
 
             $width = imagesx($imageResource);

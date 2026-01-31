@@ -241,6 +241,11 @@ class PackageController extends Controller
              }
         }
 
+        // Ensure directory exists
+        if (!Storage::disk('public')->exists('packages')) {
+            Storage::disk('public')->makeDirectory('packages');
+        }
+
         $filename = 'packages/' . Str::uuid() . '.' . $targetExtension;
         
         if (!Storage::disk('public')->put($filename, $imageContents)) {

@@ -5,7 +5,10 @@
         </h2>
     </x-slot>
 
-    <div class="py-8" x-data="referralsPage()">
+    <div class="py-8" x-data="referralsPage({
+        search: {{ \Illuminate\Support\Js::from($filters['search'] ?? '') }},
+        baseUrl: {{ \Illuminate\Support\Js::from(url('silverchannel/referrals')) }}
+    })">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if(session('success'))
                 <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center justify-between">
@@ -22,61 +25,52 @@
             @endif
 
             <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                    <form method="GET" action="{{ route('silverchannel.referrals.index') }}" class="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3 items-end" x-ref="filterForm">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Status</label>
-                            <select name="status" class="w-full border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200">
-                                @php
-                                    $statusOptions = ['ALL' => 'Semua Status', 'PENDING' => 'Pending', 'FOLLOW_UP' => 'Follow Up', 'CONVERTED' => 'Converted', 'EXPIRED' => 'Expired'];
-                                @endphp
-                                @foreach($statusOptions as $key => $label)
-                                    <option value="{{ $key }}" @selected(($filters['status'] ?? 'ALL') === $key)>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Kota</label>
-                            <input type="text" name="city" value="{{ $filters['city'] ?? '' }}" class="w-full border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200" placeholder="Cari kota" />
-                        </div>
-                        <div class="flex gap-2">
-                            <div class="flex-1">
-                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Dari</label>
-                                <input type="date" name="from_date" value="{{ $filters['from_date'] ?? '' }}" class="w-full border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200" />
-                            </div>
-                            <div class="flex-1">
-                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Sampai</label>
-                                <input type="date" name="to_date" value="{{ $filters['to_date'] ?? '' }}" class="w-full border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200" />
-                            </div>
-                        </div>
-                        <div class="flex gap-2 items-end">
-                            <div class="flex-1">
-                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Per Halaman</label>
-                                <select name="per_page" class="w-full border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200">
-                                    @foreach([10,25,50] as $per)
-                                        <option value="{{ $per }}" @selected(($filters['per_page'] ?? 10) == $per)>{{ $per }}</option>
+                <div class="mb-4">
+                    <form method="GET" action="{{ route('silverchannel.referrals.index') }}" x-ref="filterForm">
+                        <input type="hidden" name="per_page" value="{{ $filters['per_page'] ?? 10 }}">
+                        <div class="referrals-toolbar flex flex-wrap items-end gap-4">
+                            <div class="w-full sm:w-auto min-w-[150px]">
+                                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Status</label>
+                                <select name="status" class="w-full border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 h-11">
+                                    @php
+                                        $statusOptions = [
+                                            'ALL' => 'Semua Status', 
+                                            'ACTIVE' => 'Active', 
+                                            'PENDING_REVIEW' => 'Pending Review', 
+                                            'WAITING_VERIFICATION' => 'Waiting Verification',
+                                            'REJECTED' => 'Rejected'
+                                        ];
+                                    @endphp
+                                    @foreach($statusOptions as $key => $label)
+                                        <option value="{{ $key }}" @selected(($filters['status'] ?? 'ALL') === $key)>{{ $label }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <button type="submit" class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                Terapkan
-                            </button>
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Dari</label>
+                                    <input type="date" name="from_date" value="{{ $filters['from_date'] ?? '' }}" class="w-full sm:w-36 border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 h-11" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Sampai</label>
+                                    <input type="date" name="to_date" value="{{ $filters['to_date'] ?? '' }}" class="w-full sm:w-36 border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 h-11" />
+                                </div>
+                            </div>
+                            <button type="submit" class="inline-flex items-center justify-center h-11 px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 shadow-lg hover:scale-105">Filter</button>
+                            
+                            <div class="relative flex-1 min-w-[200px]">
+                                <input type="text" name="search" x-model="search" @input.debounce.400ms="onSearch" class="w-full border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm pl-9 pr-3 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 h-11" placeholder="Cari nama..." />
+                                <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16a6 6 0 1112 0 6 6 0 01-12 0zm10 0l4 4"></path></svg>
+                                </span>
+                            </div>
+
+                            <a href="{{ route('silverchannel.referrals.export', request()->all()) }}" class="inline-flex items-center justify-center px-4 py-2 text-sm text-white rounded-md transition shadow-lg h-11 min-w-[44px] hover:scale-105 transition-transform duration-200" style="background-color: #198754;" onmouseover="this.style.backgroundColor='#157347'" onmouseout="this.style.backgroundColor='#198754'">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" /></svg>
+                                Export
+                            </a>
                         </div>
                     </form>
-
-                    <div class="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
-                        <div class="relative flex-1">
-                            <input type="text" name="search" x-model="search" @input.debounce.400ms="onSearch" class="w-full border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm pl-9 pr-3 py-2 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200" placeholder="Cari nama, email, atau WhatsApp" />
-                            <span class="absolute inset-y-0 left-0 pl-2 flex items-center text-gray-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16a6 6 0 1112 0 6 6 0 01-12 0zm10 0l4 4"></path></svg>
-                            </span>
-                        </div>
-
-                        <a href="{{ route('silverchannel.referrals.export', request()->all()) }}" class="inline-flex items-center justify-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" /></svg>
-                            Export CSV
-                        </a>
-                    </div>
                 </div>
 
                 <div class="relative">
@@ -102,7 +96,7 @@
                                     @endphp
                                     @foreach($columns as $key => $label)
                                         <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            @if(in_array($key, ['name','city_name']))
+                                            @if(in_array($key, ['name','city_name','status']))
                                                 @php
                                                     $isActive = ($filters['sort'] ?? 'created_at') === $key;
                                                     $nextDirection = $isActive && ($filters['direction'] ?? 'desc') === 'asc' ? 'desc' : 'asc';
@@ -162,17 +156,19 @@
                                             <div class="text-xs text-gray-500">{{ $prospect->province_name ?? '-' }}</div>
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap">
-                                            @php
-                                                $badgeClasses = [
-                                                    'PENDING' => 'bg-amber-100 text-amber-800',
-                                                    'FOLLOW_UP' => 'bg-blue-100 text-blue-800',
-                                                    'CONVERTED' => 'bg-emerald-100 text-emerald-800',
-                                                    'EXPIRED' => 'bg-red-100 text-red-800',
-                                                ][$status] ?? 'bg-gray-100 text-gray-800';
-                                            @endphp
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $badgeClasses }}">
-                                                {{ ucfirst(strtolower(str_replace('_', ' ', $status))) }}
-                                            </span>
+                                            @if($prospect->status === 'ACTIVE')
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                    ACTIVE
+                                                </span>
+                                            @elseif($prospect->status === 'PENDING_REVIEW' || $prospect->status === 'WAITING_VERIFICATION')
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 whitespace-normal">
+                                                    {{ str_replace('_', ' ', $prospect->status) }}
+                                                </span>
+                                            @else
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                                    {{ $prospect->status }}
+                                                </span>
+                                            @endif
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-gray-700 dark:text-gray-200">
                                             <div class="text-sm">{{ optional($followUp)->last_follow_up_at?->format('d M Y H:i') ?? '-' }}</div>
@@ -204,8 +200,25 @@
                         </table>
                     </div>
 
-                    <div class="mt-4">
-                        {{ $prospects->links() }}
+                    <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <form method="GET" action="{{ route('silverchannel.referrals.index') }}" class="flex items-center gap-2">
+                            <input type="hidden" name="page" value="1">
+                            <input type="hidden" name="status" value="{{ $filters['status'] ?? '' }}">
+                            <input type="hidden" name="from_date" value="{{ $filters['from_date'] ?? '' }}">
+                            <input type="hidden" name="to_date" value="{{ $filters['to_date'] ?? '' }}">
+                            <input type="hidden" name="search" value="{{ $filters['search'] ?? '' }}">
+                            <input type="hidden" name="sort" value="{{ $filters['sort'] ?? 'created_at' }}">
+                            <input type="hidden" name="direction" value="{{ $filters['direction'] ?? 'desc' }}">
+                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400">Halaman</label>
+                            <select name="per_page" class="w-24 border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 h-11" onchange="this.form.submit()">
+                                @foreach([10,25,50] as $per)
+                                    <option value="{{ $per }}" @selected(($filters['per_page'] ?? 10) == $per)>{{ $per }}</option>
+                                @endforeach
+                            </select>
+                        </form>
+                        <div>
+                            {{ $prospects->links() }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -318,10 +331,16 @@
     </div>
 
     <script>
-        function referralsPage() {
+        /**
+         * @param {Object} config
+         * @param {string} config.search
+         * @param {string} config.baseUrl
+         */
+        function referralsPage(config) {
             return {
                 loading: false,
-                search: '{{ $filters['search'] ?? '' }}',
+                search: config.search || '',
+                baseUrl: config.baseUrl || '',
                 showDetail: false,
                 showUpdate: false,
                 detail: {
@@ -367,7 +386,7 @@
                 },
                 openUpdate(data) {
                     this.form = { ...data };
-                    this.updateAction = '{{ url('silverchannel/referrals') }}/' + data.id + '/follow-up';
+                    this.updateAction = this.baseUrl + '/' + data.id + '/follow-up';
                     this.showUpdate = true;
                 },
                 formatStatus(status) {
@@ -378,4 +397,3 @@
         }
     </script>
 </x-app-layout>
-

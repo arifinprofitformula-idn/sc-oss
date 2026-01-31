@@ -207,7 +207,13 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        {{ $payout->bank_details['bank_name'] }} - {{ $payout->bank_details['account_number'] }}
+                                        @if(!empty($payout->bank_details) && is_array($payout->bank_details))
+                                            {{ $payout->bank_details['bank_name'] ?? '-' }} - {{ $payout->bank_details['account_number'] ?? '-' }}
+                                        @elseif($payout->user)
+                                            {{ $payout->user->bank_name ?? '-' }} - {{ $payout->user->bank_account_no ?? '-' }}
+                                        @else
+                                            -
+                                        @endif
                                     </td>
                                 </tr>
                                 @empty

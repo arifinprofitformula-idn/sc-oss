@@ -15,6 +15,7 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         return [
+            'user_id' => \App\Models\User::factory(),
             'order_number' => 'ORD-' . strtoupper(Str::random(10)),
             'order_key' => 'wc_order_' . Str::random(13),
             'total_amount' => 100000,

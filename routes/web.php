@@ -23,6 +23,19 @@ Route::domain(env('ADMIN_DOMAIN'))->group(function () {
     Route::get('/admin', function () {
         return redirect()->route('admin.silverchannels.index');
     })->middleware(['auth', 'role:SUPER_ADMIN']);
+
+    Route::middleware(['auth', 'role:SUPER_ADMIN'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/email-templates', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'index'])->name('email-templates.index');
+        Route::get('/email-templates/create', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'create'])->name('email-templates.create');
+        Route::post('/email-templates', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'store'])->name('email-templates.store');
+        Route::get('/email-templates/{emailTemplate}/edit', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'edit'])->name('email-templates.edit');
+        Route::put('/email-templates/{emailTemplate}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'update'])->name('email-templates.update');
+        Route::delete('/email-templates/{emailTemplate}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'destroy'])->name('email-templates.destroy');
+        Route::get('/email-templates/{emailTemplate}/preview', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'preview'])->name('email-templates.preview');
+        Route::post('/email-templates/{emailTemplate}/duplicate', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'duplicate'])->name('email-templates.duplicate');
+        Route::get('/email-templates/{emailTemplate}/export', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'export'])->name('email-templates.export');
+        Route::post('/email-templates/{emailTemplate}/sync', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'sync'])->name('email-templates.sync');
+    });
 });
 
 Route::get('/', function () {

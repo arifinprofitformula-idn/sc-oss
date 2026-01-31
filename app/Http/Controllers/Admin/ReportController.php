@@ -12,15 +12,31 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
-    public function index()
+    protected $reportService;
+
+    public function __construct(\App\Services\ReportService $reportService)
     {
-        // Basic Stats
+        $this->reportService = $reportService;
+    }
+
+    public function index(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        // Core Metrics from Service
+        $totalSales = $this->reportService->getTotalSales($startDate, $endDate);
+        $totalOrders = $this->reportService->getTotalOrders($startDate, $endDate);
+        $commissionsPaid = $this->reportService->getCommissionsPaid($startDate, $endDate);
+        $pendingPayouts = $this->reportService->getPendingPayouts();
+        $integrity = $this->reportService->checkIntegrity();
+
         $stats = [
-            'total_sales' => Order::where('status', 'PAID')->sum('total_amount'),
-            'total_orders' => Order::where('status', 'PAID')->count(),
-            'total_commission_paid' => CommissionLedger::where('type', 'TRANSACTION')->where('status', 'PAID')->sum('amount'),
-            'pending_payouts' => Payout::where('status', 'REQUESTED')->count(),
-            'active_silverchannels' => User::role('SILVERCHANNEL')->where('status', 'ACTIVE')->count(),
+            'total_sales' => $totalSales,
+            'total_orders' => $totalOrders,
+            'total_commission_paid' => $commissionsPaid,
+            'pending_payouts' => $pendingPayouts,
+            'integrity' => $integrity,
         ];
 
         // Monthly Sales Chart Data (Last 12 months)
@@ -34,7 +50,7 @@ class ReportController extends Controller
             ->orderBy('month')
             ->get();
             
-        return view('admin.reports.index', compact('stats', 'monthlySales'));
+        return view('admin.reports.index', compact('stats', 'monthlySales', 'startDate', 'endDate'));
     }
 
     public function export(Request $request)

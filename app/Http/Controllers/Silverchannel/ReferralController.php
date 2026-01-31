@@ -18,34 +18,70 @@ class ReferralController extends Controller
 {
     public function index(Request $request): View
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
         if (!$user || !$user->hasRole('SILVERCHANNEL')) {
             abort(403);
         }
 
+        $query = $this->buildQuery($request, $user);
+
+        $sort = $request->string('sort', 'created_at')->toString();
+        $direction = $request->string('direction', 'desc')->toString();
+
+        if (!in_array($sort, ['name', 'email', 'city_name', 'status', 'created_at'], true)) {
+            $sort = 'created_at';
+        }
+
+        $direction = strtolower($direction) === 'asc' ? 'asc' : 'desc';
+
+        // Validate per_page to prevent abuse or errors
+        $perPage = $request->integer('per_page', 10);
+        if ($perPage < 1 || $perPage > 100) {
+            $perPage = 10;
+        }
+
+        /** @var LengthAwarePaginator $prospects */
+        $prospects = $query->orderBy($sort, $direction)
+            ->paginate($perPage)
+            ->appends($request->all());
+
+        $totalDueToday = ReferralFollowUp::where('referrer_id', $user->id)
+            ->whereNotNull('next_follow_up_at')
+            ->whereDate('next_follow_up_at', '<=', now())
+            ->count();
+
+        return view('silverchannel.referrals.index', [
+            'prospects' => $prospects,
+            'filters' => [
+                'status' => $request->string('status')->toString(),
+                'from_date' => $request->date('from_date') ? $request->date('from_date')->format('Y-m-d') : null,
+                'to_date' => $request->date('to_date') ? $request->date('to_date')->format('Y-m-d') : null,
+                'search' => $request->string('search')->toString(),
+                'sort' => $sort,
+                'direction' => $direction,
+                'per_page' => $perPage,
+            ],
+            'totalDueToday' => $totalDueToday,
+        ]);
+    }
+
+    private function buildQuery(Request $request, User $user): \Illuminate\Database\Eloquent\Builder
+    {
         $query = User::query()
             ->where('referrer_id', $user->id)
             ->with(['referralFollowUpAsReferred' => function ($q) use ($user): void {
                 $q->where('referrer_id', $user->id);
             }]);
 
-        $status = $request->get('status');
-        $city = $request->get('city');
-        $from = $request->get('from_date');
-        $to = $request->get('to_date');
-        $search = $request->get('search');
-        $sort = $request->get('sort', 'created_at');
-        $direction = $request->get('direction', 'desc');
+        $status = $request->string('status')->toString();
+        $from = $request->date('from_date');
+        $to = $request->date('to_date');
+        $search = $request->string('search')->toString();
 
         if ($status && $status !== 'ALL') {
-            $query->whereHas('referralFollowUpAsReferred', function ($q) use ($status, $user): void {
-                $q->where('referrer_id', $user->id)->where('status', $status);
-            });
-        }
-
-        if ($city) {
-            $query->where('city_name', 'like', '%' . $city . '%');
+            $query->where('status', $status);
         }
 
         if ($from) {
@@ -65,40 +101,12 @@ class ReferralController extends Controller
             });
         }
 
-        if (!in_array($sort, ['name', 'email', 'city_name', 'created_at'], true)) {
-            $sort = 'created_at';
-        }
-
-        $direction = strtolower($direction) === 'asc' ? 'asc' : 'desc';
-
-        /** @var LengthAwarePaginator $prospects */
-        $prospects = $query->orderBy($sort, $direction)
-            ->paginate((int) $request->get('per_page', 10))
-            ->appends($request->all());
-
-        $totalDueToday = ReferralFollowUp::where('referrer_id', $user->id)
-            ->whereNotNull('next_follow_up_at')
-            ->whereDate('next_follow_up_at', '<=', now())
-            ->count();
-
-        return view('silverchannel.referrals.index', [
-            'prospects' => $prospects,
-            'filters' => [
-                'status' => $status,
-                'city' => $city,
-                'from_date' => $from,
-                'to_date' => $to,
-                'search' => $search,
-                'sort' => $sort,
-                'direction' => $direction,
-                'per_page' => (int) $request->get('per_page', 10),
-            ],
-            'totalDueToday' => $totalDueToday,
-        ]);
+        return $query;
     }
 
     public function updateFollowUp(Request $request, int $referredUserId): RedirectResponse
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
         if (!$user || !$user->hasRole('SILVERCHANNEL')) {
@@ -134,18 +142,17 @@ class ReferralController extends Controller
 
     public function export(Request $request)
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
         if (!$user || !$user->hasRole('SILVERCHANNEL')) {
             abort(403);
         }
 
-        $request->merge(['per_page' => 1000000]);
-
-        $response = $this->index($request);
-
-        /** @var \Illuminate\View\View $response */
-        $prospects = $response->getData()['prospects'];
+        $query = $this->buildQuery($request, $user);
+        
+        // Ensure deterministic order for chunking
+        $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
 
         $filename = 'my-referrals-' . now()->format('Ymd_His') . '.csv';
 
@@ -154,29 +161,31 @@ class ReferralController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
 
-        $callback = static function () use ($prospects): void {
+        return response()->stream(function () use ($query) {
             $handle = fopen('php://output', 'w');
             fputcsv($handle, ['Nama Lengkap', 'Email', 'Whatsapp', 'Asal Kota', 'Status', 'Last Follow Up', 'Next Follow Up']);
 
-            foreach ($prospects as $prospect) {
-                /** @var User $prospect */
-                $followUp = $prospect->referralFollowUps->first();
+            // Use chunking to avoid memory issues with large datasets
+            $query->chunk(200, function ($prospects) use ($handle) {
+                foreach ($prospects as $prospect) {
+                    /** @var User $prospect */
+                    // Use correct relationship: follow-up made ON this prospect (by me)
+                    $followUp = $prospect->referralFollowUpAsReferred;
 
-                fputcsv($handle, [
-                    $prospect->name,
-                    $prospect->email,
-                    $prospect->whatsapp,
-                    $prospect->city_name,
-                    $followUp->status ?? 'PENDING',
-                    optional($followUp->last_follow_up_at)->format('Y-m-d H:i') ?? '',
-                    optional($followUp->next_follow_up_at)->format('Y-m-d H:i') ?? '',
-                ]);
-            }
+                    fputcsv($handle, [
+                        $prospect->name,
+                        $prospect->email,
+                        $prospect->whatsapp,
+                        $prospect->city_name,
+                        $followUp->status ?? 'PENDING',
+                        optional($followUp->last_follow_up_at)->format('Y-m-d H:i') ?? '',
+                        optional($followUp->next_follow_up_at)->format('Y-m-d H:i') ?? '',
+                    ]);
+                }
+            });
 
             fclose($handle);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        }, 200, $headers);
     }
 }
 

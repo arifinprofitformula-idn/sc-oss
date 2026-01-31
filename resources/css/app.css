@@ -5,3 +5,26 @@
 [x-cloak] {
     display: none !important;
 }
+
+@layer components {
+    .btn-accent {
+        @apply inline-flex items-center justify-center px-4 py-2 text-sm text-white rounded-md transition shadow-lg;
+        background-color: #EEA727;
+        height: 44px; /* Fixed height to match inputs (h-11) */
+        min-width: 44px;
+    }
+    .btn-accent:hover {
+        background-color: #d79a23;
+    }
+
+    .btn-success {
+        @apply inline-flex items-center justify-center px-4 py-2 text-sm text-white rounded-md transition shadow-lg;
+        background-color: #198754; /* Darker green for WCAG AA compliance (4.5:1+) */
+        height: 44px; /* Fixed height to match inputs (h-11) */
+        min-width: 44px;
+    }
+    .btn-success:hover {
+        background-color: #157347;
+        @apply shadow-green-500/25;
+    }
+}

@@ -44,7 +44,28 @@ class PayoutController extends Controller
         ]);
 
         try {
-            $path = $request->file('proof_file')->store('payout-proofs', 'public');
+            // Robust File Storage to avoid "Path must not be empty" error
+            $file = $request->file('proof_file');
+            
+            // Ensure directory exists
+            if (!\Illuminate\Support\Facades\Storage::disk('public')->exists('payout-proofs')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory('payout-proofs');
+            }
+            
+            $filename = 'payout-proofs/' . $file->hashName();
+            
+            // Use file_get_contents + Storage::put instead of store() / putFile()
+            $content = file_get_contents($file->getRealPath() ?: $file->getPathname());
+            
+            if ($content === false) {
+                throw new \Exception("Gagal membaca file bukti pembayaran.");
+            }
+            
+            if (!\Illuminate\Support\Facades\Storage::disk('public')->put($filename, $content)) {
+                throw new \Exception("Gagal menyimpan file ke storage.");
+            }
+
+            $path = $filename;
             $this->payoutService->approve($payout, $path);
 
             return back()->with('success', 'Payout approved and processed.');

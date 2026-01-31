@@ -292,4 +292,66 @@ class IntegrationService
 
         return $response->json();
     }
+
+    /**
+     * Create Template in Brevo.
+     */
+    public function createBrevoTemplate($name, $subject, $htmlContent, $isActive = true)
+    {
+        $apiKey = $this->get('brevo_api_key');
+        if (!$apiKey) return ['success' => false, 'message' => 'API Key missing'];
+
+        $payload = [
+            'templateName' => $name,
+            'subject' => $subject,
+            'htmlContent' => $htmlContent,
+            'isActive' => $isActive,
+            'sender' => [
+                'name' => $this->get('brevo_sender_name', config('app.name')),
+                'email' => $this->get('brevo_sender_email', 'noreply@' . request()->getHost()),
+            ]
+        ];
+
+        $startTime = microtime(true);
+        /** @var Response $response */
+        $response = Http::withHeaders([
+            'api-key' => $apiKey,
+            'accept' => 'application/json',
+        ])->post('https://api.brevo.com/v3/smtp/templates', $payload);
+
+        $this->log('brevo', '/smtp/templates', 'POST', $payload, $response->json(), $response->status(), (microtime(true) - $startTime) * 1000);
+
+        return $response->json();
+    }
+
+    /**
+     * Update Template in Brevo.
+     */
+    public function updateBrevoTemplate($id, $name, $subject, $htmlContent, $isActive = true)
+    {
+        $apiKey = $this->get('brevo_api_key');
+        if (!$apiKey) return ['success' => false, 'message' => 'API Key missing'];
+
+        $payload = [
+            'templateName' => $name,
+            'subject' => $subject,
+            'htmlContent' => $htmlContent,
+            'isActive' => $isActive,
+            'sender' => [
+                'name' => $this->get('brevo_sender_name', config('app.name')),
+                'email' => $this->get('brevo_sender_email', 'noreply@' . request()->getHost()),
+            ]
+        ];
+
+        $startTime = microtime(true);
+        /** @var Response $response */
+        $response = Http::withHeaders([
+            'api-key' => $apiKey,
+            'accept' => 'application/json',
+        ])->put("https://api.brevo.com/v3/smtp/templates/{$id}", $payload);
+
+        $this->log('brevo', "/smtp/templates/{$id}", 'PUT', $payload, $response->status() == 204 ? 'No Content' : $response->json(), $response->status(), (microtime(true) - $startTime) * 1000);
+
+        return $response->successful() ? ['success' => true] : $response->json();
+    }
 }

@@ -43,6 +43,115 @@
                     </div>
 
                     <hr class="my-4 border-gray-200 dark:border-gray-700">
+
+                    <!-- Recipient Information -->
+                    <div x-data="{ 
+                        showToast: false,
+                        copyToClipboard(text) {
+                            if (!text || text === '-' || text === '') {
+                                console.warn('Nothing to copy');
+                                return;
+                            }
+                            
+                            // Modern API
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                navigator.clipboard.writeText(text)
+                                    .then(() => {
+                                        this.showToast = true;
+                                        setTimeout(() => this.showToast = false, 2000);
+                                    })
+                                    .catch(err => {
+                                        console.error('Failed to copy: ', err);
+                                        // Fallback using textarea hack
+                                        this.fallbackCopy(text);
+                                    });
+                            } else {
+                                this.fallbackCopy(text);
+                            }
+                        },
+                        fallbackCopy(text) {
+                            const textArea = document.createElement('textarea');
+                            textArea.value = text;
+                            textArea.style.position = 'fixed'; // Avoid scrolling to bottom
+                            textArea.style.left = '-9999px';
+                            textArea.style.top = '0';
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+                            
+                            try {
+                                const successful = document.execCommand('copy');
+                                if (successful) {
+                                    this.showToast = true;
+                                    setTimeout(() => this.showToast = false, 2000);
+                                } else {
+                                    console.error('Fallback copy failed');
+                                    alert('Gagal menyalin nomor rekening. Silakan salin secara manual.');
+                                }
+                            } catch (err) {
+                                console.error('Fallback copy error', err);
+                                alert('Gagal menyalin nomor rekening.');
+                            }
+                            
+                            document.body.removeChild(textArea);
+                        }
+                    }">
+                        <h3 class="text-lg font-bold mb-4">Recipient Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <!-- Bank Name -->
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Bank Name</p>
+                                <p class="font-medium text-gray-900 dark:text-gray-100">{{ $payout->user->bank_name ?? '-' }}</p>
+                            </div>
+
+                            <!-- Account Number -->
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Account Number</p>
+                                <div class="flex items-center gap-2 group cursor-pointer" 
+                                     @click="copyToClipboard('{{ $payout->user->bank_account_no ?? '' }}')"
+                                     title="Salin nomor rekening">
+                                    <p class="font-medium font-mono text-gray-900 dark:text-gray-100">{{ $payout->user->bank_account_no ?? '-' }}</p>
+                                    @if(!empty($payout->user->bank_account_no))
+                                    <button type="button" 
+                                            class="text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors relative"
+                                            @click.stop="copyToClipboard('{{ $payout->user->bank_account_no ?? '' }}')">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                                        </svg>
+                                        
+                                        <!-- Custom Tooltip -->
+                                        <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                            Salin nomor rekening
+                                        </div>
+                                    </button>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Account Name -->
+                            <div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Account Name</p>
+                                <p class="font-medium text-gray-900 dark:text-gray-100">{{ $payout->user->bank_account_name ?? '-' }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Toast Notification -->
+                        <div x-show="showToast" style="display: none;"
+                             x-transition:enter="transition ease-out duration-300"
+                             x-transition:enter-start="opacity-0 transform translate-y-2"
+                             x-transition:enter-end="opacity-100 transform translate-y-0"
+                             x-transition:leave="transition ease-in duration-200"
+                             x-transition:leave-start="opacity-100 transform translate-y-0"
+                             x-transition:leave-end="opacity-0 transform translate-y-2"
+                             class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-xl z-50 flex items-center gap-3">
+                            <div class="rounded-full bg-green-500 p-1">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <span class="text-sm font-semibold">Rekening Berhasil Disalin</span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 border-gray-200 dark:border-gray-700">
                     
                     @if($payout->proof_file)
                     <div class="mt-4">
