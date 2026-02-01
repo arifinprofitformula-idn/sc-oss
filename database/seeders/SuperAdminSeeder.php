@@ -10,13 +10,16 @@ class SuperAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        User::firstOrCreate(
+        $user = User::firstOrCreate(
             ['email' => 'superadmin@epistore.online'],
             [
                 'name' => 'Super Admin',
                 'password' => Hash::make('Password@123'),
                 'email_verified_at' => now(),
+                'status' => 'ACTIVE',
             ]
         );
+
+        $user->assignRole('SUPER_ADMIN');
     }
 }
