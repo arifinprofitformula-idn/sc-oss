@@ -14,8 +14,8 @@ class RoleSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Create Roles
-        $superAdmin = Role::create(['name' => 'SUPER_ADMIN']);
-        $silverChannel = Role::create(['name' => 'SILVERCHANNEL']);
+        $superAdmin = Role::firstOrCreate(['name' => 'SUPER_ADMIN']);
+        $silverChannel = Role::firstOrCreate(['name' => 'SILVERCHANNEL']);
 
         // Create Permissions
         // Silverchannel permissions
@@ -27,7 +27,7 @@ class RoleSeeder extends Seeder
         ];
 
         foreach ($scPermissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Admin permissions
@@ -40,13 +40,13 @@ class RoleSeeder extends Seeder
         ];
 
         foreach ($adminPermissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Assign Permissions
-        $silverChannel->givePermissionTo(Permission::whereIn('name', $scPermissions)->get());
+        $silverChannel->syncPermissions(Permission::whereIn('name', $scPermissions)->get());
         
         // Super Admin gets all permissions
-        $superAdmin->givePermissionTo(Permission::all());
+        $superAdmin->syncPermissions(Permission::all());
     }
 }

@@ -301,14 +301,25 @@ class IntegrationService
         $apiKey = $this->get('brevo_api_key');
         if (!$apiKey) return ['success' => false, 'message' => 'API Key missing'];
 
+        $senderEmail = $this->get('brevo_sender_email');
+        $senderName = $this->get('brevo_sender_name', config('app.name'));
+
+        // Validate Sender
+        if (empty($senderEmail) || str_contains($senderEmail, 'example.com')) {
+            return [
+                'success' => false,
+                'message' => 'Invalid Sender Email. Please configure Brevo Sender Email in Settings > Integrations. It must match your verified sender in Brevo.'
+            ];
+        }
+
         $payload = [
             'templateName' => $name,
             'subject' => $subject,
             'htmlContent' => $htmlContent,
             'isActive' => $isActive,
             'sender' => [
-                'name' => $this->get('brevo_sender_name', config('app.name')),
-                'email' => $this->get('brevo_sender_email', 'noreply@' . request()->getHost()),
+                'name' => $senderName,
+                'email' => $senderEmail,
             ]
         ];
 
@@ -332,14 +343,25 @@ class IntegrationService
         $apiKey = $this->get('brevo_api_key');
         if (!$apiKey) return ['success' => false, 'message' => 'API Key missing'];
 
+        $senderEmail = $this->get('brevo_sender_email');
+        $senderName = $this->get('brevo_sender_name', config('app.name'));
+
+        // Validate Sender
+        if (empty($senderEmail) || str_contains($senderEmail, 'example.com')) {
+            return [
+                'success' => false,
+                'message' => 'Invalid Sender Email. Please configure Brevo Sender Email in Settings > Integrations. It must match your verified sender in Brevo.'
+            ];
+        }
+
         $payload = [
             'templateName' => $name,
             'subject' => $subject,
             'htmlContent' => $htmlContent,
             'isActive' => $isActive,
             'sender' => [
-                'name' => $this->get('brevo_sender_name', config('app.name')),
-                'email' => $this->get('brevo_sender_email', 'noreply@' . request()->getHost()),
+                'name' => $senderName,
+                'email' => $senderEmail,
             ]
         ];
 
