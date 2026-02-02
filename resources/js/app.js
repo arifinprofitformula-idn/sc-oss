@@ -12,7 +12,7 @@ Alpine.store('toast', {
     onHideCallback: null,
 
     show(message, type = 'success', options = {}) {
-        const { duration = 3000, onHide = null } = options;
+        const { duration = 4000, onHide = null } = options;
 
         if (this.timeoutId) {
             clearTimeout(this.timeoutId);

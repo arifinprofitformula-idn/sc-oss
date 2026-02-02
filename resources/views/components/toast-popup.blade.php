@@ -1,7 +1,32 @@
 <div
-    x-data
+    x-data="{
+        init() {
+            @if ($errors->any())
+                this.$store.toast.show('Terdapat kesalahan validasi. Mohon periksa kembali inputan Anda.', 'error');
+            @endif
+
+            @if (session('success'))
+                this.$store.toast.show('{{ session('success') }}', 'success');
+            @elseif (session('error'))
+                this.$store.toast.show('{{ session('error') }}', 'error');
+            @elseif (session('warning'))
+                this.$store.toast.show('{{ session('warning') }}', 'warning');
+            @elseif (session('message'))
+                this.$store.toast.show('{{ session('message') }}', 'success');
+            @elseif (session('status') === 'profile-updated')
+                this.$store.toast.show('Sukses! Data pribadi berhasil disimpan.', 'success');
+            @elseif (session('status') === 'password-updated')
+                this.$store.toast.show('Sukses! Password berhasil diperbarui.', 'success');
+            @elseif (session('status') === 'verification-link-sent')
+                this.$store.toast.show('Link verifikasi baru telah dikirim ke email Anda.', 'success');
+            @elseif (session('status'))
+                this.$store.toast.show('{{ session('status') }}', 'info');
+            @endif
+        }
+    }"
+    x-init="init()"
     x-cloak
-    class="fixed inset-0 z-50 flex items-start justify-end p-4 px-4 py-6 pointer-events-none sm:p-6"
+    class="fixed inset-0 z-50 flex items-start justify-end p-4 px-4 py-6 pointer-events-none sm:p-6 mt-14"
     aria-live="assertive"
 >
     <div
@@ -12,7 +37,7 @@
         x-transition:leave="transition ease-in duration-100"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="max-w-sm w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden border-l-4"
+        class="max-w-sm w-full bg-white dark:bg-gray-800 shadow-xl rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden border-l-4"
         :class="{
             'border-emerald-500': $store.toast.type === 'success',
             'border-rose-500': $store.toast.type === 'error',

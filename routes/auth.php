@@ -34,7 +34,7 @@ Route::middleware('guest')->group(function () {
         ->name('password.reset');
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
-        ->name('password.update');
+        ->name('password.store');
         
     // Silverchannel Registration
     Route::get('register-silver', [SilverChannelRegistrationController::class, 'create'])
