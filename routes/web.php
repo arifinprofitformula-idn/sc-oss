@@ -98,6 +98,7 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::get('/silverchannels/import/template', [\App\Http\Controllers\Admin\ImportSilverchannelController::class, 'downloadTemplate'])->name('silverchannels.import.template');
             Route::get('/silverchannels', [SilverchannelController::class, 'index'])->name('silverchannels.index');
             Route::post('/silverchannels', [SilverchannelController::class, 'store'])->name('silverchannels.store');
+            Route::get('/silverchannels/{user}/edit', [SilverchannelController::class, 'edit'])->name('silverchannels.edit');
             Route::put('/silverchannels/{user}', [SilverchannelController::class, 'update'])->name('silverchannels.update');
             Route::patch('/silverchannels/{user}/password', [SilverchannelController::class, 'updatePassword'])->name('silverchannels.update-password');
             Route::delete('/silverchannels/{user}', [SilverchannelController::class, 'destroy'])->name('silverchannels.destroy');

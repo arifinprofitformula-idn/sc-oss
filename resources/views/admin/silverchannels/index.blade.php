@@ -8,6 +8,91 @@
     <div class="py-12" x-data="silverchannelManager()">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
+            <!-- Custom CSS for 3D Buttons -->
+            <style>
+                .btn-3d {
+                    /* Custom properties for maintainability */
+                    --btn-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    --btn-shadow-color: rgba(0, 0, 0, 0.2);
+                    --btn-highlight: rgba(255, 255, 255, 0.2);
+                    
+                    position: relative;
+                    overflow: hidden;
+                    transition: var(--btn-transition);
+                    box-shadow: 
+                        0 4px 6px -1px var(--btn-shadow-color),
+                        0 2px 4px -1px var(--btn-shadow-color),
+                        inset 0 1px 0 var(--btn-highlight);
+                    z-index: 1;
+                }
+
+                /* Gradient Overlay for Lighting Effect */
+                .btn-3d::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.05) 100%);
+                    opacity: 0;
+                    transition: opacity 0.3s;
+                    z-index: -1;
+                }
+
+                /* Hover State: Lift up + Deep Shadow */
+                .btn-3d:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 
+                        0 10px 15px -3px var(--btn-shadow-color),
+                        0 4px 6px -2px var(--btn-shadow-color),
+                        inset 0 1px 0 var(--btn-highlight);
+                }
+                
+                .btn-3d:hover::before {
+                    opacity: 1;
+                }
+
+                /* Active State: Press down */
+                .btn-3d:active {
+                    transform: translateY(1px);
+                    box-shadow: 
+                        0 2px 4px -1px var(--btn-shadow-color),
+                        inset 0 2px 4px rgba(0,0,0,0.1);
+                }
+
+                /* Gold Variant */
+                .btn-3d-gold {
+                    background: linear-gradient(135deg, #EEA727 0%, #D97706 100%);
+                }
+
+                /* Blue Variant */
+                .btn-3d-blue {
+                    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+                }
+
+                /* Shimmer Animation */
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%) skewX(-15deg); }
+                    100% { transform: translateX(200%) skewX(-15deg); }
+                }
+                
+                .shimmer {
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .shimmer::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 50%;
+                    height: 100%;
+                    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+                    transform: skewX(-15deg);
+                    animation: shimmer 2s infinite;
+                    pointer-events: none;
+                }
+            </style>
+
             <!-- Toolbar -->
             <div class="flex flex-col md:flex-row gap-4 mb-6">
                 <!-- Kolom 1: Search (40%) -->
@@ -26,7 +111,7 @@
 
                 <!-- Kolom 2: Import Data (30%) -->
                 <div class="w-full md:w-[30%]">
-                    <a href="{{ route('admin.silverchannels.import') }}" style="background-color: #EEA727;" class="w-full h-12 hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded inline-flex justify-center items-center shadow-lg transition duration-300 ease-in-out text-sm">
+                    <a href="{{ route('admin.silverchannels.import') }}" class="btn-3d btn-3d-gold shimmer w-full h-12 text-white font-bold py-2 px-4 rounded inline-flex justify-center items-center text-sm">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                         {{ __('Import Data') }}
                     </a>
@@ -34,7 +119,7 @@
 
                 <!-- Kolom 3: Add New Silverchannel (30%) -->
                 <div class="w-full md:w-[30%]">
-                    <button @click="openCreateModal()" class="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex justify-center items-center shadow-lg transition duration-300 ease-in-out text-sm">
+                    <button @click="openCreateModal()" class="btn-3d btn-3d-blue shimmer w-full h-12 text-white font-bold py-2 px-4 rounded inline-flex justify-center items-center text-sm">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         {{ __('Add New Silverchannel') }}
                     </button>
@@ -125,9 +210,9 @@
                                         <td class="px-4 py-4 align-top text-end text-sm font-medium">
                                             <div class="flex justify-end space-x-2">
                                                 <div class="relative group">
-                                                    <button @click="openEditModal({{ json_encode($user) }})" aria-label="Edit" class="p-1.5 rounded hover:shadow hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition">
+                                                    <a href="{{ route('admin.silverchannels.edit', $user) }}" aria-label="Edit" class="inline-block p-1.5 rounded hover:shadow hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4h2M4 20h16M4 20l4-4m0 0l10-10a2.828 2.828 0 114 4L12 20m-4-4l4 4"/></svg>
-                                                    </button>
+                                                    </a>
                                                     <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition whitespace-nowrap z-10">Edit</div>
                                                 </div>
 
@@ -155,8 +240,26 @@
                         </table>
                     </div>
                     
-                    <div class="mt-4">
-                        {{ $silverchannels->links() }}
+                    <div class="mt-4 flex flex-col md:flex-row justify-between items-center pagination-container relative">
+                        <!-- Loading Overlay for Pagination -->
+                        <div x-show="pageLoading" 
+                             class="absolute inset-0 bg-white/50 dark:bg-gray-800/50 z-10 flex items-center justify-center rounded-lg"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             style="display: none;">
+                            <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+
+                        <div class="text-sm text-gray-700 dark:text-gray-300 mb-4 md:mb-0 w-full md:w-auto text-center md:text-left">
+                            Showing <span class="font-medium">{{ $silverchannels->firstItem() ?? 0 }}</span> to <span class="font-medium">{{ $silverchannels->lastItem() ?? 0 }}</span> of <span class="font-medium">{{ $silverchannels->total() }}</span> entries
+                        </div>
+                        <div class="w-full md:w-auto flex justify-center md:justify-end">
+                            {{ $silverchannels->links() }}
+                        </div>
                     </div>
 
                 </div>

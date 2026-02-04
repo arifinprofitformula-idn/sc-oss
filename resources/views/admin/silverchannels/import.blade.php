@@ -25,6 +25,17 @@
                     </div>
 
                     <!-- Flash Messages / Results -->
+                    @if ($errors->any())
+                        <div class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded relative">
+                            <strong class="font-bold">Terjadi Kesalahan!</strong>
+                            <ul class="list-disc list-inside mt-2">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
                     @if(session('import_result'))
                         <div class="mb-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
                             <h4 class="font-bold text-lg mb-2">Hasil Import</h4>
@@ -181,23 +192,127 @@
                             </div>
 
                             <!-- Upload Form -->
-                            <div class="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div class="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700"
+                                x-data="{
+                                    fileName: null,
+                                    fileSize: null,
+                                    isValid: false,
+                                    errorMsg: null,
+                                    isDragging: false,
+                                    
+                                    handleFile(event) {
+                                        const file = event.target.files[0];
+                                        this.processFile(file);
+                                    },
+                                    
+                                    handleDrop(event) {
+                                        this.isDragging = false;
+                                        const file = event.dataTransfer.files[0];
+                                        
+                                        // Update input file manually for form submission
+                                        const dataTransfer = new DataTransfer();
+                                        dataTransfer.items.add(file);
+                                        document.getElementById('file').files = dataTransfer.files;
+                                        
+                                        this.processFile(file);
+                                    },
+                                    
+                                    processFile(file) {
+                                        if (!file) {
+                                            this.reset();
+                                            return;
+                                        }
+                                        
+                                        this.fileName = file.name;
+                                        
+                                        // Basic validation
+                                        // Note: file.type might be empty or specific on some systems for CSV
+                                        const validTypes = ['text/csv', 'application/vnd.ms-excel', 'text/plain', 'text/x-csv', 'application/csv', 'application/x-csv', 'text/comma-separated-values', 'text/x-comma-separated-values'];
+                                        const isCsvExtension = file.name.toLowerCase().endsWith('.csv');
+                                        
+                                        if (!isCsvExtension && !validTypes.includes(file.type)) {
+                                            this.errorMsg = 'Format file harus CSV (.csv).';
+                                            this.isValid = false;
+                                            return;
+                                        }
+                                        
+                                        if (file.size > 2 * 1024 * 1024) { // 2MB
+                                            this.errorMsg = 'Ukuran file melebihi batas maksimum 2MB.';
+                                            this.isValid = false;
+                                            return;
+                                        }
+
+                                        this.fileSize = (file.size / 1024).toFixed(2) + ' KB';
+                                        this.isValid = true;
+                                        this.errorMsg = null;
+                                    },
+                                    
+                                    reset() {
+                                        this.fileName = null;
+                                        this.fileSize = null;
+                                        this.isValid = false;
+                                        this.errorMsg = null;
+                                        document.getElementById('file').value = '';
+                                    }
+                                }">
                                 <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Langkah 2: Upload & Preview</h4>
                                 <form action="{{ route('admin.silverchannels.import.preview') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                                     @csrf
                                     
                                     <div>
                                         <label for="file" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Pilih File CSV</label>
-                                        <div class="flex items-center justify-center w-full">
-                                            <label for="file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-bray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 transition">
-                                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                                    <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                        
+                                        <div class="flex items-center justify-center w-full"
+                                             @dragover.prevent="isDragging = true"
+                                             @dragleave.prevent="isDragging = false"
+                                             @drop.prevent="handleDrop($event)">
+                                            
+                                            <label for="file" 
+                                                   class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer transition relative overflow-hidden"
+                                                   :class="{
+                                                       'border-blue-500 bg-blue-50 dark:bg-blue-900/30': isDragging,
+                                                       'border-green-500 bg-green-50 dark:bg-green-900/30': isValid,
+                                                       'border-red-500 bg-red-50 dark:bg-red-900/30': errorMsg,
+                                                       'border-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600': !isDragging && !isValid && !errorMsg
+                                                   }">
+                                                
+                                                <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4" x-show="!fileName">
+                                                    <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                                     </svg>
-                                                    <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Klik untuk upload</span></p>
+                                                    <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Klik untuk upload</span> atau drag and drop</p>
                                                     <p class="text-xs text-gray-500 dark:text-gray-400">CSV only (MAX. 2MB)</p>
                                                 </div>
-                                                <input id="file" name="file" type="file" accept=".csv" class="hidden" required />
+
+                                                <!-- File Selected State -->
+                                                <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4 w-full" x-show="fileName" style="display: none;">
+                                                    <template x-if="isValid">
+                                                        <div class="text-green-600 dark:text-green-400 mb-2">
+                                                            <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="!isValid">
+                                                        <div class="text-red-600 dark:text-red-400 mb-2">
+                                                            <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                            </svg>
+                                                        </div>
+                                                    </template>
+                                                    
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate w-full px-8" x-text="fileName"></p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" x-show="fileSize" x-text="fileSize"></p>
+                                                    
+                                                    <p class="text-sm text-red-600 dark:text-red-400 mt-2 font-semibold" x-show="errorMsg" x-text="errorMsg"></p>
+                                                    <p class="text-sm text-green-600 dark:text-green-400 mt-2 font-semibold" x-show="isValid">File siap diupload</p>
+
+                                                    <button type="button" @click.prevent="reset()" class="mt-4 text-xs text-gray-500 underline hover:text-gray-700 dark:hover:text-gray-300">
+                                                        Ganti File
+                                                    </button>
+                                                </div>
+
+                                                <input id="file" name="file" type="file" accept=".csv" class="hidden" required @change="handleFile($event)" />
                                             </label>
                                         </div>
                                         @error('file')
@@ -206,7 +321,10 @@
                                     </div>
 
                                     <div class="flex justify-end">
-                                        <button type="submit" class="px-6 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                                        <button type="submit" 
+                                                :disabled="!isValid"
+                                                :class="{ 'opacity-50 cursor-not-allowed': !isValid, 'hover:bg-gray-700 dark:hover:bg-white': isValid }"
+                                                class="px-6 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                                             Upload & Preview
                                         </button>
                                     </div>

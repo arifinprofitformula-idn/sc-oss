@@ -32,8 +32,10 @@ class ProcessSilverchannelStatus
 
         // Logic for Rejection (Cancelled/Refunded)
         if (in_array($newStatus, ['CANCELLED', 'REFUNDED', 'RETURNED'])) {
-            // Check for WAITING_VERIFICATION, PENDING_REVIEW, or ACTIVE (Revocation)
-            if (in_array($user->status, ['WAITING_VERIFICATION', 'PENDING_REVIEW', 'ACTIVE'])) {
+            // Check for WAITING_VERIFICATION, PENDING_REVIEW
+            // We removed 'ACTIVE' from here because an Active Silverchannel should NOT be rejected
+            // just because one of their orders is cancelled or refunded.
+            if (in_array($user->status, ['WAITING_VERIFICATION', 'PENDING_REVIEW'])) {
                 $this->rejectUser($user, $newStatus);
             }
         }

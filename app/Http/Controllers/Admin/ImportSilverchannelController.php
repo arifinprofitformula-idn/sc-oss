@@ -21,9 +21,49 @@ class ImportSilverchannelController extends Controller
     {
         // Check if there is a pending file for this user
         $tempFile = 'temp/import_' . auth()->id() . '.csv';
-        $hasPending = Storage::exists($tempFile);
         
-        return view('admin.silverchannels.import', compact('hasPending'));
+        if (Storage::exists($tempFile)) {
+            try {
+                $path = Storage::path($tempFile);
+                
+                if (file_exists($path)) {
+                    $csvData = array_map('str_getcsv', file($path));
+                    
+                    // Remove UTF-8 BOM if present
+                    $bom = pack('H*','EFBBBF');
+                    if (isset($csvData[0][0])) {
+                        $csvData[0][0] = preg_replace("/^$bom/", '', $csvData[0][0]);
+                    }
+
+                    if (!empty($csvData)) {
+                        $header = array_shift($csvData);
+                        
+                        if ($header) {
+                            $previewData = [];
+                            $count = 0;
+                            foreach ($csvData as $row) {
+                                if ($count >= 5) break;
+                                if (count($header) == count($row)) {
+                                    $previewData[] = array_combine($header, $row);
+                                }
+                                $count++;
+                            }
+
+                            return view('admin.silverchannels.import', [
+                                'hasPending' => true,
+                                'headers' => $header,
+                                'preview_data' => $previewData
+                            ]);
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                // If file is corrupted, delete it and fallback to upload page
+                Storage::delete($tempFile);
+            }
+        }
+        
+        return view('admin.silverchannels.import', ['hasPending' => false]);
     }
 
     public function downloadTemplate()
@@ -56,77 +96,158 @@ class ImportSilverchannelController extends Controller
         ]);
 
         $file = $request->file('file');
-        
-        // Save to temp storage
-        $path = $file->storeAs('temp', 'import_' . auth()->id() . '.csv');
 
-        // Parse for preview
-        $csvData = array_map('str_getcsv', file($file->getRealPath()));
-        
-        // Remove UTF-8 BOM if present
-        $bom = pack('H*','EFBBBF');
-        if (isset($csvData[0][0])) {
-            $csvData[0][0] = preg_replace("/^$bom/", '', $csvData[0][0]);
+        if (!$file->isValid()) {
+            return back()->withErrors(['file' => 'File upload failed: ' . $file->getErrorMessage()]);
         }
 
-        $header = array_shift($csvData);
+        // Validate real path to avoid "Path must not be empty" error
+        $realPath = $file->getRealPath();
         
-        // Combine header with data (take first 5 rows)
-        $previewData = [];
-        $count = 0;
-        foreach ($csvData as $row) {
-            if ($count >= 5) break;
-            if (count($header) == count($row)) {
-                $previewData[] = array_combine($header, $row);
+        // Fallback if getRealPath is empty but getPathname works
+        if (empty($realPath) && method_exists($file, 'getPathname')) {
+            $realPath = $file->getPathname();
+        }
+
+        if (empty($realPath)) {
+            return back()->withErrors(['file' => 'Unable to read file. Please try again or check file permissions.']);
+        }
+        
+        try {
+            // Save to temp storage safely using manual stream
+            // This bypasses FilesystemAdapter's putFileAs wrapper which causes "Path must not be empty" 
+            // errors when handling File objects in some environments/PHP versions.
+            $filename = 'import_' . auth()->id() . '.csv';
+            $targetPath = 'temp/' . $filename;
+            
+            // Open stream manually from the validated realPath
+            $stream = fopen($realPath, 'r');
+            if (!$stream) {
+                throw new \Exception("Failed to open uploaded file for reading.");
             }
-            $count++;
-        }
+            
+            // Store using stream
+            $success = Storage::put($targetPath, $stream);
+            
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+            
+            if (!$success) {
+                throw new \Exception("Failed to store uploaded file.");
+            }
+            
+            // Use stored file path
+            $path = $targetPath;
+            
+            // Use stored file for preview to ensure consistency
+            $storedPath = Storage::path($path);
 
-        return view('admin.silverchannels.import', [
-            'preview_data' => $previewData,
-            'headers' => $header,
-            'hasPending' => true
-        ]);
+            if (!file_exists($storedPath)) {
+                 throw new \Exception("Stored file not found at: " . $storedPath);
+            }
+
+            // Parse for preview
+            $csvData = array_map('str_getcsv', file($storedPath));
+            
+            // Remove UTF-8 BOM if present
+            $bom = pack('H*','EFBBBF');
+            if (isset($csvData[0][0])) {
+                $csvData[0][0] = preg_replace("/^$bom/", '', $csvData[0][0]);
+            }
+
+            if (empty($csvData)) {
+                 return back()->withErrors(['file' => 'File is empty.']);
+            }
+
+            $header = array_shift($csvData);
+            
+            if (!$header || (count($header) === 1 && (is_null($header[0]) || trim($header[0]) === ''))) {
+                return back()->withErrors(['file' => 'Invalid CSV format: Missing header.']);
+            }
+
+            // Combine header with data (take first 5 rows)
+            $previewData = [];
+            $count = 0;
+            foreach ($csvData as $row) {
+                if ($count >= 5) break;
+                if (count($header) == count($row)) {
+                    $previewData[] = array_combine($header, $row);
+                }
+                $count++;
+            }
+
+            return view('admin.silverchannels.import', [
+                'preview_data' => $previewData,
+                'headers' => $header,
+                'hasPending' => true
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Import Preview Error: ' . $e->getMessage());
+            return back()->withErrors(['file' => 'An error occurred while processing the file: ' . $e->getMessage()]);
+        }
     }
 
     public function process(Request $request)
     {
-        $tempFile = 'temp/import_' . auth()->id() . '.csv';
+        try {
+            $tempFile = 'temp/import_' . auth()->id() . '.csv';
 
-        if (!Storage::exists($tempFile)) {
-            return redirect()->route('admin.silverchannels.import')
-                ->withErrors(['file' => 'Sesi import telah kadaluarsa. Silakan upload ulang file.']);
-        }
-
-        $path = Storage::path($tempFile);
-        $csvData = array_map('str_getcsv', file($path));
-
-        // Remove UTF-8 BOM if present
-        $bom = pack('H*','EFBBBF');
-        if (isset($csvData[0][0])) {
-            $csvData[0][0] = preg_replace("/^$bom/", '', $csvData[0][0]);
-        }
-
-        $header = array_shift($csvData);
-        
-        $rows = [];
-        foreach ($csvData as $row) {
-            if (count($header) == count($row)) {
-                $rows[] = array_combine($header, $row);
+            if (!Storage::exists($tempFile)) {
+                return redirect()->route('admin.silverchannels.import')
+                    ->withErrors(['file' => 'Sesi import telah kadaluarsa. Silakan upload ulang file.']);
             }
+
+            $path = Storage::path($tempFile);
+            
+            if (empty($path) || !file_exists($path)) {
+                Storage::delete($tempFile); // Cleanup if broken
+                return back()->withErrors(['file' => 'File temporary tidak ditemukan.']);
+            }
+
+            $csvData = array_map('str_getcsv', file($path));
+
+            // Remove UTF-8 BOM if present
+            $bom = pack('H*','EFBBBF');
+            if (isset($csvData[0][0])) {
+                $csvData[0][0] = preg_replace("/^$bom/", '', $csvData[0][0]);
+            }
+
+            if (empty($csvData)) {
+                 Storage::delete($tempFile);
+                 return back()->withErrors(['file' => 'File CSV kosong.']);
+            }
+
+            $header = array_shift($csvData);
+            
+            if (!$header) {
+                 Storage::delete($tempFile);
+                 return back()->withErrors(['file' => 'Format CSV tidak valid (header missing).']);
+            }
+            
+            $rows = [];
+            foreach ($csvData as $row) {
+                if (count($header) == count($row)) {
+                    $rows[] = array_combine($header, $row);
+                }
+            }
+
+            if (empty($rows)) {
+                return back()->withErrors(['file' => 'File CSV kosong atau format tidak valid (data mismatch).']);
+            }
+
+            $result = $this->importService->import($rows, auth()->id());
+
+            // Cleanup
+            Storage::delete($tempFile);
+
+            return redirect()->route('admin.silverchannels.import')
+                ->with('import_result', $result);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Import Process Error: ' . $e->getMessage());
+            return back()->withErrors(['file' => 'Terjadi kesalahan saat memproses data: ' . $e->getMessage()]);
         }
-
-        if (empty($rows)) {
-            return back()->withErrors(['file' => 'File CSV kosong atau format tidak valid.']);
-        }
-
-        $result = $this->importService->import($rows, auth()->id());
-
-        // Cleanup
-        Storage::delete($tempFile);
-
-        return redirect()->route('admin.silverchannels.import')
-            ->with('import_result', $result);
     }
 
     public function store(Request $request)
@@ -136,31 +257,62 @@ class ImportSilverchannelController extends Controller
         ]);
 
         $file = $request->file('file');
-        $csvData = array_map('str_getcsv', file($file->getRealPath()));
 
-        // Remove UTF-8 BOM if present
-        $bom = pack('H*','EFBBBF');
-        if (isset($csvData[0][0])) {
-            $csvData[0][0] = preg_replace("/^$bom/", '', $csvData[0][0]);
+        if (!$file->isValid()) {
+            return back()->withErrors(['file' => 'File upload failed: ' . $file->getErrorMessage()]);
         }
 
-        $header = array_map(fn($h) => trim($h), array_shift($csvData));
-        $rows = [];
-        foreach ($csvData as $row) {
-            if (count($header) == count($row)) {
-                $row = array_map(fn($v) => is_string($v) ? trim($v) : $v, $row);
-                $rows[] = array_combine($header, $row);
+        $realPath = $file->getRealPath();
+        
+        // Fallback
+        if (empty($realPath) && method_exists($file, 'getPathname')) {
+            $realPath = $file->getPathname();
+        }
+
+        if (empty($realPath)) {
+            return back()->withErrors(['file' => 'Unable to read file path.']);
+        }
+
+        try {
+            $csvData = array_map('str_getcsv', file($realPath));
+
+            // Remove UTF-8 BOM if present
+            $bom = pack('H*','EFBBBF');
+            if (isset($csvData[0][0])) {
+                $csvData[0][0] = preg_replace("/^$bom/", '', $csvData[0][0]);
             }
+
+            if (empty($csvData)) {
+                 return back()->withErrors(['file' => 'File CSV kosong.']);
+            }
+
+            $header = array_map(fn($h) => trim($h), array_shift($csvData));
+            
+            if (!$header) {
+                 return back()->withErrors(['file' => 'Format CSV tidak valid.']);
+            }
+
+            $rows = [];
+            foreach ($csvData as $row) {
+                if (count($header) == count($row)) {
+                    $row = array_map(fn($v) => is_string($v) ? trim($v) : $v, $row);
+                    $rows[] = array_combine($header, $row);
+                }
+            }
+
+            if (empty($rows)) {
+                return back()->withErrors(['file' => 'File CSV kosong atau format tidak valid.']);
+            }
+
+            $result = $this->importService->import($rows, auth()->id());
+
+            return redirect()->route('admin.silverchannels.import')
+                ->with('import_result', $result);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Import Store Error: ' . $e->getMessage());
+            return back()->withErrors(['file' => 'Terjadi kesalahan: ' . $e->getMessage()]);
         }
-
-        if (empty($rows)) {
-            return back()->withErrors(['file' => 'File CSV kosong atau format tidak valid.']);
-        }
-
-        $result = $this->importService->import($rows, auth()->id());
-
-        return redirect()->route('admin.silverchannels.import')
-            ->with('import_result', $result);
     }
     
     public function cancel()

@@ -25,7 +25,8 @@ class SilverchannelController extends Controller
 
     public function index(Request $request)
     {
-        $query = User::role('SILVERCHANNEL')->with(['referrer', 'referrer.profile'])->latest();
+        // Eager load profile for both user and referrer
+        $query = User::role('SILVERCHANNEL')->with(['referrer', 'referrer.profile', 'profile'])->latest();
 
         if ($request->has('status') && $request->status != '') {
             $query->where('status', $request->status);
@@ -41,8 +42,19 @@ class SilverchannelController extends Controller
             });
         }
 
-        $silverchannels = $query->paginate(10);
+        $silverchannels = $query->paginate(20);
         return view('admin.silverchannels.index', compact('silverchannels'));
+    }
+
+    public function edit(User $user)
+    {
+        if (!$user->hasRole('SILVERCHANNEL')) {
+             return back()->with('error', 'User is not a Silverchannel.');
+        }
+
+        $user->load(['referrer', 'profile']);
+        
+        return view('admin.silverchannels.edit', compact('user'));
     }
 
     public function store(StoreSilverchannelRequest $request)
