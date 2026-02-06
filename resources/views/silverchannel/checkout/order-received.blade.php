@@ -115,9 +115,68 @@
                     @endif
 
                     <!-- Action Buttons -->
+                    <style>
+                        /* From Login Page & Products Page */
+                        .button-shine { 
+                            position: relative; 
+                            transition: all 0.3s ease-in-out; 
+                            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); 
+                            padding-block: 0.5rem; 
+                            padding-inline: 1.25rem; 
+                            background: linear-gradient(to right, #06b6d4, #2563eb); /* cyan-500 to blue-600 */
+                            border-radius: 6px; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            color: #ffff; 
+                            gap: 10px; 
+                            font-weight: bold; 
+                            border: 3px solid #ffffff4d; 
+                            outline: none; 
+                            overflow: hidden; 
+                            font-size: 15px; 
+                            cursor: pointer; 
+                            text-decoration: none; /* For anchor tags */
+                        } 
+                        .button-shine .icon { 
+                            width: 24px; 
+                            height: 24px; 
+                            transition: all 0.3s ease-in-out; 
+                        } 
+                        .button-shine:hover { 
+                            transform: scale(1.05); 
+                            border-color: #fff9; 
+                        } 
+                        .button-shine:hover .icon { 
+                            transform: translate(4px); 
+                        } 
+                        .button-shine:hover::before { 
+                            animation: shine 1.5s ease-out infinite; 
+                        } 
+                        .button-shine::before { 
+                            content: ""; 
+                            position: absolute; 
+                            width: 100px; 
+                            height: 100%; 
+                            background-image: linear-gradient( 
+                                120deg, 
+                                rgba(255, 255, 255, 0) 30%, 
+                                rgba(255, 255, 255, 0.8), 
+                                rgba(255, 255, 255, 0) 70% 
+                            ); 
+                            top: 0; 
+                            left: -100px; 
+                            opacity: 0.6; 
+                        } 
+                        @keyframes shine { 
+                            0% { left: -100px; } 
+                            60% { left: 100%; } 
+                            to { left: 100%; } 
+                        } 
+                    </style>
                     <div class="flex flex-col sm:flex-row justify-center gap-4 mt-8" x-show="!isCancelled">
                         <a href="{{ route('payment.checkout', $order) }}" 
-                           class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm w-full sm:w-auto">
+                           class="button-shine w-full sm:w-auto">
                             Konfirmasi Pembayaran
                             <svg class="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>

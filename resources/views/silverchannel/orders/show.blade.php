@@ -75,6 +75,57 @@
                 </div>
 
                 <!-- Sidebar -->
+                <style>
+                    /* From Login Page & Products Page */
+                    .button-shine { 
+                        position: relative; 
+                        transition: all 0.3s ease-in-out; 
+                        box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); 
+                        padding-block: 0.5rem; 
+                        padding-inline: 1.25rem; 
+                        background: linear-gradient(to right, #06b6d4, #2563eb); /* cyan-500 to blue-600 */
+                        border-radius: 6px; 
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: center; 
+                        color: #ffff; 
+                        gap: 10px; 
+                        font-weight: bold; 
+                        border: 3px solid #ffffff4d; 
+                        outline: none; 
+                        overflow: hidden; 
+                        font-size: 15px; 
+                        cursor: pointer; 
+                        text-decoration: none;
+                    } 
+                    .button-shine:hover { 
+                        transform: scale(1.05); 
+                        border-color: #fff9; 
+                    } 
+                    .button-shine:hover::before { 
+                        animation: shine 1.5s ease-out infinite; 
+                    } 
+                    .button-shine::before { 
+                        content: ""; 
+                        position: absolute; 
+                        width: 100px; 
+                        height: 100%; 
+                        background-image: linear-gradient( 
+                            120deg, 
+                            rgba(255, 255, 255, 0) 30%, 
+                            rgba(255, 255, 255, 0.8), 
+                            rgba(255, 255, 255, 0) 70% 
+                        ); 
+                        top: 0; 
+                        left: -100px; 
+                        opacity: 0.6; 
+                    } 
+                    @keyframes shine { 
+                        0% { left: -100px; } 
+                        60% { left: 100%; } 
+                        to { left: 100%; } 
+                    } 
+                </style>
                 <div class="space-y-6">
                     <!-- Status Card -->
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
@@ -91,7 +142,7 @@
                         
                         @if($order->status === 'WAITING_PAYMENT' || $order->status === 'DRAFT')
                             <div class="mt-6 border-t pt-4 space-y-3">
-                                <a href="{{ route('payment.checkout', $order) }}" class="block w-full text-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <a href="{{ route('payment.checkout', $order) }}" class="button-shine w-full">
                                     Proceed to Payment
                                 </a>
                                 
@@ -138,7 +189,7 @@
                                         </button>
                                     </div>
                                     
-                                    <a href="https://cekresi.com/?noresi={{ $order->shipping_tracking_number }}" target="_blank" class="mt-3 block w-full text-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 transition">
+                                    <a href="https://cekresi.com/?noresi={{ $order->shipping_tracking_number }}" target="_blank" class="button-shine mt-3 w-full">
                                         Track Order
                                     </a>
                                 </div>

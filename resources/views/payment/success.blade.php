@@ -38,12 +38,63 @@
                     </div>
                 </div>
 
+                <style>
+                    /* From Login Page & Products Page */
+                    .button-shine { 
+                        position: relative; 
+                        transition: all 0.3s ease-in-out; 
+                        box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); 
+                        padding-block: 0.5rem; 
+                        padding-inline: 1.25rem; 
+                        background: linear-gradient(to right, #06b6d4, #2563eb); /* cyan-500 to blue-600 */
+                        border-radius: 6px; 
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: center; 
+                        color: #ffff; 
+                        gap: 10px; 
+                        font-weight: bold; 
+                        border: 3px solid #ffffff4d; 
+                        outline: none; 
+                        overflow: hidden; 
+                        font-size: 15px; 
+                        cursor: pointer; 
+                        text-decoration: none;
+                    } 
+                    .button-shine:hover { 
+                        transform: scale(1.05); 
+                        border-color: #fff9; 
+                    } 
+                    .button-shine:hover::before { 
+                        animation: shine 1.5s ease-out infinite; 
+                    } 
+                    .button-shine::before { 
+                        content: ""; 
+                        position: absolute; 
+                        width: 100px; 
+                        height: 100%; 
+                        background-image: linear-gradient( 
+                            120deg, 
+                            rgba(255, 255, 255, 0) 30%, 
+                            rgba(255, 255, 255, 0.8), 
+                            rgba(255, 255, 255, 0) 70% 
+                        ); 
+                        top: 0; 
+                        left: -100px; 
+                        opacity: 0.6; 
+                    } 
+                    @keyframes shine { 
+                        0% { left: -100px; } 
+                        60% { left: 100%; } 
+                        to { left: 100%; } 
+                    } 
+                </style>
                 <div class="flex flex-col sm:flex-row justify-center gap-4">
                     <a href="{{ route('silverchannel.orders.show', $order) }}" class="inline-flex justify-center items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
                         Lihat Detail Order
                     </a>
                     
-                    <a href="{{ route('dashboard') }}" class="inline-flex justify-center items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring focus:ring-blue-200 disabled:opacity-25 transition">
+                    <a href="{{ route('dashboard') }}" class="button-shine">
                         Kembali ke Dashboard
                     </a>
                 </div>

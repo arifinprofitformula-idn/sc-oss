@@ -7,11 +7,15 @@ use App\Services\IntegrationService;
 use App\Services\RajaOngkirService;
 use App\Services\ApiIdService;
 use App\Services\ShippingService;
+use App\Services\EpiAutoPriceService;
 use App\Models\IntegrationLog;
 use App\Models\Store;
+use App\Models\Product;
+use App\Models\EpiProductMapping;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class IntegrationController extends Controller
 {
@@ -19,18 +23,93 @@ class IntegrationController extends Controller
     protected $rajaOngkirService;
     protected $apiIdService;
     protected $shippingService;
+    protected $epiAutoPriceService;
 
     public function __construct(
         IntegrationService $integrationService, 
         RajaOngkirService $rajaOngkirService,
         ApiIdService $apiIdService,
-        ShippingService $shippingService
+        ShippingService $shippingService,
+        EpiAutoPriceService $epiAutoPriceService
     )
     {
         $this->integrationService = $integrationService;
         $this->rajaOngkirService = $rajaOngkirService;
         $this->apiIdService = $apiIdService;
         $this->shippingService = $shippingService;
+        $this->epiAutoPriceService = $epiAutoPriceService;
+    }
+
+    public function epiApe()
+    {
+        $settings = $this->epiAutoPriceService->getSettings();
+        
+        $logs = IntegrationLog::where('integration', 'epi_ape')->latest()->take(20)->get();
+        
+        $products = Product::with('epiMapping')->orderBy('name')->get();
+        
+        $apiStructure = [];
+        try {
+            if ($settings['active'] && $settings['api_key']) {
+                $apiStructure = $this->epiAutoPriceService->fetchAllPrices();
+            }
+        } catch (\Exception $e) {
+            // Ignore error for view rendering
+        }
+
+        return view('admin.integrations.epi-ape', compact('settings', 'logs', 'products', 'apiStructure'));
+    }
+
+    public function testEpiApe(Request $request)
+    {
+        $result = $this->epiAutoPriceService->testConnection();
+        return response()->json($result);
+    }
+
+    public function syncEpiApe(Request $request)
+    {
+        try {
+            $result = $this->epiAutoPriceService->syncPrices();
+            
+            $msg = "Sync completed. Updated: " . $result['updated'] . ".";
+            if (!empty($result['errors'])) {
+                $msg .= " Errors: " . count($result['errors']);
+                return back()->with('warning', $msg);
+            }
+            
+            return back()->with('success', $msg);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Sync failed: ' . $e->getMessage());
+        }
+    }
+
+    public function updateEpiMapping(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'epi_brand_id' => 'required|integer',
+            'epi_level_id' => 'required|integer',
+            'epi_gramasi' => 'required|numeric|min:0.001',
+            'is_active' => 'boolean'
+        ]);
+
+        EpiProductMapping::updateOrCreate(
+            ['product_id' => $request->product_id],
+            [
+                'epi_brand_id' => $request->epi_brand_id,
+                'epi_level_id' => $request->epi_level_id,
+                'epi_gramasi' => $request->epi_gramasi,
+                'is_active' => $request->has('is_active')
+            ]
+        );
+
+        return back()->with('success', 'Mapping updated successfully.');
+    }
+
+    public function deleteEpiMapping($id)
+    {
+        EpiProductMapping::destroy($id);
+        return back()->with('success', 'Mapping removed successfully.');
     }
 
     public function index()
@@ -140,6 +219,10 @@ class IntegrationController extends Controller
             'midtrans_server_key' => 'nullable|string',
             'brevo_api_key' => 'nullable|string',
             'brevo_sender_email' => 'nullable|email',
+            'epi_ape_api_key' => 'nullable|string',
+            'epi_ape_base_url' => 'nullable|url',
+            'epi_ape_update_interval' => 'nullable|integer|min:5',
+            'epi_ape_notify_email' => 'nullable|email',
         ]);
 
         $rajaOngkirChanged = false;
@@ -169,6 +252,11 @@ class IntegrationController extends Controller
                 $group = 'brevo';
                 if ($key === 'brevo_active') $type = 'boolean';
                 if ($key === 'brevo_api_key') $type = 'encrypted';
+            } elseif (str_contains($key, 'epi_ape')) {
+                $group = 'epi_ape';
+                if ($key === 'epi_ape_active') $type = 'boolean';
+                if ($key === 'epi_ape_api_key') $type = 'encrypted';
+                if ($key === 'epi_ape_update_interval') $type = 'integer';
             }
 
             // Handle array values (like couriers list)
@@ -192,9 +280,12 @@ class IntegrationController extends Controller
         if (!$request->has('brevo_active') && $request->has('brevo_sender_email')) {
             $this->integrationService->set('brevo_active', 0, 'brevo', 'boolean');
         }
+        if (!$request->has('epi_ape_active') && $request->has('epi_ape_api_key')) {
+            $this->integrationService->set('epi_ape_active', 0, 'epi_ape', 'boolean');
+        }
 
         if ($rajaOngkirChanged) {
-            \Illuminate\Support\Facades\Cache::forget('rajaongkir_provinces');
+            Cache::forget('rajaongkir_provinces');
         }
 
         // Audit Log

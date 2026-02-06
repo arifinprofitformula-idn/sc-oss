@@ -345,8 +345,8 @@
                                 </div>
 
                                 <!-- Terms & Conditions Checkbox -->
-                                <div class="flex items-center mt-8">
-                                    <label class="cyber-checkbox flex-shrink-0 mr-4">
+                                <div class="flex items-center mt-8 gap-3">
+                                    <label class="cyber-checkbox flex-shrink-0">
                                         <input type="checkbox" name="terms_accepted" x-model="termsAccepted" required>
                                         <span class="cyber-checkbox__mark">
                                             <span class="cyber-checkbox__box"></span>
@@ -365,7 +365,7 @@
                                             </span>
                                         </span>
                                     </label>
-                                    <span class="text-gray-300 text-sm">
+                                    <span class="text-gray-300 text-sm flex-1 leading-tight">
                                         Saya telah membaca dan menyetujui <a href="#" @click.prevent="showTermsModal = true" class="text-cyan-400 hover:text-cyan-300 underline font-medium transition-colors">Syarat & Ketentuan</a> menjadi Silverchannel
                                     </span>
                                 </div>

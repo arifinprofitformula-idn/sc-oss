@@ -67,6 +67,64 @@
             </div>
 
             <!-- Products Grid -->
+            <style>
+                /* From Login Page */
+                .button-shine { 
+                    position: relative; 
+                    transition: all 0.3s ease-in-out; 
+                    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); 
+                    padding-block: 0.5rem; 
+                    padding-inline: 1.25rem; 
+                    background: linear-gradient(to right, #06b6d4, #2563eb); /* cyan-500 to blue-600 */
+                    border-radius: 6px; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    color: #ffff; 
+                    gap: 10px; 
+                    font-weight: bold; 
+                    border: 3px solid #ffffff4d; 
+                    outline: none; 
+                    overflow: hidden; 
+                    font-size: 15px; 
+                    cursor: pointer; 
+                } 
+                .button-shine .icon { 
+                    width: 24px; 
+                    height: 24px; 
+                    transition: all 0.3s ease-in-out; 
+                } 
+                .button-shine:hover { 
+                    transform: scale(1.05); 
+                    border-color: #fff9; 
+                } 
+                .button-shine:hover .icon { 
+                    transform: translate(4px); 
+                } 
+                .button-shine:hover::before { 
+                    animation: shine 1.5s ease-out infinite; 
+                } 
+                .button-shine::before { 
+                    content: ""; 
+                    position: absolute; 
+                    width: 100px; 
+                    height: 100%; 
+                    background-image: linear-gradient( 
+                        120deg, 
+                        rgba(255, 255, 255, 0) 30%, 
+                        rgba(255, 255, 255, 0.8), 
+                        rgba(255, 255, 255, 0) 70% 
+                    ); 
+                    top: 0; 
+                    left: -100px; 
+                    opacity: 0.6; 
+                } 
+                @keyframes shine { 
+                    0% { left: -100px; } 
+                    60% { left: 100%; } 
+                    to { left: 100%; } 
+                } 
+            </style>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 @foreach ($products as $product)
                     <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg flex flex-col">
@@ -94,22 +152,25 @@
                                     <div class="flex gap-2">
                                         <x-text-input type="number" x-model.number="qty" min="1" class="w-20" />
                                         <!-- Warna tombol dikendalikan oleh state toko: saat TUTUP gunakan gradasi GREY -->
-                                        <x-primary-button 
+                                        <button 
                                             type="button"
                                             @click="handleAddToCart()"
-                                            class="flex-1 justify-center transition-all duration-200"
+                                            class="button-shine flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                                             x-bind:disabled="!$store.storeStatus.canAddToCart"
                                             x-bind:title="!$store.storeStatus.canAddToCart ? 'Toko sedang tutup. Transaksi tidak bisa dilakukan.' : ''"
-                                            x-bind:class="$store.storeStatus.canAddToCart 
-                                                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white'
-                                                : 'text-white cursor-not-allowed opacity-80'"
+                                            x-bind:class="!$store.storeStatus.canAddToCart ? 'cursor-not-allowed opacity-80' : ''"
                                             x-bind:style="!$store.storeStatus.canAddToCart 
                                                 ? 'background-image: linear-gradient(to right, #808080, #666666);' 
                                                 : ''"
                                         >
-                                            <span x-show="$store.storeStatus.canAddToCart">{{ __('Add to Cart') }}</span>
+                                            <span x-show="$store.storeStatus.canAddToCart" class="flex items-center gap-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                </svg>
+                                                {{ __('Add to Cart') }}
+                                            </span>
                                             <span x-show="!$store.storeStatus.canAddToCart">TOKO TUTUP</span>
-                                        </x-primary-button>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -217,7 +278,7 @@
 
                 async refresh() {
                     try {
-                        const res = await fetch('{{ route('silverchannel.store.operational-status') }}', {
+                        const res = await fetch("{{ route('silverchannel.store.operational-status') }}", {
                             headers: {
                                 'Accept': 'application/json'
                             }
@@ -272,7 +333,7 @@
 
                     const payload = { product_id: this.productId, quantity: this.qty };
                     try {
-                        const res = await fetch('{{ route('silverchannel.cart.store') }}', {
+                        const res = await fetch("{{ route('silverchannel.cart.store') }}", {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',

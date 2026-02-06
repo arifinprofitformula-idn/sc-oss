@@ -205,10 +205,65 @@
                     </div>
 
                     <div class="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <a href="{{ route('silverchannel.orders.show', $order) }}" class="mr-4 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900">
+                        <style>
+                            /* From Login Page & Products Page */
+                            .button-shine { 
+                                position: relative; 
+                                transition: all 0.3s ease-in-out; 
+                                box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); 
+                                padding-block: 0.5rem; 
+                                padding-inline: 1.25rem; 
+                                background: linear-gradient(to right, #06b6d4, #2563eb); /* cyan-500 to blue-600 */
+                                border-radius: 6px; 
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center; 
+                                color: #ffff; 
+                                gap: 10px; 
+                                font-weight: bold; 
+                                border: 3px solid #ffffff4d; 
+                                outline: none; 
+                                overflow: hidden; 
+                                font-size: 15px; 
+                                cursor: pointer; 
+                            } 
+                            .button-shine:disabled {
+                                opacity: 0.7;
+                                cursor: not-allowed;
+                                background: #9ca3af; /* Gray-400 fallback */
+                            }
+                            .button-shine:not(:disabled):hover { 
+                                transform: scale(1.05); 
+                                border-color: #fff9; 
+                            } 
+                            .button-shine:not(:disabled):hover::before { 
+                                animation: shine 1.5s ease-out infinite; 
+                            } 
+                            .button-shine::before { 
+                                content: ""; 
+                                position: absolute; 
+                                width: 100px; 
+                                height: 100%; 
+                                background-image: linear-gradient( 
+                                    120deg, 
+                                    rgba(255, 255, 255, 0) 30%, 
+                                    rgba(255, 255, 255, 0.8), 
+                                    rgba(255, 255, 255, 0) 70% 
+                                ); 
+                                top: 0; 
+                                left: -100px; 
+                                opacity: 0.6; 
+                            } 
+                            @keyframes shine { 
+                                0% { left: -100px; } 
+                                60% { left: 100%; } 
+                                to { left: 100%; } 
+                            } 
+                        </style>
+                        <a href="{{ route('silverchannel.orders.show', $order) }}" class="mr-4 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 flex items-center">
                             Batal
                         </a>
-                        <x-primary-button class="ml-3" ::disabled="processing">
+                        <button type="submit" class="button-shine ml-3" :disabled="processing">
                             <span x-show="!processing">{{ __('Kirim Konfirmasi Pembayaran') }}</span>
                             <span x-show="processing" class="flex items-center">
                                 <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -217,7 +272,7 @@
                                 </svg>
                                 Memproses...
                             </span>
-                        </x-primary-button>
+                        </button>
                     </div>
                 </form>
             </div>

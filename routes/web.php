@@ -159,6 +159,12 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
                 Route::get('/', [\App\Http\Controllers\Admin\IntegrationController::class, 'index'])->name('index');
                 Route::get('/shipping', [\App\Http\Controllers\Admin\IntegrationController::class, 'shipping'])->name('shipping');
                 Route::get('/payment', [\App\Http\Controllers\Admin\IntegrationController::class, 'payment'])->name('payment');
+                Route::get('/epi-ape', [\App\Http\Controllers\Admin\IntegrationController::class, 'epiApe'])->name('epi-ape');
+                Route::post('/epi-ape/sync', [\App\Http\Controllers\Admin\IntegrationController::class, 'syncEpiApe'])->name('epi-ape.sync');
+                Route::post('/epi-ape/mapping', [\App\Http\Controllers\Admin\IntegrationController::class, 'updateEpiMapping'])->name('epi-ape.mapping.update');
+                Route::delete('/epi-ape/mapping/{id}', [\App\Http\Controllers\Admin\IntegrationController::class, 'deleteEpiMapping'])->name('epi-ape.mapping.delete');
+                Route::post('/test/epi-ape', [\App\Http\Controllers\Admin\IntegrationController::class, 'testEpiApe'])->name('test.epi-ape');
+                
                 Route::get('/docs', [\App\Http\Controllers\Admin\IntegrationController::class, 'docs'])->name('docs');
                 Route::post('/update', [\App\Http\Controllers\Admin\IntegrationController::class, 'update'])->name('update');
                 

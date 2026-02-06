@@ -156,6 +156,64 @@
                             </ul>
                         </div>
 
+                        <style>
+                            /* From Login Page */
+                            .button-shine { 
+                                position: relative; 
+                                transition: all 0.3s ease-in-out; 
+                                box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); 
+                                padding-block: 0.5rem; 
+                                padding-inline: 1.25rem; 
+                                background: linear-gradient(to right, #06b6d4, #2563eb); /* cyan-500 to blue-600 */
+                                border-radius: 6px; 
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center; 
+                                color: #ffff; 
+                                gap: 10px; 
+                                font-weight: bold; 
+                                border: 3px solid #ffffff4d; 
+                                outline: none; 
+                                overflow: hidden; 
+                                font-size: 15px; 
+                                cursor: pointer; 
+                            } 
+                            .button-shine .icon { 
+                                width: 24px; 
+                                height: 24px; 
+                                transition: all 0.3s ease-in-out; 
+                            } 
+                            .button-shine:hover { 
+                                transform: scale(1.05); 
+                                border-color: #fff9; 
+                            } 
+                            .button-shine:hover .icon { 
+                                transform: translate(4px); 
+                            } 
+                            .button-shine:hover::before { 
+                                animation: shine 1.5s ease-out infinite; 
+                            } 
+                            .button-shine::before { 
+                                content: ""; 
+                                position: absolute; 
+                                width: 100px; 
+                                height: 100%; 
+                                background-image: linear-gradient( 
+                                    120deg, 
+                                    rgba(255, 255, 255, 0) 30%, 
+                                    rgba(255, 255, 255, 0.8), 
+                                    rgba(255, 255, 255, 0) 70% 
+                                ); 
+                                top: 0; 
+                                left: -100px; 
+                                opacity: 0.6; 
+                            } 
+                            @keyframes shine { 
+                                0% { left: -100px; } 
+                                60% { left: 100%; } 
+                                to { left: 100%; } 
+                            } 
+                        </style>
                         <!-- Footer -->
                         <div class="border-t border-gray-200 px-4 py-6 sm:px-6 bg-gray-50" x-show="$store.cart.items.length > 0">
                             <div class="flex justify-between text-base font-bold text-gray-900 mb-4">
@@ -204,10 +262,10 @@
                                             $store.cart.loading = false;
                                         }
                                     "
-                                    class="flex w-full items-center justify-center rounded-md border border-transparent px-6 py-3 text-base font-bold text-white shadow-sm focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    class="button-shine w-full disabled:opacity-50 disabled:cursor-not-allowed"
                                     :class="($store.storeStatus && !$store.storeStatus.canAddToCart) 
                                         ? 'cursor-not-allowed opacity-80' 
-                                        : 'bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2'"
+                                        : ''"
                                     :style="($store.storeStatus && !$store.storeStatus.canAddToCart) 
                                         ? 'background-image: linear-gradient(to right, #808080, #666666);' 
                                         : ''"
@@ -216,7 +274,7 @@
                                 >
                                     <span x-show="!$store.cart.loading && !($store.storeStatus && !$store.storeStatus.canAddToCart)" class="flex items-center">
                                         LANJUTKAN ORDER
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                         </svg>
                                     </span>

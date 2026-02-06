@@ -53,4 +53,9 @@ class Product extends Model
             ->withPivot('quantity')
             ->withTimestamps();
     }
+
+    public function epiMapping()
+    {
+        return $this->hasOne(EpiProductMapping::class);
+    }
 }
