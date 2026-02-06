@@ -222,10 +222,82 @@
                             <a href="{{ route('register.silver') }}" class="text-gray-400 hover:text-white transition-colors py-2">
                                 &larr; Kembali
                             </a>
-                            <button 
-                                type="submit" 
-                                class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 focus:ring-offset-gray-900 shadow-lg hover:shadow-green-500/25"
-                            >
+                            <style>
+                                /* Adapted from Uiverse.io by satyamchaudharydev */ 
+                                .button-shine-green { 
+                                    position: relative; 
+                                    transition: all 0.3s ease-in-out; 
+                                    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); 
+                                    padding-block: 0.5rem; 
+                                    padding-inline: 1.25rem; 
+                                    background: linear-gradient(to right, #22c55e, #059669); /* green-500 to emerald-600 */
+                                    border-radius: 6px; 
+                                    display: flex; 
+                                    align-items: center; 
+                                    justify-content: center; 
+                                    color: #ffff; 
+                                    gap: 10px; 
+                                    font-weight: bold; 
+                                    border: 3px solid #ffffff4d; 
+                                    outline: none; 
+                                    overflow: hidden; 
+                                    font-size: 15px; 
+                                    cursor: pointer; 
+                                } 
+                                
+                                .button-shine-green .icon { 
+                                    width: 24px; 
+                                    height: 24px; 
+                                    transition: all 0.3s ease-in-out; 
+                                } 
+                                
+                                .button-shine-green:hover { 
+                                    transform: scale(1.05); 
+                                    border-color: #fff9; 
+                                } 
+                                
+                                .button-shine-green:hover .icon { 
+                                    transform: translate(4px); 
+                                } 
+                                
+                                .button-shine-green:hover::before { 
+                                    animation: shine 1.5s ease-out infinite; 
+                                } 
+                                
+                                .button-shine-green::before { 
+                                    content: ""; 
+                                    position: absolute; 
+                                    width: 100px; 
+                                    height: 100%; 
+                                    background-image: linear-gradient( 
+                                        120deg, 
+                                        rgba(255, 255, 255, 0) 30%, 
+                                        rgba(255, 255, 255, 0.8), 
+                                        rgba(255, 255, 255, 0) 70% 
+                                    ); 
+                                    top: 0; 
+                                    left: -100px; 
+                                    opacity: 0.6; 
+                                } 
+                                
+                                @keyframes shine { 
+                                    0% { 
+                                        left: -100px; 
+                                    } 
+                                
+                                    60% { 
+                                        left: 100%; 
+                                    } 
+                                
+                                    to { 
+                                        left: 100%; 
+                                    } 
+                                } 
+                            </style>
+                            <button type="submit" class="button-shine-green">
+                                <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
                                 {{ __('Konfirmasi Pembayaran') }}
                             </button>
                         </div>

@@ -139,22 +139,118 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        <div class="flex items-center justify-between gap-2">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <style>
+                    /* From Uiverse.io by JaydipPrajapati1910 - Modified for Laravel */
+                    .Btn-logout {
+                        display: flex;
+                        align-items: center;
+                        justify-content: flex-start;
+                        width: 45px;
+                        height: 45px;
+                        border: none;
+                        border-radius: 50%;
+                        cursor: pointer;
+                        position: relative;
+                        overflow: hidden;
+                        transition-duration: .3s;
+                        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.199);
+                        background-color: #4f46e5; /* indigo-600 */
+                        margin: 0 auto;
+                    }
+
+                    /* plus sign - adapted for logout icon */
+                    .sign {
+                        width: 100%;
+                        transition-duration: .3s;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .sign svg {
+                        width: 20px;
+                    }
+
+                    .sign svg path {
+                        stroke: white; /* Changed from fill to stroke for logout icon */
+                    }
+
+                    /* text */
+                    .text {
+                        position: absolute;
+                        right: 0%;
+                        width: 0%;
+                        opacity: 0;
+                        color: white;
+                        font-size: 1em;
+                        font-weight: 600;
+                        transition-duration: .3s;
+                        white-space: nowrap;
+                    }
+
+                    /* hover effect on button width */
+                    .Btn-logout:hover {
+                        width: 125px;
+                        border-radius: 40px;
+                        transition-duration: .3s;
+                    }
+
+                    .Btn-logout:hover .sign {
+                        width: 30%;
+                        transition-duration: .3s;
+                        padding-left: 20px;
+                    }
+
+                    /* hover effect button's text */
+                    .Btn-logout:hover .text {
+                        opacity: 1;
+                        width: 70%;
+                        transition-duration: .3s;
+                        padding-right: 10px;
+                    }
+
+                    /* button click effect*/
+                    .Btn-logout:active {
+                        transform: translate(2px ,2px);
+                    }
+
+                    /* Shimmer Effect */
+                    .shimmer::after {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 50%;
+                        height: 100%;
+                        background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+                        transform: skewX(-15deg);
+                        animation: shimmer 2s infinite;
+                        pointer-events: none;
+                    }
+                    
+                    @keyframes shimmer {
+                        0% { transform: translateX(-150%) skewX(-15deg); }
+                        100% { transform: translateX(200%) skewX(-15deg); }
+                    }
+                </style>
+                <button type="submit" class="Btn-logout shimmer">
+                    <div class="sign">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                    </div>
+                    <div class="text">{{ __('Log Out') }}</div>
+                </button>
+            </form>
+
+            <button @click="sidebarOpen = false" class="hidden lg:flex items-center justify-center p-2 rounded-full bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-gray-400 hover:bg-indigo-100 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-200" style="width: 45px; height: 45px;" title="Collapse Sidebar">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7M19 19l-7-7 7-7"></path>
                 </svg>
-                {{ __('Log Out') }}
             </button>
-        </form>
+        </div>
     </div>
 </div>
-
-<!-- Desktop Toggle Button (Fixed at Bottom Left) -->
-<button @click="sidebarOpen = !sidebarOpen" class="hidden lg:flex fixed bottom-4 z-40 items-center justify-center p-2 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 focus:outline-none transition-all duration-300" :class="sidebarOpen ? 'left-[16.5rem]' : 'left-4'">
-    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path x-show="!sidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
-        <path x-show="sidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7M19 19l-7-7 7-7"></path>
-    </svg>
-</button>

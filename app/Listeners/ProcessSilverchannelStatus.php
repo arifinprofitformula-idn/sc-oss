@@ -6,6 +6,7 @@ use App\Events\OrderStatusChanged;
 use App\Events\SilverchannelApproved;
 use App\Models\AuditLog;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -60,7 +61,7 @@ class ProcessSilverchannelStatus
 
         // Log Audit
         AuditLog::create([
-            'user_id' => auth()->id() ?? $user->id, // If triggered by system/job, might not have auth
+            'user_id' => Auth::id() ?? $user->id, // If triggered by system/job, might not have auth
             'action' => 'AUTO_ACTIVATE_SILVERCHANNEL',
             'model_type' => User::class,
             'model_id' => $user->id,
@@ -82,7 +83,7 @@ class ProcessSilverchannelStatus
 
         // Log Audit
         AuditLog::create([
-            'user_id' => auth()->id() ?? $user->id,
+            'user_id' => Auth::id() ?? $user->id,
             'action' => 'AUTO_REJECT_SILVERCHANNEL',
             'model_type' => User::class,
             'model_id' => $user->id,

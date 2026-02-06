@@ -1,4 +1,164 @@
 <x-app-layout>
+    <style>
+        /* 3D Button Styles */
+        .btn-3d {
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                0px 0px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-3d:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Blue Variant */
+        .btn-3d-blue {
+            background: linear-gradient(to bottom, #3b82f6, #2563eb);
+            border: 1px solid #1d4ed8;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #1e40af,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-blue:hover {
+            background: linear-gradient(to bottom, #60a5fa, #3b82f6);
+            --btn-pulse-color: rgba(59, 130, 246, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-blue:active {
+            box-shadow: 
+                0px 0px 0px 0px #1e40af,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Green Variant */
+        .btn-3d-green {
+            background: linear-gradient(to bottom, #10b981, #059669);
+            border: 1px solid #047857;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #065f46,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-green:hover {
+            background: linear-gradient(to bottom, #34d399, #10b981);
+            --btn-pulse-color: rgba(16, 185, 129, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-green:active {
+            box-shadow: 
+                0px 0px 0px 0px #065f46,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Red Variant */
+        .btn-3d-red {
+            background: linear-gradient(to bottom, #ef4444, #dc2626);
+            border: 1px solid #b91c1c;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #991b1b,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-red:hover {
+            background: linear-gradient(to bottom, #f87171, #ef4444);
+            --btn-pulse-color: rgba(239, 68, 68, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-red:active {
+            box-shadow: 
+                0px 0px 0px 0px #991b1b,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Gold Variant */
+        .btn-3d-gold {
+            background: linear-gradient(to bottom, #f59e0b, #d97706);
+            border: 1px solid #b45309;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #92400e,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-gold:hover {
+            background: linear-gradient(to bottom, #fbbf24, #f59e0b);
+            --btn-pulse-color: rgba(245, 158, 11, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-gold:active {
+            box-shadow: 
+                0px 0px 0px 0px #92400e,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Gray Variant */
+        .btn-3d-gray {
+            background: linear-gradient(to bottom, #6b7280, #4b5563);
+            border: 1px solid #374151;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #1f2937,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-gray:hover {
+            background: linear-gradient(to bottom, #9ca3af, #6b7280);
+            --btn-pulse-color: rgba(107, 114, 128, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-gray:active {
+            box-shadow: 
+                0px 0px 0px 0px #1f2937,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Animations */
+        @keyframes pulse512 {
+            0% { box-shadow: 0 0 0 0 var(--btn-pulse-color); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+        }
+
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+    </style>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Payment Verification') }}
@@ -16,8 +176,8 @@
                         <option value="PAID" {{ request('status') == 'PAID' ? 'selected' : '' }}>Paid</option>
                         <option value="FAILED" {{ request('status') == 'FAILED' ? 'selected' : '' }}>Failed</option>
                     </select>
-                    <x-primary-button>{{ __('Filter') }}</x-primary-button>
-                    <a href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                    <button type="submit" class="btn-3d btn-3d-blue shimmer px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">{{ __('Filter') }}</button>
+                    <a href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="btn-3d btn-3d-green shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">
                         {{ __('Export CSV') }}
                     </a>
                 </form>
@@ -78,7 +238,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                     @if($payment->proof_file)
-                                        <a href="{{ asset('storage/' . $payment->proof_file) }}" target="_blank" class="text-indigo-600 hover:text-indigo-900">View Proof</a>
+                                        <a href="{{ asset('storage/' . $payment->proof_file) }}" target="_blank" class="btn-3d btn-3d-blue shimmer px-3 py-1 rounded-md text-xs">View Proof</a>
                                     @else
                                         -
                                     @endif
@@ -97,7 +257,7 @@
                                         <div class="flex justify-end space-x-3">
                                             <!-- Approve -->
                                             <div class="relative group">
-                                                <button @click="openConfirmModal('approve', '{{ route('admin.payments.verify', $payment) }}', 'Approve Payment', 'Are you sure you want to verify this payment?', 'Yes, Approve', 'bg-green-600 hover:bg-green-700 focus:ring-green-500', 'PATCH')" 
+                                                <button @click="openConfirmModal('approve', '{{ route('admin.payments.verify', $payment) }}', 'Approve Payment', 'Are you sure you want to verify this payment?', 'Yes, Approve', 'btn-3d-green', 'PATCH')" 
                                                         class="p-2 rounded hover:shadow hover:bg-green-50 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 transition">
                                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -108,7 +268,7 @@
 
                                             <!-- Reject -->
                                             <div class="relative group">
-                                                <button @click="openConfirmModal('reject', '{{ route('admin.payments.reject', $payment->id) }}', 'Reject Payment', 'Please provide a reason for rejection:', 'Reject Payment', 'bg-red-600 hover:bg-red-700 focus:ring-red-500', 'PATCH', true)" 
+                                                <button @click="openConfirmModal('reject', '{{ route('admin.payments.reject', $payment->id) }}', 'Reject Payment', 'Please provide a reason for rejection:', 'Reject Payment', 'btn-3d-red', 'PATCH', true)" 
                                                         class="p-2 rounded hover:shadow hover:bg-red-50 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition">
                                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -207,7 +367,7 @@
                     </div>
                     <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                         <button type="button" 
-                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="btn-3d shimmer w-full inline-flex justify-center rounded-md px-4 py-2 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 :class="confirmModal.buttonClass"
                                 :disabled="confirmModal.loading || (confirmModal.hasInput && !confirmModal.inputValue)"
                                 @click="submitConfirm()">
@@ -218,7 +378,7 @@
                             <span x-text="confirmModal.loading ? 'Processing...' : confirmModal.buttonText"></span>
                         </button>
                         <button type="button" 
-                                class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="btn-3d btn-3d-gray shimmer mt-3 w-full inline-flex justify-center rounded-md px-4 py-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 :disabled="confirmModal.loading"
                                 @click="confirmModal.show = false">
                             Cancel
@@ -241,7 +401,7 @@
                     actionMethod: 'POST',
                     loading: false,
                     buttonText: 'Confirm',
-                    buttonClass: 'bg-blue-600 hover:bg-blue-700',
+                    buttonClass: 'btn-3d-blue',
                     hasInput: false,
                     inputValue: ''
                 },

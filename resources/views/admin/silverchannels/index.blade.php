@@ -15,6 +15,7 @@
                     --btn-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                     --btn-shadow-color: rgba(0, 0, 0, 0.2);
                     --btn-highlight: rgba(255, 255, 255, 0.2);
+                    --btn-pulse-color: rgba(5, 186, 218, 0.4); /* Default cyan pulse */
                     
                     position: relative;
                     overflow: hidden;
@@ -24,6 +25,7 @@
                         0 2px 4px -1px var(--btn-shadow-color),
                         inset 0 1px 0 var(--btn-highlight);
                     z-index: 1;
+                    background-size: 100% auto;
                 }
 
                 /* Gradient Overlay for Lighting Effect */
@@ -37,13 +39,13 @@
                     z-index: -1;
                 }
 
-                /* Hover State: Lift up + Deep Shadow */
+                /* Hover State: Lift up + Deep Shadow + Pulse */
                 .btn-3d:hover {
                     transform: translateY(-2px);
-                    box-shadow: 
-                        0 10px 15px -3px var(--btn-shadow-color),
-                        0 4px 6px -2px var(--btn-shadow-color),
-                        inset 0 1px 0 var(--btn-highlight);
+                    /* Combine 3D shadow with Pulse animation logic (handled in keyframes) */
+                    background-position: right center;
+                    background-size: 200% auto;
+                    animation: pulse512 1.5s infinite;
                 }
                 
                 .btn-3d:hover::before {
@@ -56,16 +58,44 @@
                     box-shadow: 
                         0 2px 4px -1px var(--btn-shadow-color),
                         inset 0 2px 4px rgba(0,0,0,0.1);
+                    animation: none;
                 }
 
                 /* Gold Variant */
                 .btn-3d-gold {
                     background: linear-gradient(135deg, #EEA727 0%, #D97706 100%);
+                    --btn-pulse-color: rgba(238, 167, 39, 0.6);
                 }
 
                 /* Blue Variant */
                 .btn-3d-blue {
                     background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+                    --btn-pulse-color: rgba(37, 99, 235, 0.6);
+                }
+
+                /* Pulse Animation */
+                @keyframes pulse512 {
+                    0% {
+                        box-shadow: 
+                            0 10px 15px -3px var(--btn-shadow-color),
+                            0 4px 6px -2px var(--btn-shadow-color),
+                            inset 0 1px 0 var(--btn-highlight),
+                            0 0 0 0 var(--btn-pulse-color);
+                    }
+                    70% {
+                        box-shadow: 
+                            0 10px 15px -3px var(--btn-shadow-color),
+                            0 4px 6px -2px var(--btn-shadow-color),
+                            inset 0 1px 0 var(--btn-highlight),
+                            0 0 0 10px rgba(255, 255, 255, 0);
+                    }
+                    100% {
+                        box-shadow: 
+                            0 10px 15px -3px var(--btn-shadow-color),
+                            0 4px 6px -2px var(--btn-shadow-color),
+                            inset 0 1px 0 var(--btn-highlight),
+                            0 0 0 0 rgba(255, 255, 255, 0);
+                    }
                 }
 
                 /* Shimmer Animation */

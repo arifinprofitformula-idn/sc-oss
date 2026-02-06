@@ -7,6 +7,7 @@ use App\Models\OrderLog;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -66,30 +67,43 @@ class PaymentController extends Controller
             return back()->with('error', 'Payment is not pending verification.');
         }
 
-        DB::transaction(function () use ($payment) {
-            // Update Payment
-            $payment->update([
-                'status' => 'PAID',
-                'paid_at' => now(),
-            ]);
+        try {
+            DB::transaction(function () use ($payment) {
+                // Update Payment
+                $payment->update([
+                    'status' => 'PAID',
+                    'paid_at' => now(),
+                ]);
 
-            // Update Order
-            $order = $payment->order;
-            $oldStatus = $order->status;
-            $order->update(['status' => 'PAID']);
+                // Update Order
+                $order = $payment->order;
+                $oldStatus = $order->status;
+                $order->update(['status' => 'PAID']);
 
-            // Log Order Change
-            OrderLog::create([
-                'order_id' => $order->id,
-                'from_status' => $oldStatus,
-                'to_status' => 'PAID',
-                'note' => 'Payment verified by Admin via Manual Transfer',
-                'changed_by' => auth()->id(),
+                // Log Order Change
+                OrderLog::create([
+                    'order_id' => $order->id,
+                    'from_status' => $oldStatus,
+                    'to_status' => 'PAID',
+                    'note' => 'Payment verified by Admin via Manual Transfer',
+                    'changed_by' => auth()->id(),
+                ]);
+                
+                // Dispatch OrderPaid Event for Commission
+                \App\Events\OrderPaid::dispatch($order);
+
+                // Dispatch OrderStatusChanged for other listeners (e.g. Silverchannel Status Activation)
+                // This ensures the Silverchannel user is activated if they were WAITING_VERIFICATION
+                \App\Events\OrderStatusChanged::dispatch($order, $oldStatus, 'PAID');
+            });
+        } catch (\Exception $e) {
+            Log::error('Payment verification failed', [
+                'payment_id' => $payment->id, 
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
-            
-            // Dispatch OrderPaid Event for Commission
-            \App\Events\OrderPaid::dispatch($order);
-        });
+            return back()->with('error', 'Gagal memverifikasi pembayaran: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Payment verified successfully.');
     }

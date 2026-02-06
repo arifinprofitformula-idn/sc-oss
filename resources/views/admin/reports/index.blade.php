@@ -1,4 +1,142 @@
 <x-app-layout>
+    <style>
+        /* 3D Button Styles */
+        .btn-3d {
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                0px 0px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-3d:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Blue Variant */
+        .btn-3d-blue {
+            background: linear-gradient(to bottom, #3b82f6, #2563eb);
+            border: 1px solid #1d4ed8;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #1e40af,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-blue:hover {
+            background: linear-gradient(to bottom, #60a5fa, #3b82f6);
+            --btn-pulse-color: rgba(59, 130, 246, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-blue:active {
+            box-shadow: 
+                0px 0px 0px 0px #1e40af,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Green Variant */
+        .btn-3d-green {
+            background: linear-gradient(to bottom, #10b981, #059669);
+            border: 1px solid #047857;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #065f46,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-green:hover {
+            background: linear-gradient(to bottom, #34d399, #10b981);
+            --btn-pulse-color: rgba(16, 185, 129, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-green:active {
+            box-shadow: 
+                0px 0px 0px 0px #065f46,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Gold Variant */
+        .btn-3d-gold {
+            background: linear-gradient(to bottom, #f59e0b, #d97706);
+            border: 1px solid #b45309;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #92400e,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-gold:hover {
+            background: linear-gradient(to bottom, #fbbf24, #f59e0b);
+            --btn-pulse-color: rgba(245, 158, 11, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-gold:active {
+            box-shadow: 
+                0px 0px 0px 0px #92400e,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Gray Variant */
+        .btn-3d-gray {
+            background: linear-gradient(to bottom, #6b7280, #4b5563);
+            border: 1px solid #374151;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #1f2937,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-gray:hover {
+            background: linear-gradient(to bottom, #9ca3af, #6b7280);
+            --btn-pulse-color: rgba(107, 114, 128, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-gray:active {
+            box-shadow: 
+                0px 0px 0px 0px #1f2937,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Animations */
+        @keyframes pulse512 {
+            0% { box-shadow: 0 0 0 0 var(--btn-pulse-color); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+        }
+
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+    </style>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
@@ -43,11 +181,11 @@
                         <input type="date" name="end_date" value="{{ $endDate }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                     </div>
                     <div class="flex gap-2">
-                        <button type="submit" class="px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <button type="submit" class="btn-3d btn-3d-gray shimmer px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">
                             Filter
                         </button>
                         @if($startDate || $endDate)
-                            <a href="{{ route('admin.reports.index') }}" class="px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
+                            <a href="{{ route('admin.reports.index') }}" class="btn-3d btn-3d-gray shimmer px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">
                                 Clear
                             </a>
                         @endif
@@ -110,10 +248,10 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Export Reports</h3>
                 <div class="flex flex-wrap gap-4">
-                    <a href="{{ route('admin.reports.export', ['type' => 'orders']) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 focus:outline-none focus:border-blue-700 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
+                    <a href="{{ route('admin.reports.export', ['type' => 'orders']) }}" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">
                         Export Orders (CSV)
                     </a>
-                    <a href="{{ route('admin.reports.export', ['type' => 'commissions']) }}" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 focus:outline-none focus:border-green-700 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150">
+                    <a href="{{ route('admin.reports.export', ['type' => 'commissions']) }}" class="btn-3d btn-3d-green shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">
                         Export Commissions (CSV)
                     </a>
                 </div>

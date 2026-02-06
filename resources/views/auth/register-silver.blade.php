@@ -67,7 +67,7 @@
                         <div class="bg-gray-900/70 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl p-6 sm:p-8">
                             <div class="mb-6">
                                 <h2 class="text-2xl font-bold text-white mb-2">{{ __('Form Registrasi') }}</h2>
-                                <p class="text-gray-400 text-sm">
+                                <p class="text-gray-300 text-sm">
                                     {{ __('Lengkapi data diri Anda untuk mendaftar sebagai Silver Channel Partner.') }}
                                 </p>
                             </div>
@@ -75,7 +75,7 @@
                             <div class="space-y-6">
                                 <!-- Name -->
                                 <div>
-                                    <x-input-label for="name" :value="__('Nama Lengkap (Sesuai KTP)')" class="text-gray-300 font-medium mb-2" />
+                                    <x-input-label for="name" :value="__('Nama Lengkap (Sesuai KTP)')" class="text-white font-medium mb-2" />
                                     <x-text-input 
                                         id="name" 
                                         class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
@@ -91,7 +91,7 @@
 
                                 <!-- NIK -->
                                 <div>
-                                    <x-input-label for="nik" :value="__('NIK (16 Digit)')" class="text-gray-300 font-medium mb-2" />
+                                    <x-input-label for="nik" :value="__('NIK (16 Digit)')" class="text-white font-medium mb-2" />
                                     <x-text-input 
                                         id="nik" 
                                         class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
@@ -108,7 +108,7 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <!-- Email -->
                                     <div>
-                                        <x-input-label for="email" :value="__('Email')" class="text-gray-300 font-medium mb-2" />
+                                        <x-input-label for="email" :value="__('Email')" class="text-white font-medium mb-2" />
                                         <x-text-input 
                                             id="email" 
                                             class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
@@ -123,7 +123,7 @@
 
                                     <!-- WhatsApp -->
                                     <div>
-                                        <x-input-label for="whatsapp" :value="__('Nomor WhatsApp (awali 62)')" class="text-gray-300 font-medium mb-2" />
+                                        <x-input-label for="whatsapp" :value="__('Nomor WhatsApp (awali 62)')" class="text-white font-medium mb-2" />
                                         <x-text-input 
                                             id="whatsapp" 
                                             class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
@@ -134,7 +134,7 @@
                                             required 
                                             placeholder="628..." 
                                         />
-                                        <p class="text-xs text-gray-400 mt-1">Format: 6281234567890 (tanpa tanda +)</p>
+                                        <p class="text-xs text-gray-300 mt-1">Format: 6281234567890 (tanpa tanda +)</p>
                                         <x-input-error :messages="$errors->get('whatsapp')" class="mt-2 text-red-400" />
                                     </div>
                                 </div>
@@ -143,7 +143,7 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <!-- Province -->
                                     <div>
-                                        <x-input-label for="province_id" :value="__('Provinsi')" class="text-gray-300 font-medium mb-2" />
+                                        <x-input-label for="province_id" :value="__('Provinsi')" class="text-white font-medium mb-2" />
                                         <select id="province_id" name="province_id" x-model="selectedProvince" @change="fetchCities()" class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent rounded-md shadow-sm p-2.5">
                                             <option value="">Pilih Provinsi</option>
                                             <template x-for="province in provinces" :key="province.province_id">
@@ -156,7 +156,7 @@
 
                                     <!-- City -->
                                     <div>
-                                        <x-input-label for="city_id" :value="__('Kota/Kabupaten')" class="text-gray-300 font-medium mb-2" />
+                                        <x-input-label for="city_id" :value="__('Kota/Kabupaten')" class="text-white font-medium mb-2" />
                                         <select id="city_id" name="city_id" x-model="selectedCity" @change="updateCityName(); fetchSubdistricts()" :disabled="!selectedProvince" class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent rounded-md shadow-sm p-2.5">
                                             <option value="">Pilih Kota</option>
                                             <template x-for="city in cities" :key="city.city_id">
@@ -169,7 +169,7 @@
 
                                     <!-- Kecamatan -->
                                     <div>
-                                        <x-input-label for="subdistrict_id" :value="__('Kecamatan')" class="text-gray-300 font-medium mb-2" />
+                                        <x-input-label for="subdistrict_id" :value="__('Kecamatan')" class="text-white font-medium mb-2" />
                                         <select id="subdistrict_id" name="subdistrict_id" x-model="selectedSubdistrict" @change="updateSubdistrictName(); fetchVillages()" :disabled="!selectedCity" class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent rounded-md shadow-sm p-2.5">
                                             <option value="">Pilih Kecamatan</option>
                                             <template x-for="subdistrict in subdistricts" :key="subdistrict.subdistrict_id">
@@ -182,7 +182,7 @@
 
                                     <!-- Kelurahan -->
                                     <div>
-                                        <x-input-label for="village_id" :value="__('Kelurahan')" class="text-gray-300 font-medium mb-2" />
+                                        <x-input-label for="village_id" :value="__('Kelurahan')" class="text-white font-medium mb-2" />
                                         <select id="village_id" name="village_id" x-model="selectedVillage" @change="updateVillageName(); fetchShippingServices()" :disabled="!selectedSubdistrict" class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent rounded-md shadow-sm p-2.5">
                                             <option value="">Pilih Kelurahan</option>
                                             <template x-for="village in villages" :key="village.village_id">
@@ -195,7 +195,7 @@
 
                                     <!-- Kode Pos -->
                                     <div>
-                                        <x-input-label for="postal_code" :value="__('Kode Pos')" class="text-gray-300 font-medium mb-2" />
+                                        <x-input-label for="postal_code" :value="__('Kode Pos')" class="text-white font-medium mb-2" />
                                         <x-text-input 
                                             id="postal_code" 
                                             class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
@@ -211,12 +211,13 @@
                                 
                                 <!-- Address -->
                                 <div>
-                                    <x-input-label for="address" :value="__('Alamat Lengkap (Opsional)')" class="text-gray-300 font-medium mb-2" />
+                                    <x-input-label for="address" :value="__('Alamat Lengkap')" class="text-white font-medium mb-2" />
                                     <textarea 
                                         id="address" 
                                         name="address" 
                                         x-model="address"
                                         rows="2"
+                                        required
                                         class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent rounded-md shadow-sm"
                                         placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan..."
                                     ></textarea>
@@ -232,21 +233,21 @@
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
-                                        <span class="ml-2 text-gray-400 text-sm">Memuat layanan pengiriman...</span>
+                                        <span class="ml-2 text-gray-300 text-sm">Memuat layanan pengiriman...</span>
                                     </div>
 
-                                    <div x-show="!isLoadingShipping && shippingServices.length === 0 && selectedCity" class="text-gray-400 text-sm py-2">
+                                    <div x-show="!isLoadingShipping && shippingServices.length === 0 && selectedCity" class="text-gray-300 text-sm py-2">
                                         <p>Tidak ada layanan pengiriman yang tersedia untuk lokasi ini.</p>
                                     </div>
 
-                                    <div x-show="!selectedCity" class="text-gray-500 text-sm italic py-2">
+                                    <div x-show="!selectedCity" class="text-gray-300 text-sm italic py-2">
                                         Silakan pilih lokasi (Provinsi & Kota) terlebih dahulu.
                                     </div>
 
                                     <div class="grid grid-cols-1 gap-4" x-show="!isLoadingShipping && shippingServices.length > 0">
                                         <template x-for="courier in shippingServices" :key="courier.code">
                                             <div class="space-y-3">
-                                                <h4 class="text-gray-300 text-sm font-semibold uppercase tracking-wider" x-text="courier.name"></h4>
+                                                <h4 class="text-white text-sm font-semibold uppercase tracking-wider" x-text="courier.name"></h4>
                                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                     <template x-for="cost in courier.costs" :key="cost.service">
                                                         <div 
@@ -257,8 +258,8 @@
                                                             <div class="flex justify-between items-center">
                                                                 <div class="flex-1">
                                                                     <p class="text-white font-bold" x-text="cost.service"></p>
-                                                                    <p class="text-gray-400 text-xs mt-1" x-text="cost.description"></p>
-                                                                    <p class="text-gray-500 text-xs mt-1" x-text="'Estimasi: ' + (cost.cost[0].etd ? cost.cost[0].etd + ' hari' : '-')"></p>
+                                                                    <p class="text-gray-300 text-xs mt-1" x-text="cost.description"></p>
+                                                                    <p class="text-gray-300 text-xs mt-1" x-text="'Estimasi: ' + (cost.cost[0].etd ? cost.cost[0].etd + ' hari' : '-')"></p>
                                                                 </div>
                                                                 <div class="flex items-center space-x-3">
                                                                     <div class="text-right">
@@ -294,7 +295,7 @@
 
                                 <!-- Referral Code -->
                                 <div>
-                                    <x-input-label for="referral_code" :value="__('Kode Referral')" class="text-gray-300 font-medium mb-2" required />
+                                    <x-input-label for="referral_code" :value="__('Kode Referral')" class="text-white font-medium mb-2" required />
                                     <x-text-input 
                                         id="referral_code" 
                                         class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent {{ $referralCode ? 'opacity-50 cursor-not-allowed' : '' }}" 
@@ -307,7 +308,7 @@
                                         required
                                     />
                                     @if($referralCode)
-                                        <p class="text-xs text-cyan-400 mt-1">* Kode referral otomatis terisi dari link afiliasi.</p>
+                                        <p class="text-xs text-gray-300 mt-1">* Kode referral otomatis terisi dari link afiliasi.</p>
                                     @endif
                                     <x-input-error :messages="$errors->get('referral_code')" class="mt-2 text-red-400" />
                                 </div>
@@ -315,7 +316,7 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <!-- Password -->
                                     <div>
-                                        <x-input-label for="password" :value="__('Password')" class="text-gray-300 font-medium mb-2" />
+                                        <x-input-label for="password" :value="__('Password')" class="text-white font-medium mb-2" />
                                         <x-text-input 
                                             id="password" 
                                             class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
@@ -330,7 +331,7 @@
 
                                     <!-- Confirm Password -->
                                     <div>
-                                        <x-input-label for="password_confirmation" :value="__('Konfirmasi Password')" class="text-gray-300 font-medium mb-2" />
+                                        <x-input-label for="password_confirmation" :value="__('Konfirmasi Password')" class="text-white font-medium mb-2" />
                                         <x-text-input 
                                             id="password_confirmation" 
                                             class="block w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent" 
@@ -342,6 +343,213 @@
                                         <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2 text-red-400" />
                                     </div>
                                 </div>
+
+                                <!-- Terms & Conditions Checkbox -->
+                                <div class="flex items-center mt-8">
+                                    <label class="cyber-checkbox flex-shrink-0 mr-4">
+                                        <input type="checkbox" name="terms_accepted" x-model="termsAccepted" required>
+                                        <span class="cyber-checkbox__mark">
+                                            <span class="cyber-checkbox__box"></span>
+                                            <svg class="cyber-checkbox__check" viewBox="0 0 24 24">
+                                                <path d="M20 6L9 17l-5-5"></path>
+                                            </svg>
+                                            <span class="cyber-checkbox__particles">
+                                                <div class="particle-1"></div>
+                                                <div class="particle-2"></div>
+                                                <div class="particle-3"></div>
+                                                <div class="particle-4"></div>
+                                                <div class="particle-5"></div>
+                                                <div class="particle-6"></div>
+                                                <div class="particle-7"></div>
+                                                <div class="particle-8"></div>
+                                            </span>
+                                        </span>
+                                    </label>
+                                    <span class="text-gray-300 text-sm">
+                                        Saya telah membaca dan menyetujui <a href="#" @click.prevent="showTermsModal = true" class="text-cyan-400 hover:text-cyan-300 underline font-medium transition-colors">Syarat & Ketentuan</a> menjadi Silverchannel
+                                    </span>
+                                </div>
+                                <style>
+                                    /* From Uiverse.io by 00Kubi - Adapted for Silvergram Theme */ 
+                                    .cyber-checkbox { 
+                                        --checkbox-size: 24px; 
+                                        --checkbox-color: #06b6d4; /* cyan-500 */
+                                        --checkbox-check-color: #ffffff; 
+                                        --checkbox-hover-color: #2563eb; /* blue-600 */
+                                        --checkbox-spark-offset: -20px; 
+
+                                        position: relative; 
+                                        display: inline-block; 
+                                        cursor: pointer; 
+                                        user-select: none; 
+                                    } 
+
+                                    .cyber-checkbox input { 
+                                        display: none; 
+                                    } 
+
+                                    .cyber-checkbox__mark { 
+                                        position: relative; 
+                                        display: inline-block; 
+                                        width: var(--checkbox-size); 
+                                        height: var(--checkbox-size); 
+                                    } 
+
+                                    .cyber-checkbox__box { 
+                                        position: absolute; 
+                                        inset: 0; 
+                                        border: 2px solid var(--checkbox-color); 
+                                        border-radius: 4px; 
+                                        background: transparent; 
+                                        transition: all 0.2s ease; 
+                                    } 
+
+                                    .cyber-checkbox__check { 
+                                        position: absolute; 
+                                        inset: 0; 
+                                        padding: 2px; 
+                                        stroke: var(--checkbox-check-color); 
+                                        stroke-width: 2px; 
+                                        stroke-linecap: round; 
+                                        stroke-linejoin: round; 
+                                        fill: none; 
+                                        transform: scale(0); 
+                                        transition: transform 0.2s ease; 
+                                    } 
+
+                                    .cyber-checkbox__effects { 
+                                        position: absolute; 
+                                        inset: var(--checkbox-spark-offset); 
+                                        pointer-events: none; 
+                                    } 
+
+                                    .cyber-checkbox__spark { 
+                                        position: absolute; 
+                                        top: 50%; 
+                                        left: 50%; 
+                                        width: 2px; 
+                                        height: 2px; 
+                                        background: var(--checkbox-color); 
+                                        border-radius: 50%; 
+                                        opacity: 0; 
+                                        transform-origin: center center; 
+                                    } 
+
+                                    /* Hover */ 
+                                    .cyber-checkbox:hover .cyber-checkbox__box { 
+                                        border-color: var(--checkbox-hover-color); 
+                                        box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2); 
+                                    } 
+
+                                    /* Checked */ 
+                                    .cyber-checkbox input:checked + .cyber-checkbox__mark .cyber-checkbox__box { 
+                                        background: var(--checkbox-color); 
+                                        border-color: var(--checkbox-color); 
+                                    } 
+
+                                    .cyber-checkbox input:checked + .cyber-checkbox__mark .cyber-checkbox__check { 
+                                        transform: scale(1); 
+                                    } 
+
+                                    /* Spark Animation */ 
+                                    .cyber-checkbox input:checked + .cyber-checkbox__mark .cyber-checkbox__spark { 
+                                        animation: spark 0.4s ease-out; 
+                                    } 
+
+                                    .cyber-checkbox__spark:nth-child(1) { 
+                                        transform: rotate(0deg) translateX(var(--checkbox-spark-offset)); 
+                                    } 
+                                    .cyber-checkbox__spark:nth-child(2) { 
+                                        transform: rotate(90deg) translateX(var(--checkbox-spark-offset)); 
+                                    } 
+                                    .cyber-checkbox__spark:nth-child(3) { 
+                                        transform: rotate(180deg) translateX(var(--checkbox-spark-offset)); 
+                                    } 
+                                    .cyber-checkbox__spark:nth-child(4) { 
+                                        transform: rotate(270deg) translateX(var(--checkbox-spark-offset)); 
+                                    } 
+
+                                    @keyframes spark { 
+                                        0% { 
+                                            opacity: 0; 
+                                            transform: scale(0) rotate(0deg) translateX(var(--checkbox-spark-offset)); 
+                                        } 
+                                        50% { 
+                                            opacity: 1; 
+                                        } 
+                                        100% { 
+                                            opacity: 0; 
+                                            transform: scale(1) rotate(0deg) translateX(calc(var(--checkbox-spark-offset) * 1.5)); 
+                                        } 
+                                    } 
+
+                                    /* Active */ 
+                                    .cyber-checkbox:active .cyber-checkbox__box { 
+                                        transform: scale(0.9); 
+                                    } 
+
+                                    /* Focus */ 
+                                    .cyber-checkbox input:focus + .cyber-checkbox__mark .cyber-checkbox__box { 
+                                        box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.2); 
+                                    } 
+
+                                    .cyber-checkbox__particles { 
+                                        position: absolute; 
+                                        inset: -50%; 
+                                        pointer-events: none; 
+                                    } 
+
+                                    .cyber-checkbox__particles div { 
+                                        position: absolute; 
+                                        top: 50%; 
+                                        left: 50%; 
+                                        width: 3px; 
+                                        height: 3px; 
+                                        border-radius: 50%; 
+                                        background: var(--checkbox-color); 
+                                        opacity: 0; 
+                                    } 
+
+                                    /* Particle animations for check */ 
+                                    .cyber-checkbox input:checked + .cyber-checkbox__mark .particle-1 { animation: particle-1 0.4s ease-out forwards; } 
+                                    .cyber-checkbox input:checked + .cyber-checkbox__mark .particle-2 { animation: particle-2 0.4s ease-out forwards 0.1s; } 
+                                    .cyber-checkbox input:checked + .cyber-checkbox__mark .particle-3 { animation: particle-3 0.4s ease-out forwards 0.15s; } 
+                                    .cyber-checkbox input:checked + .cyber-checkbox__mark .particle-4 { animation: particle-4 0.4s ease-out forwards 0.05s; } 
+                                    .cyber-checkbox input:checked + .cyber-checkbox__mark .particle-5 { animation: particle-5 0.4s ease-out forwards 0.12s; } 
+                                    .cyber-checkbox input:checked + .cyber-checkbox__mark .particle-6 { animation: particle-6 0.4s ease-out forwards 0.08s; } 
+                                    .cyber-checkbox input:checked + .cyber-checkbox__mark .particle-7 { animation: particle-7 0.4s ease-out forwards 0.18s; } 
+                                    .cyber-checkbox input:checked + .cyber-checkbox__mark .particle-8 { animation: particle-8 0.4s ease-out forwards 0.15s; } 
+
+                                    /* Particle animations for uncheck */ 
+                                    .cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-1 { animation: particle-out-1 0.4s ease-out forwards; } 
+                                    .cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-2 { animation: particle-out-2 0.4s ease-out forwards 0.1s; } 
+                                    .cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-3 { animation: particle-out-3 0.4s ease-out forwards 0.15s; } 
+                                    .cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-4 { animation: particle-out-4 0.4s ease-out forwards 0.05s; } 
+                                    .cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-5 { animation: particle-out-5 0.4s ease-out forwards 0.12s; } 
+                                    .cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-6 { animation: particle-out-6 0.4s ease-out forwards 0.08s; } 
+                                    .cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-7 { animation: particle-out-7 0.4s ease-out forwards 0.18s; } 
+                                    .cyber-checkbox input:not(:checked) + .cyber-checkbox__mark .particle-8 { animation: particle-out-8 0.4s ease-out forwards 0.15s; } 
+
+                                    /* Particle keyframes */ 
+                                    @keyframes particle-1 { 0% { transform: translate(0, 0) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(-20px, -20px) scale(1); opacity: 0; } } 
+                                    @keyframes particle-2 { 0% { transform: translate(0, 0) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(20px, -20px) scale(1); opacity: 0; } } 
+                                    @keyframes particle-3 { 0% { transform: translate(0, 0) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(20px, 20px) scale(1); opacity: 0; } } 
+                                    @keyframes particle-4 { 0% { transform: translate(0, 0) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(-20px, 20px) scale(1); opacity: 0; } } 
+                                    @keyframes particle-5 { 0% { transform: translate(0, 0) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(0, -30px) scale(1); opacity: 0; } } 
+                                    @keyframes particle-6 { 0% { transform: translate(0, 0) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(30px, 0) scale(1); opacity: 0; } } 
+                                    @keyframes particle-7 { 0% { transform: translate(0, 0) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(0, 30px) scale(1); opacity: 0; } } 
+                                    @keyframes particle-8 { 0% { transform: translate(0, 0) scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: translate(-30px, 0) scale(1); opacity: 0; } } 
+
+                                    /* Particle Out Keyframes (Simple Fade) */
+                                    @keyframes particle-out-1 { 0% { opacity: 1; transform: translate(-20px, -20px) scale(1); } 100% { opacity: 0; transform: translate(0, 0) scale(0); } }
+                                    @keyframes particle-out-2 { 0% { opacity: 1; transform: translate(20px, -20px) scale(1); } 100% { opacity: 0; transform: translate(0, 0) scale(0); } }
+                                    @keyframes particle-out-3 { 0% { opacity: 1; transform: translate(20px, 20px) scale(1); } 100% { opacity: 0; transform: translate(0, 0) scale(0); } }
+                                    @keyframes particle-out-4 { 0% { opacity: 1; transform: translate(-20px, 20px) scale(1); } 100% { opacity: 0; transform: translate(0, 0) scale(0); } }
+                                    @keyframes particle-out-5 { 0% { opacity: 1; transform: translate(0, -30px) scale(1); } 100% { opacity: 0; transform: translate(0, 0) scale(0); } }
+                                    @keyframes particle-out-6 { 0% { opacity: 1; transform: translate(30px, 0) scale(1); } 100% { opacity: 0; transform: translate(0, 0) scale(0); } }
+                                    @keyframes particle-out-7 { 0% { opacity: 1; transform: translate(0, 30px) scale(1); } 100% { opacity: 0; transform: translate(0, 0) scale(0); } }
+                                    @keyframes particle-out-8 { 0% { opacity: 1; transform: translate(-30px, 0) scale(1); } 100% { opacity: 0; transform: translate(0, 0) scale(0); } }
+                                </style>
                             </div>
                         </div>
                     </div>
@@ -395,7 +603,7 @@
                                         Rp {{ number_format($package->base_total, 0, ',', '.') }}
                                     </div>
                                 @endif
-                                <p class="text-gray-400 text-sm mt-2">Biaya Paket + Produk</p>
+                                <p class="text-gray-300 text-sm mt-2">Biaya Paket + Produk</p>
                             </div>
 
                             <div class="space-y-4 mb-8">
@@ -413,7 +621,7 @@
                                 {{-- Bundled Products List --}}
                                 @if($package->products->count() > 0)
                                     <div class="pt-4 border-t border-gray-700">
-                                        <h4 class="text-xs font-semibold text-gray-300 uppercase mb-3">{{ __('Produk Termasuk') }}</h4>
+                                        <h4 class="text-xs font-semibold text-white uppercase mb-3">{{ __('Produk Termasuk') }}</h4>
                                         <div class="space-y-3">
                                             @foreach($package->products as $product)
                                                 <div class="flex items-center bg-gray-800/50 p-2 rounded-lg border border-gray-700">
@@ -424,7 +632,7 @@
                                                     @endif
                                                     <div class="flex-1 min-w-0">
                                                         <p class="text-sm font-medium text-white truncate">{{ $product->name }}</p>
-                                                        <p class="text-xs text-gray-400">{{ $product->pivot->quantity }} x Rp {{ number_format($product->price_silverchannel, 0, ',', '.') }}</p>
+                                                        <p class="text-xs text-gray-300">{{ $product->pivot->quantity }} x Rp {{ number_format($product->price_silverchannel, 0, ',', '.') }}</p>
                                                     </div>
                                                 </div>
                                             @endforeach
@@ -434,31 +642,31 @@
 
                                 {{-- Cost Summary --}}
                                 <div class="pt-4 border-t border-gray-700">
-                                    <h4 class="text-xs font-semibold text-gray-300 uppercase mb-3">{{ __('Ringkasan Biaya') }}</h4>
+                                    <h4 class="text-xs font-semibold text-white uppercase mb-3">{{ __('Ringkasan Biaya') }}</h4>
                                     <div class="space-y-2 text-sm">
-                                        <div class="flex justify-between text-gray-400">
+                                        <div class="flex justify-between text-gray-300">
                                             <span>Paket Pendaftaran</span>
                                             <span>Rp {{ number_format($package->price, 0, ',', '.') }}</span>
                                         </div>
                                         @if($package->products_total > 0)
-                                            <div class="flex justify-between text-gray-400">
+                                            <div class="flex justify-between text-gray-300">
                                                 <span>Produk Tambahan</span>
                                                 <span>Rp {{ number_format($package->products_total, 0, ',', '.') }}</span>
                                             </div>
                                         @endif
-                                        <div class="flex justify-between text-gray-400" x-show="selectedShippingCost > 0" x-transition>
+                                        <div class="flex justify-between text-gray-300" x-show="selectedShippingCost > 0" x-transition>
                                             <span>Ongkos Kirim</span>
                                             <span x-text="'Rp ' + new Intl.NumberFormat('id-ID').format(selectedShippingCost)"></span>
                                         </div>
                                         @if($package->insurance_cost > 0)
-                                            <div class="flex justify-between text-gray-400">
+                                            <div class="flex justify-between text-gray-300">
                                                 <span>Asuransi Pengiriman (LM)</span>
                                                 <span>Rp {{ number_format($package->insurance_cost, 0, ',', '.') }}</span>
                                             </div>
                                         @endif
                                         
                                         <!-- Packing Fee -->
-                                        <div class="flex justify-between text-gray-400">
+                                        <div class="flex justify-between text-gray-300">
                                             <span>Biaya Packing</span>
                                             <span x-text="'Rp ' + new Intl.NumberFormat('id-ID').format(packingFee)"></span>
                                         </div>
@@ -472,7 +680,7 @@
                                 
                                 @if($package->description)
                                     <div class="pt-4 border-t border-gray-700">
-                                        <p class="text-gray-400 text-sm italic">
+                                        <p class="text-gray-300 text-sm italic">
                                             {{ $package->description }}
                                         </p>
                                     </div>
@@ -480,32 +688,145 @@
 
                                 @if($package->terms)
                                     <div class="pt-4 border-t border-gray-700">
-                                        <h4 class="text-xs font-semibold text-gray-300 uppercase mb-2">{{ __('Syarat & Ketentuan') }}</h4>
-                                        <p class="text-gray-400 text-xs">
+                                        <h4 class="text-xs font-semibold text-white uppercase mb-2">{{ __('Syarat & Ketentuan') }}</h4>
+                                        <p class="text-gray-300 text-xs">
                                             {{ $package->terms }}
                                         </p>
                                     </div>
                                 @endif
                             </div>
 
-                            <button 
-                                type="submit" 
-                                class="group relative w-full overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-4 px-6 rounded-xl shadow-[0_6px_0_#0891b2] hover:shadow-[0_8px_0_#0891b2] hover:-translate-y-1 active:shadow-[0_0px_0_#0891b2] active:translate-y-[6px] transition-all duration-150 flex items-center justify-center"
-                            >
-                                <!-- Shimmer Overlay (Active on Hover) -->
-                                <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none"></div>
+                            <style>
+                                /* From Uiverse.io by satyamchaudharydev */ 
+                                .button-shine { 
+                                    position: relative; 
+                                    transition: all 0.3s ease-in-out; 
+                                    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); 
+                                    padding-block: 0.5rem; 
+                                    padding-inline: 1.25rem; 
+                                    background: linear-gradient(to right, #06b6d4, #2563eb); /* cyan-500 to blue-600 */
+                                    border-radius: 6px; 
+                                    display: flex; 
+                                    align-items: center; 
+                                    justify-content: center; 
+                                    color: #ffff; 
+                                    gap: 10px; 
+                                    font-weight: bold; 
+                                    border: 3px solid #ffffff4d; 
+                                    outline: none; 
+                                    overflow: hidden; 
+                                    font-size: 15px; 
+                                    cursor: pointer; 
+                                } 
                                 
+                                .button-shine .icon { 
+                                    width: 24px; 
+                                    height: 24px; 
+                                    transition: all 0.3s ease-in-out; 
+                                } 
+                                
+                                .button-shine:hover { 
+                                    transform: scale(1.05); 
+                                    border-color: #fff9; 
+                                } 
+                                
+                                .button-shine:hover .icon { 
+                                    transform: translate(4px); 
+                                } 
+                                
+                                .button-shine:hover::before { 
+                                    animation: shine 1.5s ease-out infinite; 
+                                } 
+                                
+                                .button-shine::before { 
+                                    content: ""; 
+                                    position: absolute; 
+                                    width: 100px; 
+                                    height: 100%; 
+                                    background-image: linear-gradient( 
+                                        120deg, 
+                                        rgba(255, 255, 255, 0) 30%, 
+                                        rgba(255, 255, 255, 0.8), 
+                                        rgba(255, 255, 255, 0) 70% 
+                                    ); 
+                                    top: 0; 
+                                    left: -100px; 
+                                    opacity: 0.6; 
+                                } 
+                                
+                                @keyframes shine { 
+                                    0% { 
+                                        left: -100px; 
+                                    } 
+                                
+                                    60% { 
+                                        left: 100%; 
+                                    } 
+                                
+                                    to { 
+                                        left: 100%; 
+                                    } 
+                                } 
+                            </style>
+                            <button type="submit" 
+                                    class="button-shine w-full py-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"
+                                    :disabled="!termsAccepted"
+                            >
                                 <span class="relative text-lg tracking-wide uppercase">{{ __('Lanjut ke Pembayaran') }}</span>
-                                <svg class="relative w-6 h-6 ml-2 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="icon ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                                 </svg>
                             </button>
                             
                             <div class="mt-6 text-center">
-                                <a class="text-sm text-gray-400 hover:text-white transition-colors duration-200" href="{{ route('login') }}">
+                                <a class="text-sm text-gray-300 hover:text-white transition-colors duration-200" href="{{ route('login') }}">
                                     {{ __('Sudah punya akun? Masuk disini') }}
                                 </a>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Terms Modal -->
+                <div x-show="showTermsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+                    <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="showTermsModal = false" x-transition.opacity></div>
+                    <div class="relative bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl" x-transition.scale.origin.center>
+                        <!-- Header -->
+                        <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-white">Syarat & Ketentuan Silverchannel</h3>
+                            <button type="button" @click="showTermsModal = false" class="text-gray-400 hover:text-white transition-colors">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Content -->
+                        <div class="p-6 overflow-y-auto text-gray-300 space-y-4 custom-scrollbar">
+                            <h4 class="text-lg font-semibold text-white">1. Pendaftaran & Keanggotaan</h4>
+                            <p>Dengan mendaftar sebagai Silverchannel, Anda setuju untuk memberikan data yang valid dan akurat. Keanggotaan bersifat mengikat setelah disetujui oleh admin.</p>
+                            
+                            <h4 class="text-lg font-semibold text-white">2. Hak & Kewajiban</h4>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>Anda berhak mendapatkan harga khusus Silverchannel dan komisi sesuai ketentuan.</li>
+                                <li>Anda wajib menjaga nama baik brand dan tidak melakukan penipuan.</li>
+                                <li>Dilarang menjual produk di bawah harga yang telah ditetapkan (Central Price List).</li>
+                            </ul>
+                            
+                            <h4 class="text-lg font-semibold text-white">3. Pemesanan & Pembayaran</h4>
+                            <p>Semua pemesanan harus melalui sistem EPI-OSS. Pembayaran wajib dilakukan sesuai nominal tagihan beserta kode unik jika ada.</p>
+                            
+                            <h4 class="text-lg font-semibold text-white">4. Kebijakan Retur & Refund</h4>
+                            <p>Retur hanya diterima jika kesalahan dari pihak pengirim atau barang cacat produksi, wajib menyertakan video unboxing tanpa jeda.</p>
+                            
+                            <h4 class="text-lg font-semibold text-white">5. Pembatalan Keanggotaan</h4>
+                            <p>Admin berhak menonaktifkan akun Silverchannel jika ditemukan pelanggaran terhadap syarat & ketentuan ini.</p>
+                        </div>
+                        
+                        <!-- Footer -->
+                        <div class="p-6 border-t border-gray-700 bg-gray-900/50 rounded-b-2xl flex justify-end">
+                            <button type="button" @click="showTermsModal = false" class="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-medium transition-colors">
+                                Saya Mengerti
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -517,6 +838,8 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('locationSelector', (initialData = {}) => ({
+                showTermsModal: false,
+                termsAccepted: false,
                 // Non-location fields for persistence
                 name: initialData.oldName || '',
                 nik: initialData.oldNik || '',

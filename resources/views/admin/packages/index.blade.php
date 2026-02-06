@@ -1,4 +1,142 @@
 <x-app-layout>
+    <style>
+        /* 3D Button Styles */
+        .btn-3d {
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                0px 0px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-3d:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Blue Variant */
+        .btn-3d-blue {
+            background: linear-gradient(to bottom, #3b82f6, #2563eb);
+            border: 1px solid #1d4ed8;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #1e40af,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-blue:hover {
+            background: linear-gradient(to bottom, #60a5fa, #3b82f6);
+            --btn-pulse-color: rgba(59, 130, 246, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-blue:active {
+            box-shadow: 
+                0px 0px 0px 0px #1e40af,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Green Variant */
+        .btn-3d-green {
+            background: linear-gradient(to bottom, #10b981, #059669);
+            border: 1px solid #047857;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #065f46,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-green:hover {
+            background: linear-gradient(to bottom, #34d399, #10b981);
+            --btn-pulse-color: rgba(16, 185, 129, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-green:active {
+            box-shadow: 
+                0px 0px 0px 0px #065f46,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Gold Variant */
+        .btn-3d-gold {
+            background: linear-gradient(to bottom, #f59e0b, #d97706);
+            border: 1px solid #b45309;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #92400e,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-gold:hover {
+            background: linear-gradient(to bottom, #fbbf24, #f59e0b);
+            --btn-pulse-color: rgba(245, 158, 11, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-gold:active {
+            box-shadow: 
+                0px 0px 0px 0px #92400e,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Gray Variant */
+        .btn-3d-gray {
+            background: linear-gradient(to bottom, #6b7280, #4b5563);
+            border: 1px solid #374151;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #1f2937,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-gray:hover {
+            background: linear-gradient(to bottom, #9ca3af, #6b7280);
+            --btn-pulse-color: rgba(107, 114, 128, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-gray:active {
+            box-shadow: 
+                0px 0px 0px 0px #1f2937,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Animations */
+        @keyframes pulse512 {
+            0% { box-shadow: 0 0 0 0 var(--btn-pulse-color); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+        }
+
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+    </style>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Kelola Paket Silverchannel') }}
@@ -8,7 +146,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="flex justify-end mb-4">
-                <a href="{{ route('admin.packages.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-flex items-center shadow-lg transition duration-150 ease-in-out">
+                <a href="{{ route('admin.packages.create') }}" class="btn-3d btn-3d-blue shimmer font-bold py-2 px-4 rounded inline-flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     Buat Paket Baru
                 </a>
@@ -37,7 +175,7 @@
                             <div class="relative">
                                 <input type="text" name="search" placeholder="Cari paket..." value="{{ request('search') }}" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             </div>
-                            <button type="submit" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                            <button type="submit" class="btn-3d btn-3d-gray shimmer font-bold py-2 px-4 rounded">
                                 Filter
                             </button>
                         </form>

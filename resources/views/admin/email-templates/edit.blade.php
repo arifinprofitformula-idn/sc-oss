@@ -5,6 +5,91 @@
         </h2>
     </x-slot>
 
+    <style>
+        /* 3D Button Styles */
+        .btn-3d {
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                0px 0px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-3d:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                0px 0px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2),
+                inset 0px -1px 0px 0px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Blue Variant */
+        .btn-3d-blue {
+            background: linear-gradient(to bottom, #3b82f6, #2563eb);
+            border: 1px solid #1d4ed8;
+            box-shadow: 
+                0px 4px 0px 0px #1e40af,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+            --btn-pulse-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-3d-blue:hover {
+            background: linear-gradient(to bottom, #60a5fa, #3b82f6);
+            transform: translateY(-1px);
+            animation: pulse512 1.5s infinite;
+        }
+
+        .btn-3d-blue:active {
+            background: linear-gradient(to bottom, #2563eb, #3b82f6);
+            box-shadow: 
+                0px 0px 0px 0px #1e40af,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2),
+                inset 0px -1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Pulse Animation */
+        @keyframes pulse512 {
+            0% { box-shadow: 0 0 0 0 var(--btn-pulse-color); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+        }
+
+        /* Shimmer Effect */
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+    </style>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -65,9 +150,9 @@
                         <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('admin.email-templates.index') }}" class="text-gray-600 hover:text-gray-900 mr-4">Cancel</a>
                             <a href="{{ route('admin.email-templates.preview', $emailTemplate) }}" target="_blank" class="text-indigo-600 hover:text-indigo-900 mr-4">Preview</a>
-                            <x-primary-button class="ml-4">
+                            <button type="submit" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest ml-4">
                                 {{ __('Update Template') }}
-                            </x-primary-button>
+                            </button>
                         </div>
                     </form>
                 </div>

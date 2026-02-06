@@ -8,6 +8,126 @@
     <div class="py-12" x-data="{ showWithdrawModal: false, withdrawAmount: {{ $balance }} }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
+            <!-- Custom CSS for 3D Buttons -->
+            <style>
+                .btn-3d {
+                    /* Custom properties for maintainability */
+                    --btn-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    --btn-shadow-color: rgba(0, 0, 0, 0.2);
+                    --btn-highlight: rgba(255, 255, 255, 0.2);
+                    --btn-pulse-color: rgba(5, 186, 218, 0.4); /* Default cyan pulse */
+                    
+                    position: relative;
+                    overflow: hidden;
+                    transition: var(--btn-transition);
+                    box-shadow: 
+                        0 4px 6px -1px var(--btn-shadow-color),
+                        0 2px 4px -1px var(--btn-shadow-color),
+                        inset 0 1px 0 var(--btn-highlight);
+                    z-index: 1;
+                    background-size: 100% auto;
+                }
+
+                /* Gradient Overlay for Lighting Effect */
+                .btn-3d::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 0; right: 0; bottom: 0;
+                    background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.05) 100%);
+                    opacity: 0;
+                    transition: opacity 0.3s;
+                    z-index: -1;
+                }
+
+                /* Hover State: Lift up + Deep Shadow + Pulse */
+                .btn-3d:hover {
+                    transform: translateY(-2px);
+                    background-position: right center;
+                    background-size: 200% auto;
+                    animation: pulse512 1.5s infinite;
+                }
+                
+                .btn-3d:hover::before {
+                    opacity: 1;
+                }
+
+                /* Active State: Press down */
+                .btn-3d:active {
+                    transform: translateY(1px);
+                    box-shadow: 
+                        0 2px 4px -1px var(--btn-shadow-color),
+                        inset 0 2px 4px rgba(0,0,0,0.1);
+                    animation: none;
+                }
+
+                /* Gold Variant */
+                .btn-3d-gold {
+                    background: linear-gradient(135deg, #EEA727 0%, #D97706 100%);
+                    --btn-pulse-color: rgba(238, 167, 39, 0.6);
+                }
+
+                /* Blue Variant */
+                .btn-3d-blue {
+                    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+                    --btn-pulse-color: rgba(37, 99, 235, 0.6);
+                }
+
+                /* Green Variant */
+                .btn-3d-green {
+                    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+                    --btn-pulse-color: rgba(22, 163, 74, 0.6);
+                }
+
+                /* Pulse Animation */
+                @keyframes pulse512 {
+                    0% {
+                        box-shadow: 
+                            0 10px 15px -3px var(--btn-shadow-color),
+                            0 4px 6px -2px var(--btn-shadow-color),
+                            inset 0 1px 0 var(--btn-highlight),
+                            0 0 0 0 var(--btn-pulse-color);
+                    }
+                    70% {
+                        box-shadow: 
+                            0 10px 15px -3px var(--btn-shadow-color),
+                            0 4px 6px -2px var(--btn-shadow-color),
+                            inset 0 1px 0 var(--btn-highlight),
+                            0 0 0 10px rgba(255, 255, 255, 0);
+                    }
+                    100% {
+                        box-shadow: 
+                            0 10px 15px -3px var(--btn-shadow-color),
+                            0 4px 6px -2px var(--btn-shadow-color),
+                            inset 0 1px 0 var(--btn-highlight),
+                            0 0 0 0 rgba(255, 255, 255, 0);
+                    }
+                }
+
+                /* Shimmer Animation */
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%) skewX(-15deg); }
+                    100% { transform: translateX(200%) skewX(-15deg); }
+                }
+                
+                .shimmer {
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .shimmer::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 50%;
+                    height: 100%;
+                    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+                    transform: skewX(-15deg);
+                    animation: shimmer 2s infinite;
+                    pointer-events: none;
+                }
+            </style>
+
             <!-- Wallet Stats -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 flex justify-between items-center">
@@ -19,7 +139,7 @@
                         <p class="text-sm text-gray-500 mt-1">Ready for withdrawal</p>
                     </div>
                     <div>
-                        <button @click="showWithdrawModal = true" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
+                        <button @click="showWithdrawModal = true" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                             Withdraw
                         </button>
@@ -150,22 +270,22 @@
                         </div>
                         <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                             @if(auth()->user()->status !== 'ACTIVE')
-                                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm" @click="showWithdrawModal = false">
+                                <button type="button" class="btn-3d btn-3d-blue shimmer w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm" @click="showWithdrawModal = false">
                                     Close
                                 </button>
                             @elseif(!auth()->user()->bank_account_no)
-                                <a href="{{ route('profile.edit') }}#contact-card" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                <a href="{{ route('profile.edit') }}#contact-card" class="btn-3d btn-3d-blue shimmer w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
                                     Go to Settings
                                 </a>
                                 <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" @click="showWithdrawModal = false">
                                     Close
                                 </button>
                             @elseif($balance < 10000)
-                                <button type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm" @click="showWithdrawModal = false">
+                                <button type="button" class="btn-3d btn-3d-blue shimmer w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm" @click="showWithdrawModal = false">
                                     Understood
                                 </button>
                             @else
-                                <button type="button" onclick="document.getElementById('withdrawForm').submit()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                <button type="button" onclick="document.getElementById('withdrawForm').submit()" class="btn-3d btn-3d-green shimmer w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
                                     Confirm Withdraw
                                 </button>
                                 <button type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" @click="showWithdrawModal = false">
@@ -295,19 +415,15 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <script>
-            document.addEventListener('alpine:init', () => {
-                Alpine.store('toast').show(@json(session('success')), 'success');
-            });
-        </script>
-    @endif
-
-    @if(session('error'))
-        <script>
-            document.addEventListener('alpine:init', () => {
-                Alpine.store('toast').show(@json(session('error')), 'error');
-            });
-        </script>
+    @if(session('success') || session('error'))
+        <div x-data
+             style="display: none;"
+             @if(session('success')) data-success="{{ session('success') }}" @endif
+             @if(session('error')) data-error="{{ session('error') }}" @endif
+             x-init="
+                if ($el.dataset.success) Alpine.store('toast').show($el.dataset.success, 'success');
+                if ($el.dataset.error) Alpine.store('toast').show($el.dataset.error, 'error');
+             "
+        ></div>
     @endif
 </x-app-layout>

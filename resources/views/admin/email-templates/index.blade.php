@@ -5,6 +5,143 @@
         </h2>
     </x-slot>
 
+    <style>
+        /* 3D Button Styles */
+        .btn-3d {
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                0px 0px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-3d:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                0px 0px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2),
+                inset 0px -1px 0px 0px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Blue Variant */
+        .btn-3d-blue {
+            background: linear-gradient(to bottom, #3b82f6, #2563eb);
+            border: 1px solid #1d4ed8;
+            box-shadow: 
+                0px 4px 0px 0px #1e40af,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+            --btn-pulse-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-3d-blue:hover {
+            background: linear-gradient(to bottom, #60a5fa, #3b82f6);
+            transform: translateY(-1px);
+            animation: pulse512 1.5s infinite;
+        }
+
+        .btn-3d-blue:active {
+            background: linear-gradient(to bottom, #2563eb, #3b82f6);
+            box-shadow: 
+                0px 0px 0px 0px #1e40af,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2),
+                inset 0px -1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Red Variant */
+        .btn-3d-red {
+            background: linear-gradient(to bottom, #ef4444, #dc2626);
+            border: 1px solid #b91c1c;
+            box-shadow: 
+                0px 4px 0px 0px #991b1b,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+            --btn-pulse-color: rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-3d-red:hover {
+            background: linear-gradient(to bottom, #f87171, #ef4444);
+            transform: translateY(-1px);
+            animation: pulse512 1.5s infinite;
+        }
+
+        .btn-3d-red:active {
+            background: linear-gradient(to bottom, #dc2626, #ef4444);
+            box-shadow: 
+                0px 0px 0px 0px #991b1b,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2),
+                inset 0px -1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Gray Variant */
+        .btn-3d-gray {
+            background: linear-gradient(to bottom, #6b7280, #4b5563);
+            border: 1px solid #374151;
+            box-shadow: 
+                0px 4px 0px 0px #1f2937,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+            --btn-pulse-color: rgba(107, 114, 128, 0.5);
+        }
+
+        .btn-3d-gray:hover {
+            background: linear-gradient(to bottom, #9ca3af, #6b7280);
+            transform: translateY(-1px);
+            animation: pulse512 1.5s infinite;
+        }
+
+        .btn-3d-gray:active {
+            background: linear-gradient(to bottom, #4b5563, #6b7280);
+            box-shadow: 
+                0px 0px 0px 0px #1f2937,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2),
+                inset 0px -1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Pulse Animation */
+        @keyframes pulse512 {
+            0% { box-shadow: 0 0 0 0 var(--btn-pulse-color); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+        }
+
+        /* Shimmer Effect */
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+    </style>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
@@ -27,9 +164,9 @@
                     <div class="mb-4 flex justify-between items-center">
                         <form action="{{ route('admin.email-templates.index') }}" method="GET" class="flex gap-2 w-full max-w-md">
                             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, subject or key..." class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            <button type="submit" class="px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase hover:bg-gray-300">Search</button>
+                            <button type="submit" class="btn-3d btn-3d-gray shimmer px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest">Search</button>
                         </form>
-                        <a href="{{ route('admin.email-templates.create') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                        <a href="{{ route('admin.email-templates.create') }}" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest">
                             {{ __('Add New Template') }}
                         </a>
                     </div>

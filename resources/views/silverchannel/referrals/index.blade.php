@@ -9,6 +9,126 @@
         search: {{ \Illuminate\Support\Js::from($filters['search'] ?? '') }},
         baseUrl: {{ \Illuminate\Support\Js::from(url('silverchannel/referrals')) }}
     })">
+        <!-- Custom CSS for 3D Buttons -->
+        <style>
+            .btn-3d {
+                /* Custom properties for maintainability */
+                --btn-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                --btn-shadow-color: rgba(0, 0, 0, 0.2);
+                --btn-highlight: rgba(255, 255, 255, 0.2);
+                --btn-pulse-color: rgba(5, 186, 218, 0.4); /* Default cyan pulse */
+                
+                position: relative;
+                overflow: hidden;
+                transition: var(--btn-transition);
+                box-shadow: 
+                    0 4px 6px -1px var(--btn-shadow-color),
+                    0 2px 4px -1px var(--btn-shadow-color),
+                    inset 0 1px 0 var(--btn-highlight);
+                z-index: 1;
+                background-size: 100% auto;
+            }
+
+            /* Gradient Overlay for Lighting Effect */
+            .btn-3d::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.05) 100%);
+                opacity: 0;
+                transition: opacity 0.3s;
+                z-index: -1;
+            }
+
+            /* Hover State: Lift up + Deep Shadow + Pulse */
+            .btn-3d:hover {
+                transform: translateY(-2px);
+                background-position: right center;
+                background-size: 200% auto;
+                animation: pulse512 1.5s infinite;
+            }
+            
+            .btn-3d:hover::before {
+                opacity: 1;
+            }
+
+            /* Active State: Press down */
+            .btn-3d:active {
+                transform: translateY(1px);
+                box-shadow: 
+                    0 2px 4px -1px var(--btn-shadow-color),
+                    inset 0 2px 4px rgba(0,0,0,0.1);
+                animation: none;
+            }
+
+            /* Gold Variant */
+            .btn-3d-gold {
+                background: linear-gradient(135deg, #EEA727 0%, #D97706 100%);
+                --btn-pulse-color: rgba(238, 167, 39, 0.6);
+            }
+
+            /* Blue Variant */
+            .btn-3d-blue {
+                background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+                --btn-pulse-color: rgba(37, 99, 235, 0.6);
+            }
+
+            /* Green Variant */
+            .btn-3d-green {
+                background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+                --btn-pulse-color: rgba(22, 163, 74, 0.6);
+            }
+
+            /* Pulse Animation */
+            @keyframes pulse512 {
+                0% {
+                    box-shadow: 
+                        0 10px 15px -3px var(--btn-shadow-color),
+                        0 4px 6px -2px var(--btn-shadow-color),
+                        inset 0 1px 0 var(--btn-highlight),
+                        0 0 0 0 var(--btn-pulse-color);
+                }
+                70% {
+                    box-shadow: 
+                        0 10px 15px -3px var(--btn-shadow-color),
+                        0 4px 6px -2px var(--btn-shadow-color),
+                        inset 0 1px 0 var(--btn-highlight),
+                        0 0 0 10px rgba(255, 255, 255, 0);
+                }
+                100% {
+                    box-shadow: 
+                        0 10px 15px -3px var(--btn-shadow-color),
+                        0 4px 6px -2px var(--btn-shadow-color),
+                        inset 0 1px 0 var(--btn-highlight),
+                        0 0 0 0 rgba(255, 255, 255, 0);
+                }
+            }
+
+            /* Shimmer Animation */
+            @keyframes shimmer {
+                0% { transform: translateX(-100%) skewX(-15deg); }
+                100% { transform: translateX(200%) skewX(-15deg); }
+            }
+            
+            .shimmer {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .shimmer::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 50%;
+                height: 100%;
+                background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+                transform: skewX(-15deg);
+                animation: shimmer 2s infinite;
+                pointer-events: none;
+            }
+        </style>
+
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if(session('success'))
                 <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm flex items-center justify-between">
@@ -56,7 +176,7 @@
                                     <input type="date" name="to_date" value="{{ $filters['to_date'] ?? '' }}" class="w-full sm:w-36 border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 h-11" />
                                 </div>
                             </div>
-                            <button type="submit" class="inline-flex items-center justify-center h-11 px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 shadow-lg hover:scale-105">Filter</button>
+                            <button type="submit" class="btn-3d btn-3d-blue shimmer inline-flex items-center justify-center h-11 px-4 py-2 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">Filter</button>
                             
                             <div class="relative flex-1 min-w-[200px]">
                                 <input type="text" name="search" x-model="search" @input.debounce.400ms="onSearch" class="w-full border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm pl-9 pr-3 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 h-11" placeholder="Cari nama..." />
@@ -65,7 +185,7 @@
                                 </span>
                             </div>
 
-                            <a href="{{ route('silverchannel.referrals.export', request()->all()) }}" class="inline-flex items-center justify-center px-4 py-2 text-sm text-white rounded-md transition shadow-lg h-11 min-w-[44px] hover:scale-105 transition-transform duration-200" style="background-color: #198754;" onmouseover="this.style.backgroundColor='#157347'" onmouseout="this.style.backgroundColor='#198754'">
+                            <a href="{{ route('silverchannel.referrals.export', request()->all()) }}" class="btn-3d btn-3d-green shimmer inline-flex items-center justify-center px-4 py-2 text-sm text-white rounded-md h-11 min-w-[44px]">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" /></svg>
                                 Export
                             </a>
@@ -184,7 +304,7 @@
                                                     last_follow_up_at: @js(optional($followUp)->last_follow_up_at?->format('Y-m-d\TH:i')),
                                                     next_follow_up_at: @js(optional($followUp)->next_follow_up_at?->format('Y-m-d\TH:i')),
                                                     note: @js($followUp->note ?? ''),
-                                                })" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs leading-4 font-semibold rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                })" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-3 py-1.5 border border-transparent text-xs leading-4 font-semibold rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                                 Update
                                             </button>
                                         </td>
@@ -321,7 +441,7 @@
                     </div>
                     <div class="px-6 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
                         <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900" @click="showUpdate = false">Batal</button>
-                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <button type="submit" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Simpan
                         </button>
                     </div>

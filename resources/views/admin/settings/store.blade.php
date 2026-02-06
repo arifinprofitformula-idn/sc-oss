@@ -5,6 +5,91 @@
         </h2>
     </x-slot>
 
+    <style>
+        /* 3D Button Styles */
+        .btn-3d {
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                0px 0px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-3d:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                0px 0px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2),
+                inset 0px -1px 0px 0px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Blue Variant */
+        .btn-3d-blue {
+            background: linear-gradient(to bottom, #3b82f6, #2563eb);
+            border: 1px solid #1d4ed8;
+            box-shadow: 
+                0px 4px 0px 0px #1e40af,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+            --btn-pulse-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-3d-blue:hover {
+            background: linear-gradient(to bottom, #60a5fa, #3b82f6);
+            transform: translateY(-1px);
+            animation: pulse512 1.5s infinite;
+        }
+
+        .btn-3d-blue:active {
+            background: linear-gradient(to bottom, #2563eb, #3b82f6);
+            box-shadow: 
+                0px 0px 0px 0px #1e40af,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2),
+                inset 0px -1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Pulse Animation */
+        @keyframes pulse512 {
+            0% { box-shadow: 0 0 0 0 var(--btn-pulse-color); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+        }
+
+        /* Shimmer Effect */
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+    </style>
+
     @php
         $storeInitial = [
             'province_id' => $store->province_id,
@@ -418,10 +503,10 @@
                             </div>
 
                             <div class="flex justify-end mt-6 pt-4 border-t dark:border-gray-700">
-                                <x-primary-button type="button" @click="saveIdentity()" x-bind:disabled="isLoading" class="min-w-[150px] justify-center">
+                                <button type="button" @click="saveIdentity()" x-bind:disabled="isLoading" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest min-w-[150px] justify-center disabled:opacity-50">
                                     <svg x-show="isLoading" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                     <span x-text="isLoading ? 'Saving...' : 'Update Identitas'"></span>
-                                </x-primary-button>
+                                </button>
                             </div>
                         </div>
 
@@ -504,10 +589,10 @@
                             </div>
                             
                             <div class="mt-6 flex justify-end">
-                                <x-primary-button type="button" @click="saveContact()" x-bind:disabled="isLoading">
+                                <button type="button" @click="saveContact()" x-bind:disabled="isLoading" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest disabled:opacity-50">
                                     <span x-show="!isLoading">Simpan Kontak</span>
                                     <span x-show="isLoading">Menyimpan...</span>
-                                </x-primary-button>
+                                </button>
                             </div>
                         </div>
 
@@ -547,10 +632,10 @@
                                 @endforeach
                             </div>
                             <div class="flex justify-end mt-6 pt-4 border-t dark:border-gray-700">
-                                 <x-primary-button type="button" @click="saveHours()" x-bind:disabled="isLoading" class="min-w-[150px] justify-center">
+                                 <button type="button" @click="saveHours()" x-bind:disabled="isLoading" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest min-w-[150px] justify-center disabled:opacity-50">
                                     <svg x-show="isLoading" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                     <span x-text="isLoading ? 'Saving...' : 'Update Settings'"></span>
-                                </x-primary-button>
+                                </button>
                             </div>
                         </div>
 
@@ -662,10 +747,10 @@
                                 </template>
                             </div>
                             <div class="flex justify-end mt-6 pt-4 border-t dark:border-gray-700">
-                                <x-primary-button type="button" @click="savePayment()" x-bind:disabled="isLoading" class="min-w-[150px] justify-center">
+                                <button type="button" @click="savePayment()" x-bind:disabled="isLoading" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest min-w-[150px] justify-center disabled:opacity-50">
                                     <svg x-show="isLoading" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                     <span x-text="isLoading ? 'Saving...' : 'Update Settings'"></span>
-                                </x-primary-button>
+                                </button>
                             </div>
                         </div>
 

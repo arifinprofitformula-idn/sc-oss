@@ -98,6 +98,7 @@ class SilverChannelRegistrationController extends Controller
             'shipping_cost' => ['required', 'numeric', 'min:0'],
             'shipping_courier' => ['required', 'string'],
             'shipping_etd' => ['nullable', 'string'],
+            'terms_accepted' => ['required', 'accepted'],
         ], [
             'referral_code.required' => 'Kode Referral harus diisi.',
             'referral_code.exists' => 'Kode referral tidak valid.',

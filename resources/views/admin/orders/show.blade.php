@@ -1,4 +1,142 @@
 <x-app-layout>
+    <style>
+        /* 3D Button Styles */
+        .btn-3d {
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                0px 0px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.5),
+                inset 0px -1px 0px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-3d:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0px 0px 0px 0px rgba(0, 0, 0, 0.5),
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Blue Variant */
+        .btn-3d-blue {
+            background: linear-gradient(to bottom, #3b82f6, #2563eb);
+            border: 1px solid #1d4ed8;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #1e40af,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-blue:hover {
+            background: linear-gradient(to bottom, #60a5fa, #3b82f6);
+            --btn-pulse-color: rgba(59, 130, 246, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-blue:active {
+            box-shadow: 
+                0px 0px 0px 0px #1e40af,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Green Variant */
+        .btn-3d-green {
+            background: linear-gradient(to bottom, #10b981, #059669);
+            border: 1px solid #047857;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #065f46,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-green:hover {
+            background: linear-gradient(to bottom, #34d399, #10b981);
+            --btn-pulse-color: rgba(16, 185, 129, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-green:active {
+            box-shadow: 
+                0px 0px 0px 0px #065f46,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Gold Variant */
+        .btn-3d-gold {
+            background: linear-gradient(to bottom, #f59e0b, #d97706);
+            border: 1px solid #b45309;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #92400e,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-gold:hover {
+            background: linear-gradient(to bottom, #fbbf24, #f59e0b);
+            --btn-pulse-color: rgba(245, 158, 11, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-gold:active {
+            box-shadow: 
+                0px 0px 0px 0px #92400e,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Gray Variant */
+        .btn-3d-gray {
+            background: linear-gradient(to bottom, #6b7280, #4b5563);
+            border: 1px solid #374151;
+            color: white;
+            text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0px 4px 0px 0px #1f2937,
+                0px 5px 5px 0px rgba(0, 0, 0, 0.2),
+                inset 0px 1px 0px 0px rgba(255, 255, 255, 0.3);
+        }
+        .btn-3d-gray:hover {
+            background: linear-gradient(to bottom, #9ca3af, #6b7280);
+            --btn-pulse-color: rgba(107, 114, 128, 0.6);
+            animation: pulse512 1.5s infinite;
+        }
+        .btn-3d-gray:active {
+            box-shadow: 
+                0px 0px 0px 0px #1f2937,
+                inset 0px 1px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Animations */
+        @keyframes pulse512 {
+            0% { box-shadow: 0 0 0 0 var(--btn-pulse-color); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+        }
+
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+    </style>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
             {{ __('Manage Order') }} #{{ $order->order_number }}
@@ -139,15 +277,15 @@
                                 <textarea id="tracking_note" name="note" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm text-sm" rows="2" placeholder="e.g. Resi valid"></textarea>
                             </div>
 
-                            <x-primary-button class="w-full justify-center">
+                            <button type="submit" class="btn-3d btn-3d-blue shimmer w-full justify-center inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest">
                                 {{ __('Update Tracking') }}
-                            </x-primary-button>
+                            </button>
                         </form>
                         
                         @if($order->shipping_tracking_number)
                             <div class="mt-4 pt-4 border-t dark:border-gray-700">
-                                <a href="https://cekresi.com/?noresi={{ $order->shipping_tracking_number }}" target="_blank" class="text-blue-600 hover:underline text-sm flex items-center justify-center gap-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <a href="https://cekresi.com/?noresi={{ $order->shipping_tracking_number }}" target="_blank" class="btn-3d btn-3d-green shimmer w-full justify-center inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                     </svg>
                                     Track on CekResi.com
@@ -182,9 +320,9 @@
                                 <textarea id="note" name="note" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" rows="2"></textarea>
                             </div>
 
-                            <x-primary-button class="w-full justify-center">
+                            <button type="submit" class="btn-3d btn-3d-blue shimmer w-full justify-center inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest">
                                 {{ __('Update Status') }}
-                            </x-primary-button>
+                            </button>
                         </form>
                     </div>
 
@@ -196,9 +334,9 @@
                             <div class="mb-4">
                                 <textarea name="note" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm text-sm" rows="3" placeholder="Add internal note..." required></textarea>
                             </div>
-                            <x-secondary-button type="submit" class="w-full justify-center">
+                            <button type="submit" class="btn-3d btn-3d-gray shimmer w-full justify-center inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest">
                                 {{ __('Add Note') }}
-                            </x-secondary-button>
+                            </button>
                         </form>
                     </div>
                 </div>
