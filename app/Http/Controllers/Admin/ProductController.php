@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\EpiProductMapping;
 use App\Services\ProductService;
 use Illuminate\Http\Request;
 
@@ -21,7 +22,8 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::with(['brand', 'category'])->latest()->paginate(10);
-        return view('admin.products.index', compact('products'));
+        $lastPriceUpdate = EpiProductMapping::max('last_synced_at');
+        return view('admin.products.index', compact('products', 'lastPriceUpdate'));
     }
 
     public function create()

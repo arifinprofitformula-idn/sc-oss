@@ -353,11 +353,27 @@
                 }
             </style>
 
-            <div class="flex justify-end mb-4">
-                <a href="{{ route('admin.products.create') }}" class="btn-3d btn-3d-blue shimmer text-white font-bold py-2 px-4 rounded inline-flex items-center text-sm h-12">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Add Product
-                </a>
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center space-x-2 text-sm text-gray-600 bg-white p-2 rounded shadow-sm border border-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="font-semibold text-gray-700">Harga Update :</span>
+                    <span class="text-blue-600 font-bold">
+                        {{ isset($lastPriceUpdate) && $lastPriceUpdate ? \Carbon\Carbon::parse($lastPriceUpdate)->locale('id')->isoFormat('dddd, D MMMM Y - [Pkl.] HH.mm [WIB]') : '-' }}
+                    </span>
+                </div>
+
+                <div class="flex space-x-3">
+                    <a href="{{ route('admin.products.import') }}" class="btn-3d btn-3d-gold shimmer text-white font-bold py-2 px-4 rounded inline-flex items-center text-sm h-12">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        Import Produk
+                    </a>
+                    <a href="{{ route('admin.products.create') }}" class="btn-3d btn-3d-blue shimmer text-white font-bold py-2 px-4 rounded inline-flex items-center text-sm h-12">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Add Product
+                    </a>
+                </div>
             </div>
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -381,7 +397,7 @@
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             @if ($product->image)
-                                                <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" class="h-10 w-10 object-cover rounded">
+                                                <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" class="h-10 w-10 object-cover rounded" width="40" height="40" loading="lazy">
                                             @else
                                                 <span class="text-gray-400">No Image</span>
                                             @endif
@@ -479,5 +495,8 @@
                 </div>
             </div>
         </div>
+
     </div>
+
+
 </x-app-layout>

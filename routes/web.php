@@ -114,6 +114,14 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
             Route::patch('products/{product}/active', [\App\Http\Controllers\Admin\ProductController::class, 'updateActive'])
                 ->name('products.update-active');
+            
+            // Product Import Routes
+            Route::get('products/import', [\App\Http\Controllers\Admin\ProductImportController::class, 'create'])->name('products.import');
+            Route::get('products/import/template', [\App\Http\Controllers\Admin\ProductImportController::class, 'downloadTemplate'])->name('products.import.template');
+            Route::post('products/import/preview', [\App\Http\Controllers\Admin\ProductImportController::class, 'preview'])->name('products.import.preview');
+            Route::post('products/import', [\App\Http\Controllers\Admin\ProductImportController::class, 'store'])->name('products.import.store');
+            Route::get('products/import/cancel', [\App\Http\Controllers\Admin\ProductImportController::class, 'cancel'])->name('products.import.cancel');
+
             Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
             Route::post('packages/{package}/restore', [\App\Http\Controllers\Admin\PackageController::class, 'restore'])->name('packages.restore');
             Route::resource('packages', \App\Http\Controllers\Admin\PackageController::class);

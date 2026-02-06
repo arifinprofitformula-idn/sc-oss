@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Silverchannel;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Models\EpiProductMapping;
 use App\Services\StoreOperationalService;
 use Illuminate\Http\Request;
 
@@ -37,11 +38,13 @@ class ProductController extends Controller
         $products = $query->paginate(12);
 
         $operationalStatus = $this->storeOperationalService->getStatus();
+        $lastPriceUpdate = EpiProductMapping::max('last_synced_at');
 
         if ($request->wantsJson()) {
             return response()->json([
                 'operational_status' => $operationalStatus,
                 'products' => $products->items(),
+                'last_price_update' => $lastPriceUpdate,
                 'meta' => [
                     'current_page' => $products->currentPage(),
                     'last_page' => $products->lastPage(),
@@ -51,6 +54,6 @@ class ProductController extends Controller
             ]);
         }
 
-        return view('silverchannel.products.index', compact('products', 'operationalStatus'));
+        return view('silverchannel.products.index', compact('products', 'operationalStatus', 'lastPriceUpdate'));
     }
 }

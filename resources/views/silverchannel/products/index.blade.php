@@ -13,6 +13,19 @@
 
     <div class="py-12" x-data>
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Price Update Info -->
+            <div class="mb-4 flex items-center justify-start">
+                <div class="flex items-center space-x-2 text-sm bg-white dark:bg-gray-800 p-2 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="font-semibold text-gray-700 dark:text-gray-300">Harga Update :</span>
+                    <span class="text-blue-600 dark:text-blue-400 font-bold">
+                        {{ isset($lastPriceUpdate) && $lastPriceUpdate ? \Carbon\Carbon::parse($lastPriceUpdate)->locale('id')->isoFormat('dddd, D MMMM Y - [Pkl.] HH.mm [WIB]') : '-' }}
+                    </span>
+                </div>
+            </div>
+
             <!-- Search & Filter -->
             <div class="mb-6 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
                 <form action="{{ route('silverchannel.products.index') }}" method="GET" class="flex flex-col md:flex-row gap-4">
