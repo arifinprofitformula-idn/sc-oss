@@ -109,6 +109,35 @@
                             </div>
                         </div>
 
+                        <!-- Commission Settings -->
+                        <div class="mb-6 border-t pt-4 mt-6" x-data="{ enabled: {{ old('commission_enabled', $product->commission_enabled) ? 'true' : 'false' }} }">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Pengaturan Komisi Referral</h3>
+                            
+                            <div class="mb-4">
+                                <label for="commission_enabled" class="inline-flex items-center">
+                                    <input id="commission_enabled" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="commission_enabled" value="1" x-model="enabled">
+                                    <span class="ms-2 text-sm text-gray-600">Aktifkan Komisi Referral untuk Produk Ini</span>
+                                </label>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" x-show="enabled" x-transition>
+                                <div>
+                                    <x-input-label for="commission_type" :value="__('Tipe Komisi')" />
+                                    <select name="commission_type" id="commission_type" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                        <option value="percentage" {{ old('commission_type', $product->commission_type) == 'percentage' ? 'selected' : '' }}>Persentase (%)</option>
+                                        <option value="fixed" {{ old('commission_type', $product->commission_type) == 'fixed' ? 'selected' : '' }}>Nilai Tetap (IDR)</option>
+                                    </select>
+                                    <x-input-error :messages="$errors->get('commission_type')" class="mt-2" />
+                                </div>
+                                <div>
+                                    <x-input-label for="commission_value" :value="__('Nilai Komisi')" />
+                                    <x-text-input id="commission_value" class="block mt-1 w-full" type="number" name="commission_value" :value="old('commission_value', $product->commission_value)" min="0" step="0.01" />
+                                    <p class="text-xs text-gray-500 mt-1">Jika %, masukkan 10 untuk 10%. Jika IDR, masukkan nominal.</p>
+                                    <x-input-error :messages="$errors->get('commission_value')" class="mt-2" />
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Description -->
                         <div class="mt-4">
                             <x-input-label for="description" :value="__('Description')" />

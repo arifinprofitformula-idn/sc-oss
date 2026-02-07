@@ -99,7 +99,7 @@
                     </a>
                 </div>
             @else
-            <form method="POST" action="{{ route('register.silver.store') }}" x-data="locationSelector({
+            <form method="POST" action="{{ route('register.store') }}" x-data="locationSelector({
                 oldName: {{ json_encode(old('name')) }},
                 oldNik: {{ json_encode(old('nik')) }},
                 oldEmail: {{ json_encode(old('email')) }},
@@ -123,6 +123,7 @@
             })">
                 @csrf
                 <input type="hidden" name="package_id" value="{{ $package->id }}">
+                <input type="hidden" name="referral_code" value="{{ $referralCode }}">
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Left Column: Registration Form -->

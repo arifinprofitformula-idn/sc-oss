@@ -24,6 +24,9 @@ class Product extends Model
         'stock',
         'image',
         'is_active',
+        'commission_enabled',
+        'commission_type',
+        'commission_value',
         'last_price_update_at',
         'price_source',
     ];
@@ -32,8 +35,10 @@ class Product extends Model
         'price_msrp' => 'decimal:2',
         'price_silverchannel' => 'decimal:2',
         'price_customer' => 'decimal:2',
+        'commission_value' => 'decimal:2',
         'weight' => 'integer',
         'is_active' => 'boolean',
+        'commission_enabled' => 'boolean',
         'last_price_update_at' => 'datetime',
     ];
 

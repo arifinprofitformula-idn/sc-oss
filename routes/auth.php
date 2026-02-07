@@ -7,16 +7,24 @@ use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\SilverChannelRegistrationController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
+    // Standard Registration - REPLACED by SilverChannel Registration with Referral Validation
+    Route::get('register', [SilverChannelRegistrationController::class, 'create'])
+        ->name('register')
+        ->middleware('validate.referral');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // SilverChannel Registration (Explicit Route)
+    Route::get('register-silver', [SilverChannelRegistrationController::class, 'create'])
+        ->name('register.silver')
+        ->middleware('validate.referral');
+
+    Route::post('register', [SilverChannelRegistrationController::class, 'store'])
+        ->name('register.store')
+        ->middleware('validate.referral');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
@@ -36,11 +44,8 @@ Route::middleware('guest')->group(function () {
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
         
-    // Silverchannel Registration
-    Route::get('register-silver', [SilverChannelRegistrationController::class, 'create'])
-        ->name('register.silver');
-    Route::post('register-silver', [SilverChannelRegistrationController::class, 'store'])
-        ->name('register.silver.store');
+    // Silverchannel Registration (Legacy Routes - Redirect or Keep as Alias?)
+    // Keeping checkout/payment routes as they are part of the flow
     Route::get('register-silver/checkout/{token}', [SilverChannelRegistrationController::class, 'checkout'])
         ->name('register.silver.checkout');
     Route::post('register-silver/payment/{token}', [SilverChannelRegistrationController::class, 'payment'])

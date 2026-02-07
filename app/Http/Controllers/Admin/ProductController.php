@@ -51,6 +51,9 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
+            'commission_enabled' => 'boolean',
+            'commission_type' => 'required_if:commission_enabled,1|in:percentage,fixed',
+            'commission_value' => 'required_if:commission_enabled,1|numeric|min:0',
         ]);
 
         $this->productService->saveProduct($validated);
@@ -84,6 +87,9 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
+            'commission_enabled' => 'boolean',
+            'commission_type' => 'required_if:commission_enabled,1|in:percentage,fixed',
+            'commission_value' => 'required_if:commission_enabled,1|numeric|min:0',
         ]);
 
         $this->productService->saveProduct($validated, $product);

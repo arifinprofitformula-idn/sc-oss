@@ -70,9 +70,7 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
     // ----------------------------------------------------------------------
     Route::middleware('active')->group(function () {
         
-        Route::get('/dashboard', function () {
-            return view('dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
         // Profile Routes
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -89,6 +87,7 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
 
         // Admin Routes
         Route::domain(env('ADMIN_DOMAIN'))->middleware(['role:SUPER_ADMIN'])->prefix('admin')->name('admin.')->group(function () {
+            Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
             // ... Admin routes ...
             Route::get('/silverchannels/import', [\App\Http\Controllers\Admin\ImportSilverchannelController::class, 'create'])->name('silverchannels.import');
             Route::post('/silverchannels/import/preview', [\App\Http\Controllers\Admin\ImportSilverchannelController::class, 'preview'])->name('silverchannels.import.preview');
