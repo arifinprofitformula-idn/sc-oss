@@ -192,6 +192,60 @@
                                     {{ session('import_result')['message'] }}
                                 </div>
                             @endif
+
+                            @if(isset(session('import_result')['log_file']) && session('import_result')['log_file'])
+                                <div class="mt-4">
+                                    <a href="{{ route('admin.products.import.log', ['filename' => session('import_result')['log_file']]) }}" 
+                                       class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        Download Log Error (CSV)
+                                    </a>
+                                </div>
+                            @endif
+
+                            @if(isset(session('import_result')['errors']) && count(session('import_result')['errors']) > 0)
+                                <div class="mt-6 border-t pt-4 border-gray-200 dark:border-gray-700">
+                                    <h5 class="text-md font-bold text-red-600 dark:text-red-400 mb-2">Detail Error (Sample 10 Baris Pertama)</h5>
+                                    <div class="overflow-x-auto border rounded-lg bg-white dark:bg-gray-800">
+                                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                                            <thead class="bg-red-50 dark:bg-red-900/20">
+                                                <tr>
+                                                    <th class="px-4 py-2 text-left font-medium text-red-700 dark:text-red-300">Baris</th>
+                                                    <th class="px-4 py-2 text-left font-medium text-red-700 dark:text-red-300">Pesan Error</th>
+                                                    <th class="px-4 py-2 text-left font-medium text-red-700 dark:text-red-300">Data Input</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                                @foreach(session('import_result')['errors'] as $error)
+                                                    <tr>
+                                                        <td class="px-4 py-2 align-top text-gray-700 dark:text-gray-300 font-mono">{{ $error['row'] }}</td>
+                                                        <td class="px-4 py-2 align-top text-red-600 dark:text-red-400">
+                                                            <ul class="list-disc list-inside">
+                                                                @foreach($error['errors'] as $msg)
+                                                                    <li>{{ $msg }}</li>
+                                                                @endforeach
+                                                            </ul>
+                                                        </td>
+                                                        <td class="px-4 py-2 align-top text-gray-500 dark:text-gray-400 text-xs font-mono">
+                                                            @foreach($error['data'] as $key => $val)
+                                                                <div><strong>{{ $key }}:</strong> {{ \Illuminate\Support\Str::limit($val, 20) }}</div>
+                                                            @endforeach
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    @if((session('import_result')['failed_count'] ?? 0) > 10)
+                                        <p class="text-xs text-gray-500 mt-2 italic">
+                                            * Menampilkan 10 error pertama dari total {{ session('import_result')['failed_count'] }} error. 
+                                            Silakan download log lengkap untuk melihat semua error.
+                                        </p>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     @endif
 
@@ -230,7 +284,7 @@
                                 </table>
                             </div>
 
-                            <div class="flex items-center gap-4 mt-6">
+                            <div class="mt-6">
                                 <form action="{{ route('admin.products.import.store') }}" method="POST">
                                     @csrf
                                     <div class="mb-4">
@@ -239,14 +293,16 @@
                                             <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Update data jika SKU sudah ada</span>
                                         </label>
                                     </div>
-                                    <button type="submit" class="btn-3d btn-3d-blue shimmer px-6 py-2 rounded-md font-semibold">
-                                        Proses Import
-                                    </button>
-                                </form>
+                                    <div class="flex items-center gap-4">
+                                        <button type="submit" class="btn-3d btn-3d-blue shimmer px-6 py-2 rounded-md font-semibold">
+                                            Proses Import
+                                        </button>
 
-                                <a href="{{ route('admin.products.import.cancel') }}" class="btn-3d btn-3d-gray shimmer px-6 py-2 rounded-md font-semibold">
-                                    Batal
-                                </a>
+                                        <a href="{{ route('admin.products.import.cancel') }}" class="btn-3d btn-3d-gray shimmer px-6 py-2 rounded-md font-semibold">
+                                            Batal
+                                        </a>
+                                    </div>
+                                </form>
                             </div>
                         </div>
 
@@ -258,13 +314,13 @@
                             <div class="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
                                 <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2">Langkah 1: Siapkan Data</h4>
                                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                    Unduh template XLSX berikut untuk memastikan format data Anda sesuai dengan sistem.
+                                    Unduh template CSV berikut untuk memastikan format data Anda sesuai dengan sistem.
                                 </p>
                                 <a href="{{ route('admin.products.import.template') }}" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 text-sm font-medium rounded-md">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                     </svg>
-                                    Download Template XLSX
+                                    Download Template CSV
                                 </a>
 
                                 <div class="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
@@ -273,7 +329,7 @@
                                         <div>
                                             <ul class="list-disc pl-4 mt-1 space-y-1">
                                                 <li>SKU (Unik)</li>
-                                                <li>Nama Produk</li>
+                                                <li>Nama Produk (Slug auto-generate)</li>
                                                 <li>Brand</li>
                                                 <li>Kategori</li>
                                                 <li>Harga (Silverchannel)</li>
@@ -289,6 +345,7 @@
                                             </ul>
                                         </div>
                                     </div>
+                                    <p class="text-xs text-gray-500 mt-2 italic">* Slug URL produk akan dibuat otomatis unik berdasarkan nama produk.</p>
                                 </div>
                             </div>
 

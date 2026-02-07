@@ -59,18 +59,26 @@
                             <div>
                                 <!-- Price Silverchannel -->
                                 <div>
-                                    <x-input-label for="price_silverchannel" :value="__('Distributor Price (Silverchannel)')" />
-                                    <x-text-input id="price_silverchannel" class="block mt-1 w-full" type="number" name="price_silverchannel" :value="old('price_silverchannel', $product->price_silverchannel)" required min="0" step="0.01" />
+                                    <div class="flex justify-between items-center mb-1">
+                                        <x-input-label for="price_silverchannel" :value="__('Distributor Price (Silverchannel)')" />
+                                        <span id="sync-status" class="text-xs text-gray-400 italic hidden">
+                                            <svg class="animate-spin -ml-1 mr-1 h-3 w-3 text-indigo-500 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Syncing...
+                                        </span>
+                                    </div>
+                                    <x-text-input id="price_silverchannel" class="block w-full" type="number" name="price_silverchannel" :value="old('price_silverchannel', $product->price_silverchannel)" required min="0" step="0.01" />
                                     <x-input-error :messages="$errors->get('price_silverchannel')" class="mt-2" />
                                 </div>
 
-                                <!-- Price MSRP (Renamed to Customer Price) -->
+                                <!-- Customer Price (API Integrated) -->
                                 <div class="mt-4">
-                                    <label class="block font-medium text-sm text-gray-700" for="price_msrp">
-                                        {{ __('Customer Price') }}
-                                    </label>
-                                    <x-text-input id="price_msrp" class="block mt-1 w-full" type="number" name="price_msrp" :value="old('price_msrp', $product->price_msrp)" min="0" step="0.01" />
-                                    <x-input-error :messages="$errors->get('price_msrp')" class="mt-2" />
+                                    <x-input-label for="price_customer" :value="__('Customer Price')" />
+                                    <x-text-input id="price_customer" class="block mt-1 w-full bg-gray-50" type="number" name="price_customer" :value="old('price_customer', $product->price_customer)" min="0" step="0.01" />
+                                    <p class="text-xs text-gray-500 mt-1">Automatically synced with EPI APE.</p>
+                                    <x-input-error :messages="$errors->get('price_customer')" class="mt-2" />
                                 </div>
 
                                 <!-- Weight -->
@@ -165,4 +173,71 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const syncUrl = "{{ route('admin.products.sync-price', $product->id) }}";
+            const statusEl = document.getElementById('sync-status');
+            const silverInput = document.getElementById('price_silverchannel');
+            const customerInput = document.getElementById('price_customer');
+            
+            let isSyncing = false;
+
+            function syncPrices() {
+                if (isSyncing) return;
+                isSyncing = true;
+                
+                statusEl.classList.remove('hidden');
+                
+                fetch(syncUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Only update if user is NOT currently editing the field
+                        if (document.activeElement !== silverInput && data.price_silverchannel !== undefined) {
+                            silverInput.value = data.price_silverchannel;
+                        }
+                        if (document.activeElement !== customerInput && data.price_customer !== undefined) {
+                            customerInput.value = data.price_customer;
+                        }
+                        
+                        // Show synced state briefly
+                        statusEl.innerHTML = '<span class="text-green-600">Synced</span>';
+                        setTimeout(() => {
+                            statusEl.classList.add('hidden');
+                            // Restore original loading content for next time
+                            statusEl.innerHTML = `<svg class="animate-spin -ml-1 mr-1 h-3 w-3 text-indigo-500 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg> Syncing...`;
+                        }, 2000);
+                    } else {
+                        statusEl.innerHTML = '<span class="text-red-500 text-xs">Sync Failed</span>';
+                        console.error(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error syncing prices:', error);
+                    statusEl.innerHTML = '<span class="text-red-500 text-xs">Connection Error</span>';
+                })
+                .finally(() => {
+                    isSyncing = false;
+                });
+            }
+
+            // Initial sync
+            syncPrices();
+
+            // Poll every 10 seconds
+            setInterval(syncPrices, 10000);
+        });
+    </script>
+    @endpush
 </x-app-layout>

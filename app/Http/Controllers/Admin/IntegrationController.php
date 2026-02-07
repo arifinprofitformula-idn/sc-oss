@@ -9,6 +9,7 @@ use App\Services\ApiIdService;
 use App\Services\ShippingService;
 use App\Services\EpiAutoPriceService;
 use App\Models\IntegrationLog;
+use App\Models\IntegrationError;
 use App\Models\Store;
 use App\Models\Product;
 use App\Models\EpiProductMapping;
@@ -40,13 +41,32 @@ class IntegrationController extends Controller
         $this->epiAutoPriceService = $epiAutoPriceService;
     }
 
-    public function epiApe()
+    public function epiApe(Request $request)
     {
         $settings = $this->epiAutoPriceService->getSettings();
         
         $logs = IntegrationLog::where('integration', 'epi_ape')->latest()->take(20)->get();
         
-        $products = Product::with('epiMapping')->orderBy('name')->get();
+        // Fetch Integration Errors with filtering
+        $errorQuery = IntegrationError::where('integration', 'epi_ape')->latest();
+        
+        if ($request->has('error_status') && $request->error_status != '') {
+            $errorQuery->where('status', $request->error_status);
+        }
+        
+        $integrationErrors = $errorQuery->paginate(10);
+        
+        // Filter active products only
+        $products = Product::with('epiMapping')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+            
+        // Log inactive products exclusion
+        $inactiveCount = Product::where('is_active', false)->count();
+        if ($inactiveCount > 0) {
+            Log::info("EPI APE View: Filtered out {$inactiveCount} inactive products from mapping list.");
+        }
         
         $apiStructure = [];
         try {
@@ -57,7 +77,7 @@ class IntegrationController extends Controller
             // Ignore error for view rendering
         }
 
-        return view('admin.integrations.epi-ape', compact('settings', 'logs', 'products', 'apiStructure'));
+        return view('admin.integrations.epi-ape', compact('settings', 'logs', 'products', 'apiStructure', 'integrationErrors'));
     }
 
     public function testEpiApe(Request $request)
@@ -72,6 +92,18 @@ class IntegrationController extends Controller
             $result = $this->epiAutoPriceService->syncPrices();
             
             $msg = "Sync completed. Updated: " . $result['updated'] . ".";
+            $errorCount = $result['error_count'] ?? 0;
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $msg,
+                    'updated_count' => $result['updated'],
+                    'error_count' => $errorCount,
+                    'errors' => $result['errors']
+                ]);
+            }
+
             if (!empty($result['errors'])) {
                 $msg .= " Errors: " . count($result['errors']);
                 return back()->with('warning', $msg);
@@ -79,8 +111,57 @@ class IntegrationController extends Controller
             
             return back()->with('success', $msg);
         } catch (\Exception $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sync failed: ' . $e->getMessage()
+                ], 500);
+            }
             return back()->with('error', 'Sync failed: ' . $e->getMessage());
         }
+    }
+
+    public function resolveEpiApeError(Request $request, $id)
+    {
+        $error = IntegrationError::findOrFail($id);
+        $error->status = 'resolved';
+        $error->save();
+        
+        return back()->with('success', 'Error marked as resolved.');
+    }
+
+    public function exportEpiApeErrors()
+    {
+        $errors = IntegrationError::where('integration', 'epi_ape')->latest()->get();
+        
+        $headers = [
+            "Content-type"        => "text/csv",
+            "Content-Disposition" => "attachment; filename=epi_ape_errors.csv",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+        
+        $callback = function() use($errors) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['ID', 'Code', 'Message', 'Details', 'Status', 'Recommendation', 'Timestamp']);
+            
+            foreach ($errors as $error) {
+                fputcsv($file, [
+                    $error->id,
+                    $error->error_code,
+                    $error->message,
+                    json_encode($error->details),
+                    $error->status,
+                    $error->recommended_action,
+                    $error->created_at
+                ]);
+            }
+            
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, $headers);
     }
 
     public function updateEpiMapping(Request $request)
@@ -89,6 +170,7 @@ class IntegrationController extends Controller
             'product_id' => 'required|exists:products,id',
             'epi_brand_id' => 'required|integer',
             'epi_level_id' => 'required|integer',
+            'epi_level_id_customer' => 'nullable|integer',
             'epi_gramasi' => 'required|numeric|min:0.001',
             'is_active' => 'boolean'
         ]);
@@ -98,12 +180,56 @@ class IntegrationController extends Controller
             [
                 'epi_brand_id' => $request->epi_brand_id,
                 'epi_level_id' => $request->epi_level_id,
+                'epi_level_id_customer' => $request->epi_level_id_customer,
                 'epi_gramasi' => $request->epi_gramasi,
                 'is_active' => $request->has('is_active')
             ]
         );
 
-        return back()->with('success', 'Mapping updated successfully.');
+        // Trigger real-time sync for this product
+        $product = Product::find($request->product_id);
+        $syncResult = $this->epiAutoPriceService->syncProductPrice($product);
+        
+        $msg = 'Mapping updated successfully.';
+        if($syncResult['success']) {
+             $msg .= ' Price synced.';
+        } else {
+             $msg .= ' Sync warning: ' . $syncResult['message'];
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    public function previewEpiPrice(Request $request)
+    {
+        $request->validate([
+            'brand_id' => 'required|integer',
+            'level_id' => 'required|integer',
+            'gramasi' => 'required|numeric|min:0.001',
+            'product_id' => 'nullable|exists:products,id',
+            'price_type' => 'nullable|in:Silverchannel,Customer'
+        ]);
+
+        $result = $this->epiAutoPriceService->getPricePreview(
+            $request->brand_id,
+            $request->level_id,
+            $request->gramasi
+        );
+
+        // Update product price if product_id is provided (Real-time sync on check)
+        if ($result['success'] && $request->product_id && $request->price_type) {
+            $product = \App\Models\Product::find($request->product_id);
+            if ($product) {
+                if ($request->price_type === 'Silverchannel') {
+                    $product->price_silverchannel = $result['price'];
+                } elseif ($request->price_type === 'Customer') {
+                    $product->price_customer = $result['price'];
+                }
+                $product->save();
+            }
+        }
+
+        return response()->json($result);
     }
 
     public function deleteEpiMapping($id)

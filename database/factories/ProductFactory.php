@@ -29,6 +29,7 @@ class ProductFactory extends Factory
             'description' => $this->faker->sentence,
             'price_msrp' => $this->faker->numberBetween(100000, 500000),
             'price_silverchannel' => $this->faker->numberBetween(80000, 400000),
+            'price_customer' => $this->faker->numberBetween(110000, 550000),
             'weight' => $this->faker->numberBetween(100, 2000),
             'stock' => $this->faker->numberBetween(0, 100),
             'image' => null,

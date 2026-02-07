@@ -120,8 +120,10 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::get('products/import/template', [\App\Http\Controllers\Admin\ProductImportController::class, 'downloadTemplate'])->name('products.import.template');
             Route::post('products/import/preview', [\App\Http\Controllers\Admin\ProductImportController::class, 'preview'])->name('products.import.preview');
             Route::post('products/import', [\App\Http\Controllers\Admin\ProductImportController::class, 'store'])->name('products.import.store');
+            Route::get('products/import/log/{filename}', [\App\Http\Controllers\Admin\ProductImportController::class, 'downloadErrorLog'])->name('products.import.log');
             Route::get('products/import/cancel', [\App\Http\Controllers\Admin\ProductImportController::class, 'cancel'])->name('products.import.cancel');
 
+            Route::post('products/{product}/sync-price', [\App\Http\Controllers\Admin\ProductController::class, 'syncPrice'])->name('products.sync-price');
             Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
             Route::post('packages/{package}/restore', [\App\Http\Controllers\Admin\PackageController::class, 'restore'])->name('packages.restore');
             Route::resource('packages', \App\Http\Controllers\Admin\PackageController::class);
@@ -169,6 +171,9 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
                 Route::get('/payment', [\App\Http\Controllers\Admin\IntegrationController::class, 'payment'])->name('payment');
                 Route::get('/epi-ape', [\App\Http\Controllers\Admin\IntegrationController::class, 'epiApe'])->name('epi-ape');
                 Route::post('/epi-ape/sync', [\App\Http\Controllers\Admin\IntegrationController::class, 'syncEpiApe'])->name('epi-ape.sync');
+                Route::post('/epi-ape/preview-price', [\App\Http\Controllers\Admin\IntegrationController::class, 'previewEpiPrice'])->name('epi-ape.preview-price');
+                Route::post('/epi-ape/errors/{id}/resolve', [\App\Http\Controllers\Admin\IntegrationController::class, 'resolveEpiApeError'])->name('epi-ape.errors.resolve');
+                Route::get('/epi-ape/errors/export', [\App\Http\Controllers\Admin\IntegrationController::class, 'exportEpiApeErrors'])->name('epi-ape.errors.export');
                 Route::post('/epi-ape/mapping', [\App\Http\Controllers\Admin\IntegrationController::class, 'updateEpiMapping'])->name('epi-ape.mapping.update');
                 Route::delete('/epi-ape/mapping/{id}', [\App\Http\Controllers\Admin\IntegrationController::class, 'deleteEpiMapping'])->name('epi-ape.mapping.delete');
                 Route::post('/test/epi-ape', [\App\Http\Controllers\Admin\IntegrationController::class, 'testEpiApe'])->name('test.epi-ape');

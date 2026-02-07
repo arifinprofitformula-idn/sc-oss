@@ -412,7 +412,9 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm text-gray-900">Rp {{ number_format($product->price_silverchannel, 0, ',', '.') }}</div>
-                                            @if($product->price_msrp)
+                                            @if($product->price_customer)
+                                                <div class="text-xs text-gray-500 line-through">Rp {{ number_format($product->price_customer, 0, ',', '.') }}</div>
+                                            @elseif($product->price_msrp)
                                                 <div class="text-xs text-gray-500 line-through">Rp {{ number_format($product->price_msrp, 0, ',', '.') }}</div>
                                             @endif
                                         </td>

@@ -19,17 +19,22 @@ class Product extends Model
         'description',
         'price_msrp',
         'price_silverchannel',
+        'price_customer',
         'weight',
         'stock',
         'image',
         'is_active',
+        'last_price_update_at',
+        'price_source',
     ];
 
     protected $casts = [
         'price_msrp' => 'decimal:2',
         'price_silverchannel' => 'decimal:2',
+        'price_customer' => 'decimal:2',
         'weight' => 'integer',
         'is_active' => 'boolean',
+        'last_price_update_at' => 'datetime',
     ];
 
     public function brand()
@@ -57,5 +62,10 @@ class Product extends Model
     public function epiMapping()
     {
         return $this->hasOne(EpiProductMapping::class);
+    }
+
+    public function priceHistory()
+    {
+        return $this->hasMany(ProductPriceHistory::class);
     }
 }

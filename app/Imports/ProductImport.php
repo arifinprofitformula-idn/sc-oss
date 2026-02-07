@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Brand;
 use App\Models\Category;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
@@ -20,6 +21,7 @@ class ProductImport implements ToModel, WithHeadingRow, WithValidation, WithBatc
     protected $brands;
     protected $categories;
     protected $rowCount = 0;
+    protected $generatedSlugs = [];
 
     public function __construct($updateExisting = false)
     {
@@ -43,20 +45,32 @@ class ProductImport implements ToModel, WithHeadingRow, WithValidation, WithBatc
         $brandName = trim($row['brand'] ?? '');
         $brandId = $this->brands[strtolower($brandName)] ?? null;
         if (!$brandId && $brandName) {
-            // Create brand if allowed, or fail? Prompt doesn't specify. 
-            // For now, if not found, maybe default or leave null? 
-            // Better to fail validation if strict, but let's try to be flexible.
-            // Let's create it? No, that might duplicate if typo. 
-            // Let's assume validation handles "exists" or we just skip brand if invalid.
-            // Actually, let's look it up or null.
+            // Strict check: if brand name provided but not found, fail.
+            // If empty brand name, let validation handle it (nullable rule).
+             throw new \Exception("Brand '{$brandName}' tidak ditemukan di sistem. Pastikan penulisan sesuai.");
         }
 
         // Resolve Category
         $categoryName = trim($row['kategori'] ?? '');
         $categoryId = $this->categories[strtolower($categoryName)] ?? null;
 
+        if (!$categoryId) {
+             throw new \Exception("Kategori '{$categoryName}' tidak ditemukan di sistem. Pastikan penulisan sesuai.");
+        }
+
+        // Generate Unique Slug
+        $baseSlug = Str::slug($row['nama_produk']);
+        $slug = $baseSlug;
+        $counter = 1;
+
+        while ($this->slugExists($slug, $product->id ?? null)) {
+            $slug = $baseSlug . '-' . $counter++;
+        }
+        $this->generatedSlugs[] = $slug;
+
         $data = [
             'name' => $row['nama_produk'],
+            'slug' => $slug,
             'sku' => $sku,
             'brand_id' => $brandId,
             'category_id' => $categoryId,
@@ -91,7 +105,7 @@ class ProductImport implements ToModel, WithHeadingRow, WithValidation, WithBatc
             'harga_silverchannel' => ['required', 'numeric', 'min:0'],
             'stok' => ['required', 'integer', 'min:0'],
             'brand' => ['nullable'], // Could add 'exists:brands,name' but case sensitivity issues
-            'kategori' => ['nullable'],
+            'kategori' => ['required'],
             'url_gambar' => ['nullable', 'url'],
         ];
     }
@@ -109,5 +123,21 @@ class ProductImport implements ToModel, WithHeadingRow, WithValidation, WithBatc
     public function getRowCount()
     {
         return $this->rowCount;
+    }
+
+    private function slugExists($slug, $ignoreId = null)
+    {
+        // Check in-memory generated slugs (for current batch)
+        if (in_array($slug, $this->generatedSlugs)) {
+            return true;
+        }
+
+        // Check database
+        $query = Product::withTrashed()->where('slug', $slug);
+        if ($ignoreId) {
+            $query->where('id', '!=', $ignoreId);
+        }
+        
+        return $query->exists();
     }
 }

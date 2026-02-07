@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\EpiProductMapping;
 use App\Models\Product;
 use App\Models\AuditLog;
+use App\Models\IntegrationError;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -50,7 +51,7 @@ class EpiAutoPriceService
         $startTime = microtime(true);
 
         try {
-            $response = Http::withOptions(['verify' => false])->withHeaders([
+            $response = Http::retry(3, 100)->withOptions(['verify' => false])->withHeaders([
                 'X-Api-Key' => $apiKey,
                 'Accept' => 'application/json',
             ])->$method($url, $params);
@@ -140,6 +141,73 @@ class EpiAutoPriceService
         return $map[$id] ?? null;
     }
 
+    public function syncProductPrice(Product $product)
+    {
+        $settings = $this->getSettings();
+        if (!$settings['active']) {
+            return ['success' => false, 'message' => 'Integration disabled'];
+        }
+
+        $mapping = $product->epiMapping;
+        if (!$mapping || !$mapping->is_active) {
+            return ['success' => false, 'message' => 'No active mapping found'];
+        }
+
+        $updates = [];
+        $errors = [];
+        $targetGramasi = (float) ($mapping->epi_gramasi ?? 1);
+
+        // Sync Silverchannel Price
+        if ($mapping->epi_level_id) {
+            $this->processPriceSync($mapping, $mapping->epi_level_id, 'price_silverchannel', $targetGramasi, $updates, $errors);
+        }
+
+        // Sync Customer Price
+        if ($mapping->epi_level_id_customer) {
+            $this->processPriceSync($mapping, $mapping->epi_level_id_customer, 'price_customer', $targetGramasi, $updates, $errors);
+        }
+
+        $mapping->last_synced_at = Carbon::now();
+        $mapping->save();
+
+        if (!empty($errors)) {
+            return ['success' => false, 'message' => implode(', ', $errors)];
+        }
+
+        return ['success' => true, 'updates' => $updates];
+    }
+
+    public function getPricePreview($brandId, $levelId, $gramasi)
+    {
+        try {
+            $endpoint = "brands/{$brandId}/levels/{$levelId}/price";
+            $response = $this->request('get', $endpoint, ['size' => $gramasi]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                // Support both direct price and nested data.price structure
+                $price = $data['price'] ?? ($data['data']['price'] ?? 0);
+                
+                return [
+                    'success' => true,
+                    'price' => $price,
+                    'raw' => $data
+                ];
+            }
+
+            return [
+                'success' => false,
+                'message' => 'API Error: ' . $response->status(),
+                'details' => $response->json()
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
     public function syncPrices()
     {
         $settings = $this->getSettings();
@@ -150,112 +218,38 @@ class EpiAutoPriceService
         $mappings = EpiProductMapping::where('is_active', true)->with('product')->get();
         $updates = [];
         $errors = [];
-        $priceCache = []; // Cache responses for Brand+Level combinations
 
         foreach ($mappings as $mapping) {
-            try {
-                $brandName = $this->getBrandName($mapping->epi_brand_id);
-                $levelName = $this->getLevelName($mapping->epi_level_id);
-                $targetGramasi = (float) ($mapping->epi_gramasi ?? 1);
-                $price = null;
+            $targetGramasi = (float) ($mapping->epi_gramasi ?? 1);
 
-                if ($brandName && $levelName) {
-                    // Use prices endpoint with filtering
-                    $cacheKey = "{$brandName}|{$levelName}";
-                    
-                    if (!isset($priceCache[$cacheKey])) {
-                        $endpoint = "prices?brand=" . urlencode($brandName) . "&level=" . urlencode($levelName);
-                        $response = $this->request('get', $endpoint);
-                        
-                        if ($response->successful()) {
-                            $priceCache[$cacheKey] = $response->json()['data'] ?? [];
-                        } else {
-                            $errors[] = "Failed to fetch prices for {$brandName}/{$levelName}: " . $response->status();
-                            continue;
-                        }
-                    }
-
-                    // Search in cache
-                    foreach ($priceCache[$cacheKey] as $item) {
-                        $itemGramasi = (float) ($item['product']['gramasi'] ?? 0);
-                        
-                        // Strict check for Brand and Level (Case-insensitive) to prevent mismatch
-                        $itemBrand = $item['brand'] ?? '';
-                        $itemLevel = $item['level']['name'] ?? '';
-
-                        if (strcasecmp($itemBrand, $brandName) !== 0 || strcasecmp($itemLevel, $levelName) !== 0) {
-                            continue;
-                        }
-
-                        if (abs($itemGramasi - $targetGramasi) < 0.001) {
-                            $price = $item['price'];
-                            break;
-                        }
-                    }
-                } else {
-                    // Fallback to singular endpoint (legacy support, defaults to 1g)
-                    // Endpoint: GET /brands/{brand_id}/levels/{level_id}/price
-                    $endpoint = "brands/{$mapping->epi_brand_id}/levels/{$mapping->epi_level_id}/price";
-                    $response = $this->request('get', $endpoint);
-
-                    if ($response->successful()) {
-                        $data = $response->json();
-                        $price = $data['price'] ?? ($data['data']['price'] ?? null);
-                    }
-                }
-
-                if ($price) {
-                    // Update Product Price (Silverchannel Price)
-                    $oldPrice = $mapping->product->price_silverchannel;
-                    
-                    // Only update if changed
-                    if ($oldPrice != $price) {
-                        $mapping->product->price_silverchannel = $price;
-                        $mapping->product->save();
-
-                        $mapping->last_synced_price = $price;
-                        $mapping->last_synced_at = Carbon::now();
-                        $mapping->save();
-                        
-                        $updates[] = [
-                            'sku' => $mapping->product->sku,
-                            'old_price' => $oldPrice,
-                            'new_price' => $price,
-                            'change' => $price - $oldPrice,
-                        ];
-                        
-                        // Log price change
-                        Log::info("EPI APE: Product {$mapping->product->sku} price updated from {$oldPrice} to {$price}");
-
-                        // Create Audit Log
-                        AuditLog::create([
-                            'user_id' => null, // System action
-                            'action' => 'UPDATE_PRICE_EPI_APE',
-                            'model_type' => Product::class,
-                            'model_id' => $mapping->product->id,
-                            'old_values' => ['price_silverchannel' => $oldPrice],
-                            'new_values' => ['price_silverchannel' => $price],
-                            'ip_address' => '127.0.0.1', // Localhost/System
-                            'user_agent' => 'EPI Auto Price Engine Sync',
-                        ]);
-                    } else {
-                        // Just update sync time
-                        $mapping->last_synced_at = Carbon::now();
-                        $mapping->save();
-                    }
-                } else {
-                    $errors[] = "Price not found for mapping ID {$mapping->id} (Brand: {$mapping->epi_brand_id}, Level: {$mapping->epi_level_id}, Gram: {$targetGramasi})";
-                }
-            } catch (\Exception $e) {
-                $errors[] = "Exception for mapping ID {$mapping->id}: " . $e->getMessage();
+            // Sync Silverchannel Price
+            if ($mapping->epi_level_id) {
+                $this->processPriceSync($mapping, $mapping->epi_level_id, 'price_silverchannel', $targetGramasi, $updates, $errors);
             }
+
+            // Sync Customer Price
+            if ($mapping->epi_level_id_customer) {
+                $this->processPriceSync($mapping, $mapping->epi_level_id_customer, 'price_customer', $targetGramasi, $updates, $errors);
+            }
+            
+            // Update last synced time
+            $mapping->last_synced_at = Carbon::now();
+            $mapping->save();
         }
 
         if (($settings['notify_email']) && (!empty($errors) || !empty($updates))) {
             try {
                 Mail::to($settings['notify_email'])->send(new EpiApeSyncReport($updates, $errors));
             } catch (\Exception $e) {
-                Log::error("EPI APE: Failed to send sync report email: " . $e->getMessage());
+                $msg = "EPI APE: Failed to send sync report email: " . $e->getMessage();
+                Log::error($msg);
+                IntegrationError::create([
+                    'integration' => 'epi_ape',
+                    'error_code' => 'EMAIL_NOTIFICATION_FAILED',
+                    'message' => $msg,
+                    'details' => ['email' => $settings['notify_email']],
+                    'recommended_action' => 'Check mail server configuration.',
+                ]);
             }
         }
         
@@ -263,6 +257,109 @@ class EpiAutoPriceService
             Log::error('EPI APE Sync Errors: ' . implode(', ', $errors));
         }
 
-        return ['updated' => count($updates), 'errors' => $errors];
+        return ['updated' => count($updates), 'errors' => $errors, 'error_count' => count($errors)];
+    }
+
+    private function processPriceSync($mapping, $levelId, $priceField, $targetGramasi, &$updates, &$errors)
+    {
+        try {
+            // Endpoint: GET /brands/{brand_id}/levels/{level_id}/price?size={gramasi}
+            $endpoint = "brands/{$mapping->epi_brand_id}/levels/{$levelId}/price";
+            
+            $response = $this->request('get', $endpoint, ['size' => $targetGramasi]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $price = $data['price'] ?? ($data['data']['price'] ?? null);
+            } else {
+                $msg = "Failed to fetch price for mapping ID {$mapping->id} ({$priceField}): " . $response->status() . " - " . ($response->json()['message'] ?? 'Unknown error');
+                $errors[] = $msg;
+                
+                IntegrationError::create([
+                    'integration' => 'epi_ape',
+                    'error_code' => 'PRICE_FETCH_ERROR',
+                    'message' => $msg,
+                    'details' => [
+                        'mapping_id' => $mapping->id,
+                        'brand_id' => $mapping->epi_brand_id,
+                        'level_id' => $levelId,
+                        'price_field' => $priceField,
+                        'gramasi' => $targetGramasi,
+                        'response' => $response->body()
+                    ],
+                    'recommended_action' => 'Check if the Brand ID and Level ID are correct, and if the size exists.',
+                ]);
+                return;
+            }
+
+            if ($price) {
+                // Update Product Price
+                $oldPrice = $mapping->product->{$priceField};
+                
+                // Only update if changed
+                if ($oldPrice != $price) {
+                    $mapping->product->{$priceField} = $price;
+                    $mapping->product->save();
+
+                    // Update last synced price only if it's the main silverchannel price
+                    if ($priceField === 'price_silverchannel') {
+                        $mapping->last_synced_price = $price;
+                        $mapping->save();
+                    }
+                    
+                    $updates[] = [
+                        'sku' => $mapping->product->sku,
+                        'field' => $priceField,
+                        'old_price' => $oldPrice,
+                        'new_price' => $price,
+                        'change' => $price - $oldPrice,
+                    ];
+                    
+                    // Log price change
+                    Log::info("EPI APE: Product {$mapping->product->sku} ({$priceField}) updated from {$oldPrice} to {$price}");
+
+                    // Create Audit Log
+                    AuditLog::create([
+                        'user_id' => null, // System action
+                        'action' => 'UPDATE_PRICE_EPI_APE',
+                        'model_type' => Product::class,
+                        'model_id' => $mapping->product->id,
+                        'old_values' => [$priceField => $oldPrice],
+                        'new_values' => [$priceField => $price],
+                        'ip_address' => '127.0.0.1', // Localhost/System
+                        'user_agent' => 'EPI Auto Price Engine Sync',
+                    ]);
+                }
+            } else {
+                $msg = "Price data missing in response for mapping ID {$mapping->id} (Brand: {$mapping->epi_brand_id}, Level: {$levelId}, Size: {$targetGramasi})";
+                $errors[] = $msg;
+                
+                IntegrationError::create([
+                    'integration' => 'epi_ape',
+                    'error_code' => 'PRICE_NOT_FOUND',
+                    'message' => $msg,
+                    'details' => [
+                        'mapping_id' => $mapping->id,
+                        'product_sku' => $mapping->product->sku,
+                        'brand_id' => $mapping->epi_brand_id,
+                        'level_id' => $levelId,
+                        'gramasi' => $targetGramasi,
+                        'response' => $response->body()
+                    ],
+                    'recommended_action' => 'Verify that the product exists in EPI APE with the specified Brand, Level, and Size.',
+                ]);
+            }
+        } catch (\Exception $e) {
+            $msg = "Exception for mapping ID {$mapping->id} ({$priceField}): " . $e->getMessage();
+            $errors[] = $msg;
+            
+            IntegrationError::create([
+                'integration' => 'epi_ape',
+                'error_code' => 'SYNC_EXCEPTION',
+                'message' => $msg,
+                'details' => ['mapping_id' => $mapping->id, 'trace' => $e->getTraceAsString()],
+                'recommended_action' => 'Check system logs for detailed stack trace.',
+            ]);
+        }
     }
 }

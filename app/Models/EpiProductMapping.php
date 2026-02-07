@@ -13,6 +13,7 @@ class EpiProductMapping extends Model
         'product_id',
         'epi_brand_id',
         'epi_level_id',
+        'epi_level_id_customer',
         'epi_gramasi',
         'last_synced_price',
         'last_synced_at',

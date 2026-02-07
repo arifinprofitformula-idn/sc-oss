@@ -8,15 +8,18 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\EpiProductMapping;
 use App\Services\ProductService;
+use App\Services\EpiAutoPriceService;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     protected $productService;
+    protected $epiService;
 
-    public function __construct(ProductService $productService)
+    public function __construct(ProductService $productService, EpiAutoPriceService $epiService)
     {
         $this->productService = $productService;
+        $this->epiService = $epiService;
     }
 
     public function index()
@@ -42,6 +45,7 @@ class ProductController extends Controller
             'sku' => 'required|string|max:100|unique:products,sku',
             'description' => 'nullable|string',
             'price_msrp' => 'nullable|numeric|min:0',
+            'price_customer' => 'nullable|numeric|min:0',
             'weight' => 'required|integer|min:0',
             'price_silverchannel' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
@@ -74,6 +78,7 @@ class ProductController extends Controller
             'sku' => 'required|string|max:100|unique:products,sku,' . $product->id,
             'description' => 'nullable|string',
             'price_msrp' => 'nullable|numeric|min:0',
+            'price_customer' => 'nullable|numeric|min:0',
             'weight' => 'required|integer|min:0',
             'price_silverchannel' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
@@ -105,5 +110,42 @@ class ProductController extends Controller
             'id' => $updated->id,
             'is_active' => (bool)$updated->is_active,
         ]);
+    }
+
+    public function syncPrice(Product $product)
+    {
+        try {
+            // Check if product has mapping
+            if (!$product->epiMapping) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Product is not mapped to EPI APE.',
+                ]);
+            }
+
+            $result = $this->epiService->syncProductPrice($product);
+
+            if (!$result['success']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message'] ?? 'Unknown error occurred during sync.',
+                ], 500);
+            }
+
+            // Refresh product to get latest values from DB
+            $product->refresh();
+
+            return response()->json([
+                'success' => true,
+                'price_silverchannel' => $product->price_silverchannel,
+                'price_customer' => $product->price_customer,
+                'last_synced_at' => $product->epiMapping->last_synced_at,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
