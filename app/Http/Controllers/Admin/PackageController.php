@@ -48,6 +48,13 @@ class PackageController extends Controller
     {
         $data = $request->validated();
 
+        // Calculate duration_days from dates
+        if (isset($data['start_date']) && isset($data['end_date'])) {
+            $start = \Carbon\Carbon::parse($data['start_date']);
+            $end = \Carbon\Carbon::parse($data['end_date']);
+            $data['duration_days'] = $start->diffInDays($end);
+        }
+
         if ($request->hasFile('image')) {
             try {
                 $data['image'] = $this->processImage($request->file('image'));
