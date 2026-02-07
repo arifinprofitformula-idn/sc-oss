@@ -9,6 +9,20 @@
         .animate-shimmer {
             animation: shimmer 1s ease-in-out infinite;
         }
+        .animate-shimmer-text {
+            background: linear-gradient(to right, #ffffff 0%, #00ffff 50%, #ffffff 100%);
+            background-size: 200% auto;
+            color: #fff;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+        }
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
     </style>
     <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
         <!-- Logo -->
@@ -17,6 +31,55 @@
                 <x-application-logo />
             </a>
         </div>
+
+        <!-- Countdown Component -->
+        @if($package && $package->end_date)
+        <div x-data="countdown('{{ $package->end_date->format('Y-m-d H:i:s') }}')" class="mb-8 flex flex-col items-center justify-center">
+            <p class="text-white font-bold text-lg mb-4 text-center">Pendaftaran SILVERCHANNEL Akan Ditutup</p>
+            
+            <div x-show="!expired" class="flex flex-row justify-center items-center gap-3 md:gap-8 px-4">
+                <!-- Days -->
+                <div class="flex flex-col items-center group">
+                    <div class="relative w-20 h-20 md:w-36 md:h-36 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
+                        <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                        <span class="text-2xl md:text-[30px] font-bold text-white animate-shimmer-text drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" x-text="days">00</span>
+                    </div>
+                    <span class="text-cyan-400 text-[10px] md:text-sm font-bold mt-2 md:mt-3 uppercase tracking-widest drop-shadow-md">Hari</span>
+                </div>
+
+                <!-- Hours -->
+                <div class="flex flex-col items-center group">
+                    <div class="relative w-20 h-20 md:w-36 md:h-36 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
+                        <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                        <span class="text-2xl md:text-[30px] font-bold text-white animate-shimmer-text drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" x-text="hours">00</span>
+                    </div>
+                    <span class="text-cyan-400 text-[10px] md:text-sm font-bold mt-2 md:mt-3 uppercase tracking-widest drop-shadow-md">Jam</span>
+                </div>
+                
+                <!-- Minutes -->
+                <div class="flex flex-col items-center group">
+                    <div class="relative w-20 h-20 md:w-36 md:h-36 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
+                        <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                        <span class="text-2xl md:text-[30px] font-bold text-white animate-shimmer-text drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" x-text="minutes">00</span>
+                    </div>
+                    <span class="text-cyan-400 text-[10px] md:text-sm font-bold mt-2 md:mt-3 uppercase tracking-widest drop-shadow-md">Menit</span>
+                </div>
+                
+                <!-- Seconds -->
+                <div class="flex flex-col items-center group">
+                    <div class="relative w-20 h-20 md:w-36 md:h-36 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
+                        <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                        <span class="text-2xl md:text-[30px] font-bold text-white animate-shimmer-text drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" x-text="seconds">00</span>
+                    </div>
+                    <span class="text-cyan-400 text-[10px] md:text-sm font-bold mt-2 md:mt-3 uppercase tracking-widest drop-shadow-md">Detik</span>
+                </div>
+            </div>
+            
+            <div x-show="expired" class="bg-red-600/90 text-white px-6 py-3 rounded-lg font-bold text-xl shadow-lg animate-pulse">
+                Pendaftaran Telah Ditutup
+            </div>
+        </div>
+        @endif
 
         <div class="max-w-7xl mx-auto">
             @if(!$package)
@@ -837,6 +900,58 @@
 
     <script>
         document.addEventListener('alpine:init', () => {
+            Alpine.data('countdown', (expiryDate) => ({
+                expiry: new Date(expiryDate).getTime(),
+                remaining: 0,
+                days: '00',
+                hours: '00',
+                minutes: '00',
+                seconds: '00',
+                expired: false,
+                interval: null,
+                
+                init() {
+                    this.update();
+                    this.interval = setInterval(() => {
+                        this.update();
+                    }, 1000);
+                },
+                
+                update() {
+                    const now = new Date().getTime();
+                    this.remaining = this.expiry - now;
+                    
+                    if (this.remaining < 0) {
+                        this.expired = true;
+                        this.days = '00';
+                        this.hours = '00';
+                        this.minutes = '00';
+                        this.seconds = '00';
+                        clearInterval(this.interval);
+                    } else {
+                        const d = Math.floor(this.remaining / (1000 * 60 * 60 * 24));
+                        const h = Math.floor((this.remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const m = Math.floor((this.remaining % (1000 * 60 * 60)) / (1000 * 60));
+                        const s = Math.floor((this.remaining % (1000 * 60)) / 1000);
+                        
+                        this.days = d.toString().padStart(2, '0');
+                        this.hours = h.toString().padStart(2, '0');
+                        this.minutes = m.toString().padStart(2, '0');
+                        this.seconds = s.toString().padStart(2, '0');
+                    }
+                },
+                
+                restart(newDate) {
+                    clearInterval(this.interval);
+                    this.expiry = new Date(newDate).getTime();
+                    this.expired = false;
+                    this.update();
+                    this.interval = setInterval(() => {
+                        this.update();
+                    }, 1000);
+                }
+            }));
+
             Alpine.data('locationSelector', (initialData = {}) => ({
                 showTermsModal: false,
                 termsAccepted: false,

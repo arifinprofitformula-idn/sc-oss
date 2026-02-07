@@ -91,6 +91,14 @@ class PackageController extends Controller
         $oldValues = $package->toArray();
         $data = $request->validated();
 
+        // Calculate duration_days from dates
+        if (isset($data['start_date']) && isset($data['end_date'])) {
+            $start = \Carbon\Carbon::parse($data['start_date']);
+            $end = \Carbon\Carbon::parse($data['end_date']);
+            // Use absolute difference
+            $data['duration_days'] = $start->diffInDays($end);
+        }
+
         if ($request->hasFile('image')) {
             // Secure delete old image
             if (!empty($package->image) && Storage::disk('public')->exists($package->image)) {

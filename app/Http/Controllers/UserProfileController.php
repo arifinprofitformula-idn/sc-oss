@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
 use App\Models\User;
+use App\Models\Store;
+use App\Models\StoreContact;
 use App\Services\ShippingService;
 use App\Services\IntegrationService;
 use Illuminate\Http\Request;
@@ -371,6 +373,36 @@ class UserProfileController extends Controller
 
                 $user->save();
 
+                // Sync to Store (Identity & Address)
+                try {
+                    $store = Store::where('user_id', $user->id)->first();
+                    if ($store) {
+                        $storeUpdate = [
+                            'name' => $user->name,
+                            'address' => $user->address,
+                            'province_id' => $user->province_id,
+                            'city_id' => $user->city_id,
+                            'subdistrict_id' => $user->subdistrict_id,
+                            'postal_code' => $user->postal_code,
+                        ];
+                        $store->update($storeUpdate);
+                        
+                        // Sync to StoreContact for redundancy
+                        StoreContact::updateOrCreate(
+                            ['store_id' => $store->id],
+                            [
+                                'address' => $user->address,
+                                'province_id' => $user->province_id,
+                                'city_id' => $user->city_id,
+                                'subdistrict_id' => $user->subdistrict_id,
+                                'postal_code' => $user->postal_code,
+                            ]
+                        );
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Store Sync Error (Personal): ' . $e->getMessage());
+                }
+
                 // Audit Log for User Data
                 if ($user->wasChanged()) {
                     try {
@@ -464,6 +496,39 @@ class UserProfileController extends Controller
                 $user->bank_account_name = $validated['bank_account_name'] ?? null;
                 
                 $user->save();
+
+                // Sync to Store (Contact & Social)
+                try {
+                    $store = Store::where('user_id', $user->id)->first();
+                    if ($store) {
+                        $socialLinks = [];
+                        if ($user->social_facebook) $socialLinks['facebook'] = $user->social_facebook;
+                        if ($user->social_instagram) $socialLinks['instagram'] = $user->social_instagram;
+                        if ($user->social_tiktok) $socialLinks['tiktok'] = $user->social_tiktok;
+                        if ($user->social_thread) $socialLinks['thread'] = $user->social_thread;
+
+                        $storeUpdate = [
+                            'phone' => $user->phone,
+                            'whatsapp' => $user->phone,
+                            'email' => $user->email,
+                            'social_links' => !empty($socialLinks) ? $socialLinks : null,
+                        ];
+                        $store->update($storeUpdate);
+                        
+                        // Sync to StoreContact for redundancy
+                        StoreContact::updateOrCreate(
+                            ['store_id' => $store->id],
+                            [
+                                'phone' => $user->phone,
+                                'whatsapp' => $user->phone,
+                                'email' => $user->email,
+                                'social_links' => !empty($socialLinks) ? $socialLinks : null,
+                            ]
+                        );
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Store Sync Error (Contact): ' . $e->getMessage());
+                }
 
                 if ($user->wasChanged()) {
                     try {

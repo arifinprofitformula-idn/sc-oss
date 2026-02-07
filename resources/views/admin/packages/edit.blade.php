@@ -106,11 +106,45 @@
                             </div>
                         </div>
 
-                        <!-- Duration -->
-                        <div class="mb-4">
-                            <label for="duration_days" class="block text-sm font-medium text-gray-700">Durasi (Hari) <span class="text-red-500">*</span></label>
-                            <input type="number" name="duration_days" id="duration_days" min="1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required value="{{ old('duration_days', $package->duration_days) }}">
-                            @error('duration_days') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        <!-- Date Range & Duration -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" x-data="{
+                            startDate: '{{ old('start_date', $package->start_date ? $package->start_date->format('Y-m-d') : '') }}',
+                            endDate: '{{ old('end_date', $package->end_date ? $package->end_date->format('Y-m-d') : '') }}',
+                            duration: {{ old('duration_days', $package->duration_days ?? 0) }},
+                            calculateDuration() {
+                                if (this.startDate && this.endDate) {
+                                    const start = new Date(this.startDate);
+                                    const end = new Date(this.endDate);
+                                    if (end >= start) {
+                                        const diffTime = Math.abs(end - start);
+                                        this.duration = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                                    } else {
+                                        this.duration = 0;
+                                    }
+                                }
+                            }
+                        }" x-init="calculateDuration()">
+                            <!-- Start Date -->
+                            <div>
+                                <label for="start_date" class="block text-sm font-medium text-gray-700">Tanggal Mulai <span class="text-red-500">*</span></label>
+                                <input type="date" name="start_date" id="start_date" x-model="startDate" @change="calculateDuration()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                @error('start_date') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- End Date -->
+                            <div>
+                                <label for="end_date" class="block text-sm font-medium text-gray-700">Tanggal Akhir <span class="text-red-500">*</span></label>
+                                <input type="date" name="end_date" id="end_date" x-model="endDate" @change="calculateDuration()" :min="startDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                @error('end_date') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <!-- Calculated Duration -->
+                            <div>
+                                <label for="duration_days" class="block text-sm font-medium text-gray-700">Durasi (Hari)</label>
+                                <input type="number" name="duration_days" id="duration_days" x-model="duration" class="mt-1 block w-full bg-gray-100 text-gray-500 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" readonly>
+                                <p class="text-xs text-gray-500 mt-1">Otomatis dihitung dari tanggal.</p>
+                                @error('duration_days') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
                         </div>
 
                         <!-- Benefits -->

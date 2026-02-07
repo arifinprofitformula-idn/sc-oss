@@ -23,6 +23,7 @@ class Store extends Model
         'phone',
         'whatsapp',
         'email',
+        'social_links',
         'operating_hours',
         'is_open',
         'holiday_mode',

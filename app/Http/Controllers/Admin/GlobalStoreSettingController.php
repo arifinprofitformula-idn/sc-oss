@@ -77,7 +77,7 @@ class GlobalStoreSettingController extends Controller
         $bankDetails = $store->bank_details ?? [];
 
         return view('admin.settings.store', compact(
-            'settings', 'store', 'provinces', 'tab', 
+            'settings', 'store', 'user', 'provinces', 'tab', 
             'days', 'operatingHours', 'bankDetails'
         ));
     }
@@ -428,34 +428,6 @@ class GlobalStoreSettingController extends Controller
         ]);
     }
 
-    public function updateContact(Request $request)
-    {
-        $request->validate([
-            'address' => 'required|string',
-            'province_id' => 'required|string',
-            'city_id' => 'required|string',
-            'subdistrict_id' => 'required|string',
-            'postal_code' => 'required|string|max:10',
-            'phone' => 'nullable|string|max:20',
-            'whatsapp' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'social_links' => 'nullable|array',
-        ]);
-
-        $store = Store::where('user_id', Auth::id())->firstOrFail();
-        $payload = $request->only(['address','province_id','city_id','subdistrict_id','postal_code','phone','whatsapp','email']);
-        if ($request->has('social_links')) {
-            $payload['social_links'] = $request->input('social_links');
-        }
-
-        // Update Store model directly as view relies on it
-        $store->update($payload);
-
-        // Also update StoreContact for redundancy/normalization if needed
-        StoreContact::updateOrCreate(['store_id' => $store->id], array_merge(['store_id' => $store->id], $payload));
-        
-        return response()->json(['success' => true]);
-    }
 
     public function updateHours(Request $request)
     {

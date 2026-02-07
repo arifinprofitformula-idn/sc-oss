@@ -373,7 +373,7 @@
                 ],
                 urls: {
                     identity: "{{ route('admin.settings.store.identity') }}",
-                    contact: "{{ route('admin.settings.store.contact') }}",
+                    contact: null,
                     hours: "{{ route('admin.settings.store.hours') }}",
                     payment: "{{ route('admin.settings.store.payment') }}",
                     toggle: "{{ route('admin.settings.store.toggle') }}",
@@ -435,14 +435,10 @@
                 },
 
                 init() {
-                    this.$watch('activeTab', (val) => {
-                        if (val === 'contact') {
-                            if (this.selectedProvince) {
-                                this.fetchCities(false);
-                            }
-                            if (this.selectedCity) {
-                                this.fetchSubdistricts(false);
-                            }
+                    // Listen for profile updates from other tabs
+                    window.addEventListener('storage', (event) => {
+                        if (event.key === 'profile_last_updated') {
+                            window.location.reload();
                         }
                     });
                 },
@@ -549,17 +545,7 @@
                 },
 
                 async saveContact() {
-                    const payload = {
-                        address: document.getElementById('address')?.value || '',
-                        province_id: this.selectedProvince || '',
-                        city_id: this.selectedCity || '',
-                        subdistrict_id: this.selectedSubdistrict || '',
-                        postal_code: document.getElementById('postal_code')?.value || '',
-                        phone: document.getElementById('phone')?.value || '',
-                        whatsapp: document.getElementById('whatsapp')?.value || '',
-                        email: document.getElementById('email')?.value || ''
-                    };
-                    await this.performSave(this.urls.contact, 'PATCH', payload, 'Kontak & Alamat berhasil disimpan');
+                    // Contact is now managed via Profile
                 },
 
                 async saveHours() {
@@ -753,60 +739,57 @@
                         <div x-show="activeTab === 'contact'">
                             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Informasi Kontak & Alamat</h3>
 
+                            <!-- Info Alert -->
+                            <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 dark:bg-gray-700 dark:border-blue-500">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-blue-700 dark:text-blue-200">
+                                            Informasi ini diambil secara otomatis dari Profil Anda.
+                                            Perubahan hanya dapat dilakukan melalui menu <a href="{{ route('profile.edit') }}" class="font-bold underline hover:text-blue-600">Profile</a>.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="col-span-2">
                                     <x-input-label for="address" :value="__('Alamat Lengkap')" />
-                                    <textarea id="address" name="address" rows="2" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" required>{{ old('address', $store->address) }}</textarea>
+                                    <textarea id="address" rows="2" class="mt-1 block w-full bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-gray-500" disabled>{{ $user->address }}</textarea>
                                 </div>
 
                                 <div>
-                                    <x-input-label for="province_id" :value="__('Provinsi')" />
-                                    <select id="province_id" name="province_id" x-model="selectedProvince" @change="fetchCities()" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
-                                        <option value="">Pilih Provinsi</option>
-                                        @foreach($provinces as $province)
-                                            <option value="{{ $province['province_id'] }}">{{ $province['province'] }}</option>
-                                        @endforeach
-                                    </select>
+                                    <x-input-label for="province_name" :value="__('Provinsi')" />
+                                    <x-text-input type="text" class="mt-1 block w-full bg-gray-100 dark:bg-gray-900 text-gray-500" value="{{ $user->province_name }}" disabled />
                                 </div>
 
                                 <div>
-                                    <x-input-label for="city_id" :value="__('Kota/Kabupaten')" />
-                                    <select id="city_id" name="city_id" x-model="selectedCity" @change="fetchSubdistricts()" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" :disabled="!cities.length">
-                                        <option value="">Pilih Kota</option>
-                                        <template x-for="city in cities" :key="city.city_id">
-                                            <option :value="city.city_id" x-text="city.type + ' ' + city.city_name"></option>
-                                        </template>
-                                    </select>
+                                    <x-input-label for="city_name" :value="__('Kota/Kabupaten')" />
+                                    <x-text-input type="text" class="mt-1 block w-full bg-gray-100 dark:bg-gray-900 text-gray-500" value="{{ $user->city_name }}" disabled />
                                 </div>
 
                                 <div>
-                                    <x-input-label for="subdistrict_id" :value="__('Kecamatan')" />
-                                    <select id="subdistrict_id" name="subdistrict_id" x-model="selectedSubdistrict" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" :disabled="!subdistricts.length">
-                                        <option value="">Pilih Kecamatan</option>
-                                        <template x-for="sub in subdistricts" :key="sub.subdistrict_id">
-                                            <option :value="sub.subdistrict_id" x-text="sub.subdistrict_name"></option>
-                                        </template>
-                                    </select>
+                                    <x-input-label for="subdistrict_name" :value="__('Kecamatan')" />
+                                    <x-text-input type="text" class="mt-1 block w-full bg-gray-100 dark:bg-gray-900 text-gray-500" value="{{ $user->subdistrict_name }}" disabled />
                                 </div>
 
                                 <div>
                                     <x-input-label for="postal_code" :value="__('Kode Pos')" />
-                                    <x-text-input id="postal_code" name="postal_code" type="text" class="mt-1 block w-full" value="{{ old('postal_code', $store->postal_code) }}" required />
+                                    <x-text-input type="text" class="mt-1 block w-full bg-gray-100 dark:bg-gray-900 text-gray-500" value="{{ $user->postal_code }}" disabled />
                                 </div>
 
                                 <div>
-                                    <x-input-label for="phone" :value="__('No. Telepon')" />
-                                    <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" value="{{ old('phone', $store->phone) }}" />
+                                    <x-input-label for="phone" :value="__('No. Telepon / WhatsApp')" />
+                                    <x-text-input type="text" class="mt-1 block w-full bg-gray-100 dark:bg-gray-900 text-gray-500" value="{{ $user->phone }}" disabled />
                                 </div>
 
                                 <div>
-                                    <x-input-label for="whatsapp" :value="__('WhatsApp')" />
-                                    <x-text-input id="whatsapp" name="whatsapp" type="text" class="mt-1 block w-full" value="{{ old('whatsapp', $store->whatsapp) }}" placeholder="628123456789" />
-                                </div>
-
-                                <div class="col-span-2">
                                     <x-input-label for="email" :value="__('Email Resmi Toko')" />
-                                    <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $store->email)" />
+                                    <x-text-input type="email" class="mt-1 block w-full bg-gray-100 dark:bg-gray-900 text-gray-500" value="{{ $user->email }}" disabled />
                                 </div>
 
                                 <div class="col-span-2">
@@ -814,25 +797,24 @@
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div>
                                             <x-input-label for="facebook" value="Facebook URL" />
-                                            <x-text-input id="facebook" name="social_links[facebook]" type="url" class="mt-1 block w-full" :value="old('social_links.facebook', $store->social_links['facebook'] ?? '')" placeholder="https://facebook.com/..." />
+                                            <x-text-input type="text" class="mt-1 block w-full bg-gray-100 dark:bg-gray-900 text-gray-500" value="{{ $user->social_facebook }}" disabled />
                                         </div>
                                         <div>
                                             <x-input-label for="instagram" value="Instagram URL" />
-                                            <x-text-input id="instagram" name="social_links[instagram]" type="url" class="mt-1 block w-full" :value="old('social_links.instagram', $store->social_links['instagram'] ?? '')" placeholder="https://instagram.com/..." />
+                                            <x-text-input type="text" class="mt-1 block w-full bg-gray-100 dark:bg-gray-900 text-gray-500" value="{{ $user->social_instagram }}" disabled />
                                         </div>
                                         <div>
                                             <x-input-label for="tiktok" value="TikTok URL" />
-                                            <x-text-input id="tiktok" name="social_links[tiktok]" type="url" class="mt-1 block w-full" :value="old('social_links.tiktok', $store->social_links['tiktok'] ?? '')" placeholder="https://tiktok.com/@..." />
+                                            <x-text-input type="text" class="mt-1 block w-full bg-gray-100 dark:bg-gray-900 text-gray-500" value="{{ $user->social_tiktok }}" disabled />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             
                             <div class="mt-6 flex justify-end">
-                                <button type="button" @click="saveContact()" x-bind:disabled="isLoading" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest disabled:opacity-50">
-                                    <span x-show="!isLoading">Simpan Kontak</span>
-                                    <span x-show="isLoading">Menyimpan...</span>
-                                </button>
+                                <a href="{{ route('profile.edit') }}" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest">
+                                    <span>Ubah di Profile</span>
+                                </a>
                             </div>
                         </div>
 

@@ -27,6 +27,8 @@ class Package extends Model
         'terms',
         'commission_type',
         'commission_value',
+        'start_date',
+        'end_date',
     ];
 
     protected $casts = [
@@ -39,6 +41,8 @@ class Package extends Model
         'commission_value' => 'decimal:2',
         'promo_start_date' => 'date',
         'promo_end_date' => 'date',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     protected static function boot()

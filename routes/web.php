@@ -159,7 +159,7 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::patch('/settings/store', [\App\Http\Controllers\Admin\GlobalStoreSettingController::class, 'update'])->name('settings.store.update');
             Route::patch('/settings/store/toggle', [\App\Http\Controllers\Admin\GlobalStoreSettingController::class, 'updateToggle'])->name('settings.store.toggle');
             Route::patch('/settings/store/identity', [\App\Http\Controllers\Admin\GlobalStoreSettingController::class, 'updateIdentity'])->name('settings.store.identity');
-            Route::patch('/settings/store/contact', [\App\Http\Controllers\Admin\GlobalStoreSettingController::class, 'updateContact'])->name('settings.store.contact');
+
             Route::patch('/settings/store/hours', [\App\Http\Controllers\Admin\GlobalStoreSettingController::class, 'updateHours'])->name('settings.store.hours');
             Route::patch('/settings/store/payment', [\App\Http\Controllers\Admin\GlobalStoreSettingController::class, 'updatePayment'])->name('settings.store.payment');
             Route::post('/settings/store/bank-logo', [\App\Http\Controllers\Admin\GlobalStoreSettingController::class, 'uploadBankLogo'])->name('settings.store.bank-logo');

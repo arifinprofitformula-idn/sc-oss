@@ -1092,6 +1092,10 @@
                         if (res.ok) {
                             const data = await res.json();
                             this.saveStatus = 'saved';
+                            
+                            // Trigger cross-tab sync
+                            localStorage.setItem('profile_last_updated', Date.now());
+
                             if (data.profile_completeness !== undefined) {
                                 window.dispatchEvent(new CustomEvent('profile-updated', { 
                                     detail: { completeness: data.profile_completeness } 
@@ -1407,6 +1411,9 @@
                         if (res.ok) {
                             const data = await res.json();
                             this.saveStatus = 'saved';
+                            
+                            // Trigger cross-tab sync
+                            localStorage.setItem('profile_last_updated', Date.now());
                             
                             // Dispatch event to update profile completeness progress bar
                             if (data.profile_completeness !== undefined) {

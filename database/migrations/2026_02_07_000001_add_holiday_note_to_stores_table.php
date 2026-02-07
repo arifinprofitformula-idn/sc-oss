@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('stores', function (Blueprint $table) {
-            $table->string('holiday_note', 100)->nullable()->after('holiday_mode');
+            if (!Schema::hasColumn('stores', 'holiday_note')) {
+                $table->string('holiday_note', 100)->nullable()->after('holiday_mode');
+            }
         });
     }
 
