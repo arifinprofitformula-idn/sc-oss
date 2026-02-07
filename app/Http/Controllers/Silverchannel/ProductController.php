@@ -56,4 +56,28 @@ class ProductController extends Controller
 
         return view('silverchannel.products.index', compact('products', 'operationalStatus', 'lastPriceUpdate'));
     }
+
+    public function checkPrices(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:products,id',
+        ]);
+
+        $products = Product::whereIn('id', $request->ids)->get(['id', 'price_customer', 'price_silverchannel']);
+
+        $data = $products->mapWithKeys(function ($product) {
+            return [
+                $product->id => [
+                    'price_customer' => (float) $product->price_customer,
+                    'price_silverchannel' => (float) $product->price_silverchannel,
+                    'formatted_customer' => 'Rp ' . number_format($product->price_customer, 0, ',', '.'),
+                    'formatted_silverchannel' => 'Rp ' . number_format($product->price_silverchannel, 0, ',', '.'),
+                    'has_customer_price' => $product->price_customer > 0,
+                ]
+            ];
+        });
+
+        return response()->json($data);
+    }
 }

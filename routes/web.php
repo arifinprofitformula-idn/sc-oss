@@ -229,6 +229,7 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
         Route::middleware(['role:SILVERCHANNEL'])->prefix('silverchannel')->name('silverchannel.')->group(function () {
             // Catalog
             Route::get('/products', [\App\Http\Controllers\Silverchannel\ProductController::class, 'index'])->name('products.index');
+            Route::post('/products/check-prices', [\App\Http\Controllers\Silverchannel\ProductController::class, 'checkPrices'])->name('products.check-prices');
 
             Route::get('/store/operational-status', [\App\Http\Controllers\Silverchannel\StoreStatusController::class, 'show'])->name('store.operational-status');
 

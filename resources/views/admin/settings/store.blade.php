@@ -6,6 +6,232 @@
     </x-slot>
 
     <style>
+        /* Reactor Switch CSS */
+        .reactor-widget {
+            display: inline-block;
+            vertical-align: middle;
+            transform: scale(0.4);
+            transform-origin: left center;
+            margin-right: -70px; /* Compensation for scale spacing */
+        }
+
+        /* Hide input */
+        .reactor-widget .reactor-switch input {
+          display: none;
+        }
+
+        /* Track / Shell */
+        .reactor-widget .reactor-switch label {
+          width: 120px;
+          height: 55px;
+          position: relative;
+          display: block;
+          cursor: pointer;
+          border-radius: 999px;
+          overflow: hidden;
+          isolation: isolate;
+          background: linear-gradient(180deg, #2d0a0a 0%, #1a0505 100%);
+          border: 1px solid #ffffff10;
+          box-shadow:
+            inset 0 8px 20px #000a,
+            inset 0 1px 0 #ffffff08,
+            0 10px 28px #0007;
+          transition: 600ms cubic-bezier(0.15, 0.95, 0.18, 1);
+        }
+
+        /* Outer Rim */
+        .reactor-widget .reactor-switch label::before {
+          content: "";
+          position: absolute;
+          inset: 2px;
+          border-radius: 999px;
+          box-shadow:
+            inset 0 0 0 1px #ffffff08,
+            inset 0 -4px 10px #000b,
+            inset 0 4px 10px #ffffff05;
+          z-index: 0;
+        }
+
+        /* Inner Core - Inactive (Red) */
+        .reactor-widget .reactor-switch__core {
+          position: absolute;
+          inset: 6px;
+          border-radius: 999px;
+          /* Dark Red Gradient */
+          background: radial-gradient(110px 70px at 18% 50%, #ffffff0c, transparent 60%),
+            radial-gradient(120px 80px at 82% 50%, #00000080, transparent 65%),
+            linear-gradient(90deg, #451a1a, #2b0b0b);
+          box-shadow:
+            inset 0 0 0 1px #ffffff06,
+            inset 0 0 18px #000b;
+          transition: 600ms cubic-bezier(0.15, 0.95, 0.18, 1);
+          z-index: 1;
+        }
+
+        /* Energy Beam */
+        .reactor-widget .reactor-switch__beam {
+          position: absolute;
+          inset: -60% -30%;
+          background: conic-gradient(
+            from 110deg,
+            transparent 0 18%,
+            #ff000018 26%, 
+            transparent 40% 55%, 
+            #ff4d4d18 66%, 
+            transparent 78% 100% 
+          );
+          filter: blur(20px);
+          opacity: 0.22;
+          animation: reactorBeam 6s linear infinite;
+          z-index: 0;
+        }
+
+        @keyframes reactorBeam {
+          to {
+            transform: translateX(18%) rotate(360deg);
+          }
+        }
+
+        /* Thumb */
+        .reactor-widget .reactor-switch__thumb {
+          position: absolute;
+          top: 5px;
+          left: 5px;
+          width: 45px;
+          height: 45px;
+          border-radius: 50%;
+          z-index: 3;
+
+          background: radial-gradient(
+            circle at 25% 20%,
+            #ffffff 0%,
+            #ffeaf6 45%, 
+            #eab4b4 100% 
+          );
+
+          box-shadow:
+            0 8px 16px #0009,
+            inset 0 3px 8px #ffffff,
+            inset -6px -9px 14px #c6909066;
+
+          transition: 600ms cubic-bezier(0.15, 0.95, 0.18, 1);
+        }
+
+        /* Inner Lens */
+        .reactor-widget .reactor-switch__thumb::before {
+          content: "";
+          position: absolute;
+          inset: 5px;
+          border-radius: 50%;
+          background: radial-gradient(circle at 30% 25%, #ffffff66, transparent 55%),
+            radial-gradient(circle at 75% 80%, #00000066, transparent 60%);
+          box-shadow: inset 0 0 0 1px #ffffff20;
+        }
+
+        /* Glow Tail */
+        .reactor-widget .reactor-switch__thumb::after {
+          content: "";
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 80px;
+          height: 80px;
+          transform: translate(-50%, -50%);
+          background: radial-gradient(circle, #ff000022 0%, transparent 60%),
+            radial-gradient(circle, #ff4d4d22 0%, transparent 65%);
+          filter: blur(12px);
+          opacity: 0;
+          transition: 600ms ease;
+        }
+
+        /* OFF / ON Text */
+        .reactor-widget .reactor-switch__state {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          font-weight: 800;
+          letter-spacing: 0.2em;
+          font-size: 10px;
+          user-select: none;
+          z-index: 2;
+          transition: 600ms ease;
+        }
+
+        .reactor-widget .reactor-switch__state--off {
+          right: 16px;
+          color: #e0c7c7b5;
+        }
+        .reactor-widget .reactor-switch__state--on {
+          left: 16px;
+          color: #001611;
+          opacity: 0;
+        }
+
+        /* === ON STATE (Green) === */
+        .reactor-widget .reactor-switch input:checked + label {
+          border-color: #ffffff20;
+          box-shadow:
+            0 0 14px #00ff8833,
+            0 0 30px #7bffb533,
+            inset 0 8px 18px #ffffff18,
+            0 10px 28px #0009;
+        }
+
+        .reactor-widget .reactor-switch input:checked + label .reactor-switch__core {
+          /* Green Gradient */
+          background: linear-gradient(90deg, #00ff88, #7bffb5, #22c55e);
+          box-shadow:
+            inset 0 0 0 1px #ffffff18,
+            inset 0 0 20px #00ff8844;
+        }
+
+        .reactor-widget .reactor-switch input:checked + label .reactor-switch__beam {
+           background: conic-gradient(
+             from 110deg,
+             transparent 0 18%,
+             #00ff8818 26%, 
+             transparent 40% 55%, 
+             #7bffb518 66%, 
+             transparent 78% 100% 
+           );
+        }
+
+        /* Move Thumb */
+        .reactor-widget .reactor-switch input:checked + label .reactor-switch__thumb {
+          left: 70px;
+          background: radial-gradient(
+            circle at 30% 25%,
+            #06331a 0%,
+            #031c0d 55%,
+            #001205 100%
+          );
+          box-shadow:
+            0 8px 18px #000c,
+            0 0 14px #00ff8855,
+            inset 0 0 12px #00ff8866,
+            inset -6px -9px 16px #00ff8855;
+        }
+
+        .reactor-widget .reactor-switch input:checked + label .reactor-switch__thumb::after {
+          opacity: 1;
+          background: radial-gradient(circle, #00ff8822 0%, transparent 60%),
+            radial-gradient(circle, #7bffb522 0%, transparent 65%);
+        }
+
+        /* Switch Text Visibility */
+        .reactor-widget .reactor-switch input:checked + label .reactor-switch__state--off {
+          opacity: 0;
+        }
+        .reactor-widget .reactor-switch input:checked + label .reactor-switch__state--on {
+          opacity: 1;
+        }
+
+        /* Focus */
+        .reactor-widget .reactor-switch input:focus-visible + label {
+          outline: 2px solid #ffffff44;
+          outline-offset: 4px;
+        }
+
         /* 3D Button Styles */
         .btn-3d {
             transition: all 0.1s;
@@ -96,6 +322,8 @@
             'city_id' => $store->city_id,
             'subdistrict_id' => $store->subdistrict_id,
             'is_open' => (bool) $store->is_open,
+            'holiday_mode' => (bool) $store->holiday_mode,
+            'holiday_note' => $store->holiday_note,
             'operating_hours' => $operatingHours,
             'store_menu_active' => (bool) ($settings['silverchannel_store_menu_active'] ?? false),
             'unique_code_active' => (bool) ($settings['store_payment_unique_code_active'] ?? false),
@@ -168,6 +396,8 @@
                 subdistricts: [],
 
                 isOpen: initialData.is_open,
+                holidayMode: initialData.holiday_mode,
+                holidayNote: initialData.holiday_note || '',
                 days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
                 operatingHours: initialData.operating_hours,
 
@@ -335,7 +565,9 @@
                 async saveHours() {
                     await this.performSave(this.urls.hours, 'PATCH', { 
                         operating_hours: this.operatingHours,
-                        is_open: this.isOpen ? 1 : 0
+                        is_open: this.isOpen ? 1 : 0,
+                        holiday_mode: this.holidayMode ? 1 : 0,
+                        holiday_note: this.holidayNote
                     }, 'Jam operasional berhasil disimpan');
                 },
 
@@ -421,12 +653,20 @@
                                 <p class="text-sm text-gray-500 dark:text-gray-400">Jika diaktifkan, user dengan role Silverchannel dapat mengakses menu Pengaturan Toko di dashboard mereka.</p>
                             </div>
                             
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="silverchannel_store_menu_active" value="1" class="sr-only peer"
-                                    x-model="storeMenuActive"
-                                    @change="saveToggle()">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                            </label>
+                            <div class="reactor-widget scale-[0.6] origin-left">
+                                <div class="reactor-switch">
+                                    <input type="checkbox" id="toggle-store-menu" name="silverchannel_store_menu_active" value="1" 
+                                        x-model="storeMenuActive" 
+                                        @change="saveToggle()" hidden>
+                                    <label for="toggle-store-menu">
+                                        <div class="reactor-switch__core"></div>
+                                        <div class="reactor-switch__beam"></div>
+                                        <div class="reactor-switch__thumb"></div>
+                                        <span class="reactor-switch__state reactor-switch__state--off">OFF</span>
+                                        <span class="reactor-switch__state reactor-switch__state--on">ON</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -600,13 +840,54 @@
                         <div x-show="activeTab === 'hours'">
                             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Jam Operasional</h3>
                             
-                            <div class="mb-4">
-                                <label class="inline-flex items-center cursor-pointer">
-                                    <input type="hidden" name="is_open" value="0">
-                                    <input type="checkbox" name="is_open" value="1" class="sr-only peer" x-model="isOpen">
-                                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                                    <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Status Toko: <span x-text="isOpen ? 'BUKA' : 'TUTUP'"></span></span>
-                                </label>
+                            <div class="mb-4 space-y-4">
+                                <div>
+                                    <div class="flex items-center">
+                                        <div class="reactor-widget scale-[0.6] origin-left">
+                                            <div class="reactor-switch">
+                                                <input type="hidden" name="is_open" value="0">
+                                                <input type="checkbox" id="toggle-is-open" name="is_open" value="1" x-model="isOpen" hidden>
+                                                <label for="toggle-is-open">
+                                                    <div class="reactor-switch__core"></div>
+                                                    <div class="reactor-switch__beam"></div>
+                                                    <div class="reactor-switch__thumb"></div>
+                                                    <span class="reactor-switch__state reactor-switch__state--off">OFF</span>
+                                                    <span class="reactor-switch__state reactor-switch__state--on">ON</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Status Toko (Manual): <span x-text="isOpen ? 'BUKA' : 'TUTUP'"></span></span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1 ml-14">Override manual untuk menutup/buka toko sementara.</p>
+                                </div>
+
+                                <div>
+                                    <div class="flex items-center">
+                                        <div class="reactor-widget scale-[0.6] origin-left">
+                                            <div class="reactor-switch">
+                                                <input type="checkbox" id="toggle-holiday-mode" name="holiday_mode" value="1" x-model="holidayMode" hidden>
+                                                <label for="toggle-holiday-mode">
+                                                    <div class="reactor-switch__core"></div>
+                                                    <div class="reactor-switch__beam"></div>
+                                                    <div class="reactor-switch__thumb"></div>
+                                                    <span class="reactor-switch__state reactor-switch__state--off">OFF</span>
+                                                    <span class="reactor-switch__state reactor-switch__state--on">ON</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">Mode Libur (Holiday): <span x-text="holidayMode ? 'AKTIF' : 'NON-AKTIF'"></span></span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1 ml-14">Jika aktif, toko akan dianggap TUTUP seharian penuh (libur nasional/event).</p>
+                                    
+                                    <div class="ml-14 mt-3" x-show="holidayMode" x-transition>
+                                        <x-input-label for="holiday_note" value="Keterangan Penutupan (Optional)" />
+                                        <x-text-input id="holiday_note" type="text" class="mt-1 block w-full max-w-md" 
+                                            x-model="holidayNote" 
+                                            placeholder="Contoh: HARI RAYA IDUL FITRI" 
+                                            maxlength="100" />
+                                        <p class="text-xs text-gray-500 mt-1">Maksimal 100 karakter. Akan ditampilkan di halaman produk.</p>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="space-y-4">
@@ -622,12 +903,28 @@
                                                 class="rounded border-gray-300 text-sm" 
                                                 x-model="operatingHours['{{ $day }}'].close">
                                         </div>
-                                        <label class="inline-flex items-center">
-                                            <input type="checkbox" name="operating_hours[{{ $day }}][is_closed]" 
-                                                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" 
-                                                x-model="operatingHours['{{ $day }}'].is_closed">
-                                            <span class="ml-2 text-sm text-gray-600">Tutup</span>
-                                        </label>
+                                        <div class="flex items-center">
+                                            <div class="reactor-widget scale-[0.5] origin-left">
+                                                <div class="reactor-switch">
+                                                    <!-- Hidden input for form submission -->
+                                                    <input type="hidden" name="operating_hours[{{ $day }}][is_closed]" :value="operatingHours['{{ $day }}'].is_closed ? 1 : 0">
+                                                    
+                                                    <!-- UI Toggle: Checked = Open (Green), Unchecked = Closed (Red) -->
+                                                    <input type="checkbox" id="toggle-closed-{{ $day }}" 
+                                                           :checked="!operatingHours['{{ $day }}'].is_closed" 
+                                                           @change="operatingHours['{{ $day }}'].is_closed = !$event.target.checked" 
+                                                           hidden>
+                                                           
+                                                    <label for="toggle-closed-{{ $day }}">
+                                                        <div class="reactor-switch__core"></div>
+                                                        <div class="reactor-switch__beam"></div>
+                                                        <div class="reactor-switch__thumb"></div>
+                                                        <span class="reactor-switch__state reactor-switch__state--off">TUTUP</span>
+                                                        <span class="reactor-switch__state reactor-switch__state--on">BUKA</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 @endforeach
                             </div>
@@ -687,10 +984,18 @@
                                             Tambahkan 3 digit angka unik pada total pembayaran.
                                         </p>
                                     </div>
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" class="sr-only peer" x-model="uniqueCodeActive">
-                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
-                                    </label>
+                                    <div class="reactor-widget scale-[0.6] origin-left">
+                                        <div class="reactor-switch">
+                                            <input type="checkbox" id="toggle-unique-code" x-model="uniqueCodeActive" hidden>
+                                            <label for="toggle-unique-code">
+                                                <div class="reactor-switch__core"></div>
+                                                <div class="reactor-switch__beam"></div>
+                                                <div class="reactor-switch__thumb"></div>
+                                                <span class="reactor-switch__state reactor-switch__state--off">OFF</span>
+                                                <span class="reactor-switch__state reactor-switch__state--on">ON</span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

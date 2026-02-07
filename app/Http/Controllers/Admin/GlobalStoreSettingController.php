@@ -462,12 +462,25 @@ class GlobalStoreSettingController extends Controller
         $request->validate([
             'operating_hours' => 'required|array',
             'is_open' => 'nullable|boolean',
+            'holiday_mode' => 'nullable|boolean',
+            'holiday_note' => 'nullable|string|max:100',
         ]);
 
         $store = Store::where('user_id', Auth::id())->firstOrFail();
         
+        $updates = [];
         if ($request->has('is_open')) {
-            $store->update(['is_open' => $request->boolean('is_open')]);
+            $updates['is_open'] = $request->boolean('is_open');
+        }
+        if ($request->has('holiday_mode')) {
+            $updates['holiday_mode'] = $request->boolean('holiday_mode');
+        }
+        if ($request->has('holiday_note')) {
+            $updates['holiday_note'] = $request->input('holiday_note');
+        }
+        
+        if (!empty($updates)) {
+            $store->update($updates);
         }
 
         $hours = $request->input('operating_hours');

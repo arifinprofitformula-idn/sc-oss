@@ -264,6 +264,14 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
+        $status = $this->storeOperationalService->getStatus();
+        if (empty($status['can_add_to_cart'])) {
+             if ($request->wantsJson()) {
+                 return response()->json(['success' => false, 'message' => 'Toko sedang tutup. Tidak dapat memproses pesanan.'], 403);
+             }
+             return redirect()->route('silverchannel.products.index')->with('error', 'Toko sedang tutup. Tidak dapat memproses pesanan.');
+        }
+
         $request->validate([
             // Items are loaded from DB, so we don't validate items array input
             'shipping_address' => 'required|array',

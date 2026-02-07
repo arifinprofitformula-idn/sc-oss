@@ -26,6 +26,7 @@ class Store extends Model
         'operating_hours',
         'is_open',
         'holiday_mode',
+        'holiday_note',
         'notification_templates',
         'shipping_couriers',
         'bank_details',

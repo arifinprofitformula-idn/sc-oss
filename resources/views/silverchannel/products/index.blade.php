@@ -7,9 +7,21 @@
 
     @php
         $status = $operationalStatus ?? null;
+        $initialPrices = $products->mapWithKeys(function ($p) {
+            return [
+                $p->id => [
+                    'price_customer' => (float) $p->price_customer,
+                    'price_silverchannel' => (float) $p->price_silverchannel,
+                    'formatted_customer' => 'Rp ' . number_format($p->price_customer, 0, ',', '.'),
+                    'formatted_silverchannel' => 'Rp ' . number_format($p->price_silverchannel, 0, ',', '.'),
+                    'has_customer_price' => $p->price_customer > 0,
+                ]
+            ];
+        });
     @endphp
 
     <script type="application/json" id="store-operational-status">{!! json_encode($status, JSON_UNESCAPED_UNICODE) !!}</script>
+<script>window.initialProductPrices = <?php echo json_encode($initialPrices, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;</script>
 
     <div class="py-12" x-data>
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -48,6 +60,24 @@
                     <div>
                         <div class="mt-3 bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-4 border border-gray-200 dark:border-gray-700"
                              x-show="true" x-transition>
+                            <div class="mb-4 flex items-center p-3 text-red-800 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800 dark:text-red-300 shadow-sm">
+                                <svg class="flex-shrink-0 w-6 h-6 mr-3 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span class="font-bold text-sm tracking-wide" x-text="
+                                    (function(reason) {
+                                        const maps = {
+                                            'holiday_mode': 'TOKO TUTUP HARI MINGGU / LIBUR NASIONAL',
+                                            'store_closed_toggle': 'TOKO TUTUP SEMENTARA',
+                                            'schedule_missing_for_day': 'TOKO TUTUP (Jadwal Tidak Ditemukan)',
+                                            'closed_today': 'TOKO TUTUP HARI INI',
+                                            'outside_hours': 'TOKO TUTUP (DILUAR JAM OPERASIONAL)'
+                                        };
+                                        return maps[reason] || ('TOKO TUTUP: ' + (reason || '').toUpperCase());
+                                    })($store.storeStatus.reason)
+                                "></span>
+                            </div>
+
                             <div class="flex items-center justify-between mb-3">
                                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                     Jam Operasional Toko
@@ -59,8 +89,6 @@
                                     <span x-text="$store.storeStatus.isOpen ? 'BUKA' : 'TUTUP'"></span>
                                 </span>
                             </div>
-
-                            <div class="mb-2 text-xs font-semibold text-red-700">TOKO TUTUP HARI MINGGU/LIBUR NASIONAL</div>
 
                             <div class="space-y-1 text-xs text-gray-800 dark:text-gray-200">
                                 <template x-for="line in $store.storeStatus.simplifiedScheduleLines()" :key="line">
@@ -156,9 +184,19 @@
                             <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{{ $product->description }}</p>
                             
                             <div class="mt-auto">
-                                <div class="flex justify-between items-center mb-4">
-                                    <span class="text-lg font-bold text-blue-600">Rp {{ number_format($product->price_silverchannel, 0, ',', '.') }}</span>
-                                    <span class="text-xs text-gray-500 line-through">Rp {{ number_format($product->price_msrp, 0, ',', '.') }}</span>
+                                <div class="flex justify-between items-center mb-4" x-data>
+                                    <span class="text-lg font-bold text-blue-600" 
+                                          x-text="$store.productPrices.prices[{{ $product->id }}]?.formatted_silverchannel || 'Rp {{ number_format($product->price_silverchannel, 0, ',', '.') }}'">
+                                        Rp {{ number_format($product->price_silverchannel, 0, ',', '.') }}
+                                    </span>
+                                    
+                                    <span class="text-xs text-gray-500 line-through" 
+                                          x-show="$store.productPrices.prices[{{ $product->id }}]?.has_customer_price"
+                                          x-text="$store.productPrices.prices[{{ $product->id }}]?.formatted_customer">
+                                        @if($product->price_customer > 0)
+                                            Rp {{ number_format($product->price_customer, 0, ',', '.') }}
+                                        @endif
+                                    </span>
                                 </div>
                                 
                                 <div x-data="productCard({ productId: {{ $product->id }} })">
@@ -210,11 +248,48 @@
                 console.error('Failed to parse operational status', e);
             }
 
+            Alpine.store('productPrices', {
+                prices: window.initialProductPrices || {},
+                
+                getPrice(id) {
+                    return this.prices[id] || null;
+                },
+
+                async refresh() {
+                    const ids = Object.keys(this.prices);
+                    if (ids.length === 0) return;
+
+                    try {
+                        const m = document.querySelector('meta[name=csrf-token]');
+                        const token = m ? (m.getAttribute('content') || '') : '';
+                        
+                        const res = await fetch("{{ route('silverchannel.products.check-prices') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': token,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ ids: ids })
+                        });
+                        
+                        if (res.ok) {
+                            const data = await res.json();
+                            // Merge new data
+                            this.prices = { ...this.prices, ...data };
+                        }
+                    } catch (e) {
+                        console.error('Failed to refresh prices', e);
+                    }
+                }
+            });
+
             Alpine.store('storeStatus', {
                 loaded: !!initial,
                 status: initial && initial.status ? initial.status : 'OPEN',
                 isOpen: initial && initial.status ? (initial.status === 'OPEN') : true,
                 canAddToCart: initial ? !!initial.can_add_to_cart : true,
+                reason: initial && initial.reason ? initial.reason : null,
                 schedule: initial && initial.schedule ? initial.schedule : {},
                 error: '',
 
@@ -310,6 +385,7 @@
                         this.status = data.status || 'OPEN';
                         this.isOpen = this.status === 'OPEN';
                         this.canAddToCart = !!data.can_add_to_cart;
+                        this.reason = data.reason || null;
                         this.schedule = data.schedule || {};
                         this.error = '';
                     } catch (e) {
@@ -327,6 +403,10 @@
             setInterval(() => {
                 Alpine.store('storeStatus').refresh();
             }, 60000);
+
+            setInterval(() => {
+                Alpine.store('productPrices').refresh();
+            }, 10000);
         });
 
         function productCard(props) {
