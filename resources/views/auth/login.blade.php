@@ -14,7 +14,7 @@
         </div>
 
         <!-- Auth Card -->
-        <div class="w-full sm:max-w-md px-6 py-8 bg-gray-900/70 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl">
+        <div class="w-[calc(100%-30px)] sm:w-full sm:max-w-md px-6 py-8 bg-gray-900/70 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl">
             <div class="mb-6 text-center">
                 <h2 class="text-2xl font-bold text-white mb-2">
                     {{ $title ?? 'Welcome Back' }}
