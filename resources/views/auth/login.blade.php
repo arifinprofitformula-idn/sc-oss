@@ -175,7 +175,4 @@
     </form>
         </div>
     </div>
-
-    <!-- Animated Wave Effect -->
-    <x-animated-wave speed="25s" />
 @endsection

@@ -250,12 +250,6 @@
                     <div class="text">{{ __('Log Out') }}</div>
                 </button>
             </form>
-
-            <button @click="sidebarOpen = false" class="hidden lg:flex items-center justify-center p-2 rounded-full bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-gray-400 hover:bg-indigo-100 dark:hover:bg-gray-600 focus:outline-none transition-colors duration-200" style="width: 45px; height: 45px;" title="Collapse Sidebar">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7M19 19l-7-7 7-7"></path>
-                </svg>
-            </button>
         </div>
     </div>
 </div>
