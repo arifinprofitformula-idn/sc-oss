@@ -5,12 +5,12 @@
         <!-- Logo -->
         <div class="mb-8">
             <a href="/" class="flex items-center space-x-2">
-                <x-application-logo />
+                <x-application-logo class="h-20" />
             </a>
         </div>
 
         <!-- Auth Card -->
-        <div class="w-full sm:max-w-md px-6 py-8 bg-gray-900/70 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl">
+        <div class="w-[calc(100%-30px)] sm:w-full sm:max-w-md px-6 py-8 bg-gray-900/70 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl">
             <div class="mb-6 text-center">
                 <h2 class="text-2xl font-bold text-white mb-2">Forgot Password?</h2>
                 <p class="text-gray-400 text-sm">
