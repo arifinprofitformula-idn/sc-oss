@@ -3,6 +3,12 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    # Disable HTTP/3 (QUIC) Advertisement to fix ERR_QUIC_PROTOCOL_ERROR
+    <IfModule mod_headers.c>
+        Header unset Alt-Svc
+        Header always unset Alt-Svc
+    </IfModule>
+
     RewriteEngine On
 
     # Handle Authorization Header
