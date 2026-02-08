@@ -12,12 +12,16 @@ class RoleSeeder extends Seeder
     {
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        
+        $this->command->info('Resetting cached permissions...');
 
         // Create Roles
         $superAdmin = Role::firstOrCreate(['name' => 'SUPER_ADMIN']);
         $admin = Role::firstOrCreate(['name' => 'ADMIN']);
         $customerService = Role::firstOrCreate(['name' => 'CUSTOMER_SERVICE']);
         $silverChannel = Role::firstOrCreate(['name' => 'SILVERCHANNEL']);
+        
+        $this->command->info('Roles checked/created: SUPER_ADMIN, ADMIN, CUSTOMER_SERVICE, SILVERCHANNEL');
 
         // Create Permissions
         // Silverchannel permissions
