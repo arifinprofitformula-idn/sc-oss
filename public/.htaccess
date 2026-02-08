@@ -3,21 +3,11 @@
         Options -MultiViews -Indexes
     </IfModule>
 
-    # Disable HTTP/3 (QUIC) Advertisement to fix ERR_QUIC_PROTOCOL_ERROR
-    <IfModule mod_headers.c>
-        Header unset Alt-Svc
-        Header always unset Alt-Svc
-    </IfModule>
-
     RewriteEngine On
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-
-    # Handle X-XSRF-Token Header
-    RewriteCond %{HTTP:x-xsrf-token} .
-    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
