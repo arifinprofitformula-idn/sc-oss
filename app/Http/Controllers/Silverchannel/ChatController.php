@@ -55,6 +55,10 @@ class ChatController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
+        if ($order->support_status === 'closed') {
+            return response()->json(['error' => 'Tiket ini telah ditutup. Anda tidak dapat mengirim pesan lagi.'], 403);
+        }
+
         $request->validate([
             'message' => 'required_without:attachment|nullable|string',
             'attachment' => 'nullable|file|max:10240', // 10MB

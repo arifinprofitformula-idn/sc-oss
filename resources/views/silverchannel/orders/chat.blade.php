@@ -2,10 +2,10 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Pengaduan Order') }} #{{ $order->order_number }}
+                {{ __('Open Support Ticket for Order') }} #{{ $order->order_number }}
             </h2>
-            <a href="{{ route('silverchannel.orders.show', $order) }}" class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                &larr; Kembali ke Detail Order
+            <a href="{{ route('silverchannel.orders.show', $order) }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-500 active:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                {{ __('Kembali ke Detail Order') }}
             </a>
         </div>
     </x-slot>
@@ -119,6 +119,7 @@
                 </div>
 
                 <!-- Input Area -->
+                @if($order->support_status !== 'closed')
                 <div class="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                     <form @submit.prevent="sendMessage" class="flex flex-col gap-2">
                         <!-- Attachment Preview -->
@@ -163,6 +164,14 @@
                         </div>
                     </form>
                 </div>
+                @else
+                <div class="p-4 bg-yellow-100 border-t border-yellow-200 text-center flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-black" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                    </svg>
+                    <p class="text-black font-semibold">Tiket ini telah ditutup. Anda tidak dapat mengirim pesan lagi.</p>
+                </div>
+                @endif
             </div>
         </div>
     </div>

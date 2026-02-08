@@ -1,5 +1,5 @@
 <header class="sticky top-0 z-40 flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm h-16">
-    <div class="flex items-center">
+    <div class="flex items-center flex-1">
         <!-- Mobile Toggle -->
         <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 focus:outline-none mr-4">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -10,14 +10,14 @@
 
         <!-- Page Heading -->
         @if(isset($header))
-            <div class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+            <div class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight w-full">
                 {{ $header }}
             </div>
         @endif
     </div>
 
     <div class="flex items-center space-x-4">
-        @if(auth()->user() && auth()->user()->hasRole('SILVERCHANNEL') && !request()->routeIs('silverchannel.checkout.*'))
+        @if(auth()->user() && auth()->user()->hasRole('SILVERCHANNEL') && !request()->routeIs('silverchannel.checkout.*') && !request()->routeIs('silverchannel.orders.chat'))
             <!-- Cart Icon -->
             <a 
                 href="{{ route('silverchannel.products.index', ['open_cart' => 1]) }}"
