@@ -85,6 +85,14 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
         Route::get('/profile/locations/subdistricts/{city}', [\App\Http\Controllers\UserProfileController::class, 'getSubdistricts'])->name('profile.locations.subdistricts');
         Route::get('/profile/locations/villages/{subdistrict}', [\App\Http\Controllers\UserProfileController::class, 'getVillages'])->name('profile.locations.villages');
 
+        // Silverchannel Support Center
+        Route::prefix('silverchannel')->name('silverchannel.')->group(function () {
+            Route::get('/support', [\App\Http\Controllers\Silverchannel\SupportController::class, 'index'])->name('support.index');
+            Route::get('/support/conversations', [\App\Http\Controllers\Silverchannel\SupportController::class, 'getConversations'])->name('support.conversations');
+            Route::get('/support/messages/{order}', [\App\Http\Controllers\Silverchannel\SupportController::class, 'getMessages'])->name('support.messages');
+            Route::post('/support/messages/{order}', [\App\Http\Controllers\Silverchannel\SupportController::class, 'sendMessage'])->name('support.send');
+        });
+
         // Admin Routes
         Route::domain(env('ADMIN_DOMAIN'))->middleware(['role:SUPER_ADMIN'])->prefix('admin')->name('admin.')->group(function () {
             Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
@@ -133,6 +141,9 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::patch('/orders/{order}/status', [\App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
             Route::patch('/orders/{order}/tracking', [\App\Http\Controllers\Admin\OrderController::class, 'updateTracking'])->name('orders.update-tracking');
             Route::post('/orders/{order}/note', [\App\Http\Controllers\Admin\OrderController::class, 'storeNote'])->name('orders.store-note');
+            Route::get('/orders/{order}/chat', [\App\Http\Controllers\Admin\ChatController::class, 'index'])->name('orders.chat');
+            Route::get('/orders/{order}/messages', [\App\Http\Controllers\Admin\ChatController::class, 'getMessages'])->name('orders.messages');
+            Route::post('/orders/{order}/messages', [\App\Http\Controllers\Admin\ChatController::class, 'store'])->name('orders.messages.store');
 
             // Payment Management
             Route::get('/payments', [\App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
@@ -163,6 +174,25 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::patch('/settings/store/payment', [\App\Http\Controllers\Admin\GlobalStoreSettingController::class, 'updatePayment'])->name('settings.store.payment');
             Route::post('/settings/store/bank-logo', [\App\Http\Controllers\Admin\GlobalStoreSettingController::class, 'uploadBankLogo'])->name('settings.store.bank-logo');
             
+            // Chat Center Management
+            Route::get('/chats', [\App\Http\Controllers\Admin\ChatManagementController::class, 'index'])->name('chats.index');
+
+            // Chat API
+            Route::prefix('api/chats')->name('chats.')->group(function () {
+                Route::get('/conversations', [\App\Http\Controllers\Admin\ChatManagementController::class, 'getConversations'])->name('conversations');
+                Route::get('/{order}/messages', [\App\Http\Controllers\Admin\ChatManagementController::class, 'getMessages'])->name('messages');
+                Route::post('/{order}/send', [\App\Http\Controllers\Admin\ChatManagementController::class, 'sendMessage'])->name('send');
+                Route::post('/{order}/assign', [\App\Http\Controllers\Admin\ChatManagementController::class, 'assignChat'])->name('assign');
+                Route::post('/{order}/priority', [\App\Http\Controllers\Admin\ChatManagementController::class, 'updatePriority'])->name('priority');
+                Route::patch('/{order}/status', [\App\Http\Controllers\Admin\ChatManagementController::class, 'updateStatus'])->name('status');
+                Route::post('/{order}/tags', [\App\Http\Controllers\Admin\ChatManagementController::class, 'updateTags'])->name('tags');
+                Route::get('/quick-replies', [\App\Http\Controllers\Admin\ChatManagementController::class, 'getQuickReplies'])->name('quick-replies');
+                Route::post('/quick-replies', [\App\Http\Controllers\Admin\ChatManagementController::class, 'storeQuickReply'])->name('quick-replies.store');
+                Route::get('/unread-count', [\App\Http\Controllers\Admin\ChatManagementController::class, 'unreadCount'])->name('unread-count');
+                Route::get('/stats', [\App\Http\Controllers\Admin\ChatManagementController::class, 'getStats'])->name('stats');
+                Route::get('/export', [\App\Http\Controllers\Admin\ChatManagementController::class, 'export'])->name('export');
+            });
+
             // Integration System
             Route::prefix('integrations')->name('integrations.')->group(function () {
                 Route::get('/', [\App\Http\Controllers\Admin\IntegrationController::class, 'index'])->name('index');
@@ -251,6 +281,10 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::post('/orders', [\App\Http\Controllers\Silverchannel\OrderController::class, 'store'])->name('orders.store');
             Route::get('/orders/{order}', [\App\Http\Controllers\Silverchannel\OrderController::class, 'show'])->name('orders.show');
             Route::post('/orders/{order}/cancel', [\App\Http\Controllers\Silverchannel\OrderController::class, 'cancel'])->name('orders.cancel');
+            Route::post('/orders/{order}/mark-delivered', [\App\Http\Controllers\Silverchannel\OrderController::class, 'markAsDelivered'])->name('orders.mark-delivered');
+            Route::get('/orders/{order}/chat', [\App\Http\Controllers\Silverchannel\ChatController::class, 'index'])->name('orders.chat');
+            Route::get('/orders/{order}/messages', [\App\Http\Controllers\Silverchannel\ChatController::class, 'getMessages'])->name('orders.messages');
+            Route::post('/orders/{order}/messages', [\App\Http\Controllers\Silverchannel\ChatController::class, 'store'])->name('orders.messages.store');
 
             // My Referrals
             Route::get('/referrals', [\App\Http\Controllers\Silverchannel\ReferralController::class, 'index'])->name('referrals.index');

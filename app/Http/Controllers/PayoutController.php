@@ -3,16 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Services\Payout\PayoutService;
+use App\Services\IntegrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PayoutController extends Controller
 {
     protected $payoutService;
+    protected $integrationService;
 
-    public function __construct(PayoutService $payoutService)
+    public function __construct(PayoutService $payoutService, IntegrationService $integrationService)
     {
         $this->payoutService = $payoutService;
+        $this->integrationService = $integrationService;
     }
 
     public function index()
@@ -27,8 +30,9 @@ class PayoutController extends Controller
 
         $balance = $user->wallet_balance;
         $pendingCommission = $user->pending_commission;
+        $holdingPeriod = $this->integrationService->get('commission_holding_period', 7);
 
-        return view('payouts.index', compact('payouts', 'commissions', 'balance', 'pendingCommission'));
+        return view('payouts.index', compact('payouts', 'commissions', 'balance', 'pendingCommission', 'holdingPeriod'));
     }
 
     public function store(Request $request)

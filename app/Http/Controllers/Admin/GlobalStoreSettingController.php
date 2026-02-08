@@ -33,6 +33,7 @@ class GlobalStoreSettingController extends Controller
             'silverchannel_store_menu_active' => $this->integrationService->get('silverchannel_store_menu_active'),
             'store_payment_unique_code_active' => $this->integrationService->get('store_payment_unique_code_active', 0),
             'store_payment_timeout' => $this->integrationService->get('store_payment_timeout', 60),
+            'commission_holding_period' => $this->integrationService->get('commission_holding_period', 7),
         ];
 
         $user = Auth::user();
@@ -93,6 +94,7 @@ class GlobalStoreSettingController extends Controller
             'bank_details.*.logo' => 'nullable|string', // URL/path to logo
             'unique_code_active' => 'nullable|boolean',
             'payment_timeout' => 'nullable|integer|min:1',
+            'holding_period' => 'nullable|integer|min:0|max:90',
         ]);
 
         $store = Store::where('user_id', Auth::id())->firstOrFail();
@@ -113,6 +115,15 @@ class GlobalStoreSettingController extends Controller
             'store',
             'integer',
             'Payment timeout in minutes'
+        );
+
+        // Update Commission Holding Period Setting
+        $this->integrationService->set(
+            'commission_holding_period',
+            $request->input('holding_period', 7),
+            'store',
+            'integer',
+            'Commission holding period in days'
         );
 
         $store->update([
