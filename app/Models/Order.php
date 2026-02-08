@@ -25,14 +25,42 @@ class Order extends Model
         'shipping_service',
         'shipping_tracking_number',
         'payment_method',
+        'proof_of_delivery',
+        'chat_assigned_to',
+        'chat_tags',
+        'chat_priority',
+        'support_status',
+        'support_closed_at',
         'notes',
         'payload',
     ];
 
     protected $casts = [
         'payload' => 'array',
+        'chat_tags' => 'array',
         'paid_at' => 'datetime',
+        'support_closed_at' => 'datetime',
     ];
+
+    public function supportStatusHistories()
+    {
+        return $this->hasMany(SupportStatusHistory::class);
+    }
+
+    public function chatAssignee()
+    {
+        return $this->belongsTo(User::class, 'chat_assigned_to');
+    }
+
+    public function chatMessages()
+    {
+        return $this->hasMany(ChatMessage::class);
+    }
+
+    public function latestChatMessage()
+    {
+        return $this->hasOne(ChatMessage::class)->latestOfMany();
+    }
 
     public function user()
     {

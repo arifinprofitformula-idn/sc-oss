@@ -15,6 +15,8 @@ class RoleSeeder extends Seeder
 
         // Create Roles
         $superAdmin = Role::firstOrCreate(['name' => 'SUPER_ADMIN']);
+        $admin = Role::firstOrCreate(['name' => 'ADMIN']);
+        $customerService = Role::firstOrCreate(['name' => 'CUSTOMER_SERVICE']);
         $silverChannel = Role::firstOrCreate(['name' => 'SILVERCHANNEL']);
 
         // Create Permissions
@@ -46,6 +48,13 @@ class RoleSeeder extends Seeder
         // Assign Permissions
         $silverChannel->syncPermissions(Permission::whereIn('name', $scPermissions)->get());
         
+        // Admin gets admin permissions
+        $admin->syncPermissions(Permission::whereIn('name', $adminPermissions)->get());
+
+        // Customer Service gets manage orders (chat) permissions (subset of admin)
+        $csPermissions = ['manage_orders'];
+        $customerService->syncPermissions(Permission::whereIn('name', $csPermissions)->get());
+
         // Super Admin gets all permissions
         $superAdmin->syncPermissions(Permission::all());
     }

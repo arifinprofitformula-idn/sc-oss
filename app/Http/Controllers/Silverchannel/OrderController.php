@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -52,6 +53,40 @@ class OrderController extends Controller
 
         $order->load('items.product', 'logs');
         return view('silverchannel.orders.show', compact('order'));
+    }
+
+    public function markAsDelivered(Request $request, Order $order)
+    {
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($order->status !== OrderService::STATUS_SHIPPED) {
+             return back()->with('error', 'Order must be in SHIPPED status to be marked as delivered.');
+        }
+
+        $request->validate([
+            'proof_of_delivery' => 'required|image|max:5120', // 5MB
+        ]);
+
+        try {
+            DB::transaction(function () use ($request, $order) {
+                $path = $request->file('proof_of_delivery')->store('proofs', 'public');
+                
+                $order->update(['proof_of_delivery' => $path]);
+                
+                $this->orderService->updateStatus(
+                    $order, 
+                    OrderService::STATUS_DELIVERED, 
+                    'Order received by Silverchannel. Proof uploaded.', 
+                    Auth::id()
+                );
+            });
+
+            return back()->with('success', 'Order marked as delivered successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to update order: ' . $e->getMessage());
+        }
     }
 
     public function cancel(Order $order)

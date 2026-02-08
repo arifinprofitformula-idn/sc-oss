@@ -176,4 +176,80 @@ class CommissionDistributionTest extends TestCase
         $this->assertDatabaseCount('commission_logs', 0);
         $this->assertDatabaseCount('commission_ledgers', 0);
     }
+
+    public function test_commission_is_not_duplicated_if_event_fired_twice()
+    {
+        // Create Order
+        $order = Order::factory()->create([
+            'user_id' => $this->silverchannel->id,
+            'status' => 'PAID',
+            'total_amount' => 100000,
+        ]);
+
+        // Add Item
+        OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $this->productPercentage->id,
+            'product_name' => $this->productPercentage->name,
+            'price' => $this->productPercentage->price_silverchannel,
+            'quantity' => 1,
+            'total' => $this->productPercentage->price_silverchannel,
+        ]);
+
+        // Expected Commission: 100,000 * 10% = 10,000
+
+        $listener = new DistributeOrderCommission(app(\App\Services\Commission\CommissionService::class));
+        $event = new OrderPaid($order);
+
+        // First Firing
+        $listener->handle($event);
+
+        $this->assertDatabaseCount('commission_ledgers', 1);
+        $this->assertDatabaseHas('commission_ledgers', [
+            'user_id' => $this->referrer->id,
+            'amount' => 10000,
+            'type' => 'TRANSACTION',
+        ]);
+
+        // Second Firing (Should be ignored by application logic)
+        $listener->handle($event);
+
+        // Count should still be 1
+        $this->assertDatabaseCount('commission_ledgers', 1);
+    }
+
+    public function test_database_constraint_prevents_duplicate_ledger_entries()
+    {
+        $order = Order::factory()->create([
+            'user_id' => $this->silverchannel->id,
+            'status' => 'PAID',
+            'total_amount' => 100000,
+        ]);
+
+        // Manually create first ledger entry
+        \App\Models\CommissionLedger::create([
+            'user_id' => $this->referrer->id,
+            'type' => 'TRANSACTION',
+            'amount' => 10000,
+            'status' => 'PENDING',
+            'reference_type' => get_class($order),
+            'reference_id' => $order->id,
+            'description' => 'Test Commission',
+            'available_at' => now()->addDays(14)
+        ]);
+
+        // Attempt to create duplicate ledger entry manually
+        $this->expectException(\Illuminate\Database\QueryException::class);
+        
+        \App\Models\CommissionLedger::create([
+            'user_id' => $this->referrer->id,
+            'type' => 'TRANSACTION',
+            'amount' => 10000,
+            'status' => 'PENDING',
+            'reference_type' => get_class($order),
+            'reference_id' => $order->id, // Same reference
+            'description' => 'Duplicate Commission',
+            'available_at' => now()->addDays(14)
+        ]);
+    }
 }

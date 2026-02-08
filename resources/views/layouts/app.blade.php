@@ -35,6 +35,9 @@
         </div>
         <x-toast-popup />
         <x-cart-sidebar />
+        @if(auth()->check() && auth()->user()->hasRole('SILVERCHANNEL'))
+            <x-silverchannel.support-widget />
+        @endif
         @stack('scripts')
         <script>
             (function(){

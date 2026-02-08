@@ -2,9 +2,12 @@
 
 namespace App\Listeners;
 
-use App\Events\OrderPaid;
+use App\Events\OrderStatusChanged;
+use App\Models\CommissionLedger;
 use App\Models\CommissionLog;
+use App\Models\AuditLog;
 use App\Services\Commission\CommissionService;
+use App\Services\IntegrationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
@@ -14,25 +17,27 @@ class DistributeOrderCommission implements ShouldQueue
     use InteractsWithQueue;
 
     protected $commissionService;
+    protected $integrationService;
 
     /**
      * Create the event listener.
      */
-    public function __construct(CommissionService $commissionService)
+    public function __construct(CommissionService $commissionService, IntegrationService $integrationService)
     {
         $this->commissionService = $commissionService;
+        $this->integrationService = $integrationService;
     }
 
     /**
      * Handle the event.
      */
-    public function handle(OrderPaid $event): void
+    public function handle(OrderStatusChanged $event): void
     {
         $order = $event->order;
         $user = $order->user;
-        
-        // Ensure order is actually PAID
-        if ($order->status !== 'PAID') {
+
+        // Only process if status is DELIVERED
+        if ($order->status !== 'DELIVERED') {
             return;
         }
 
@@ -42,6 +47,20 @@ class DistributeOrderCommission implements ShouldQueue
         }
 
         $referrer = $user->referrer;
+
+        // Prevent duplicate commission for the same order
+        // Check if there is any commission ledger for this order that is NOT CANCELLED
+        $existingCommission = CommissionLedger::where('reference_type', get_class($order))
+            ->where('reference_id', $order->id)
+            ->where('status', '!=', 'CANCELLED')
+            ->exists();
+
+        if ($existingCommission) {
+            Log::info("Commission for Order #{$order->order_number} already distributed.");
+            return;
+        }
+
+        Log::info("Starting commission distribution for Order #{$order->order_number}");
         
         // Calculate Commission based on Product Settings
         $totalCommission = 0;
@@ -93,8 +112,9 @@ class DistributeOrderCommission implements ShouldQueue
             return;
         }
 
-        // Holding period: 14 days
-        $availableAt = now()->addDays(14);
+        // Holding period: Dynamic setting (default 7 days)
+        $holdingDays = (int) $this->integrationService->get('commission_holding_period', 7);
+        $availableAt = now()->addDays($holdingDays);
 
         try {
             // 1. Record Ledger Entry (Aggregated)
@@ -110,6 +130,17 @@ class DistributeOrderCommission implements ShouldQueue
             
             // 2. Insert Commission Logs (Detailed)
             CommissionLog::insert($commissionLogs);
+
+            // 3. Audit Log
+            AuditLog::create([
+                'user_id' => null, // System
+                'action' => 'COMMISSION_DISTRIBUTED',
+                'model_type' => get_class($order),
+                'model_id' => $order->id,
+                'new_values' => ['amount' => $totalCommission, 'referrer_id' => $referrer->id],
+                'ip_address' => 'SYSTEM',
+                'user_agent' => 'SYSTEM',
+            ]);
 
             Log::info("Transaction commission distributed for Order #{$order->order_number} to User #{$referrer->id}. Total: {$totalCommission}");
 

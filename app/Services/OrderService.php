@@ -216,7 +216,12 @@ class OrderService
 
         // Notify User
         if ($oldTracking !== $trackingNumber) {
-            $order->user->notify(new OrderTrackingUpdated($order, $trackingNumber, $order->shipping_courier ?? 'Unknown'));
+            try {
+                $order->user->notify(new OrderTrackingUpdated($order, $trackingNumber, $order->shipping_courier ?? 'Unknown'));
+            } catch (\Exception $e) {
+                // Log error but don't fail the transaction/request
+                \Illuminate\Support\Facades\Log::error('Failed to send tracking update notification: ' . $e->getMessage());
+            }
         }
 
         return $order;

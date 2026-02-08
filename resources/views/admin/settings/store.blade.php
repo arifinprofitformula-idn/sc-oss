@@ -328,6 +328,7 @@
             'store_menu_active' => (bool) ($settings['silverchannel_store_menu_active'] ?? false),
             'unique_code_active' => (bool) ($settings['store_payment_unique_code_active'] ?? false),
             'payment_timeout' => (int) ($settings['store_payment_timeout'] ?? 60),
+            'holding_period' => (int) ($settings['commission_holding_period'] ?? 7),
             'bank_details' => $bankDetails ?? [],
             'payment_methods' => $store->payment_methods ?? [],
             'logo_url' => $store->logo_path ? asset('storage/' . $store->logo_path) : null,
@@ -389,6 +390,7 @@
                 storeMenuActive: !!initialData.store_menu_active,
                 uniqueCodeActive: !!initialData.unique_code_active,
                 paymentTimeout: initialData.payment_timeout || 60,
+                holdingPeriod: initialData.holding_period || 7,
                 selectedProvince: initialData.province_id,
                 selectedCity: initialData.city_id,
                 selectedSubdistrict: initialData.subdistrict_id,
@@ -570,7 +572,8 @@
                         payment_methods: this.paymentMethods,
                         bank_details: this.banks,
                         unique_code_active: this.uniqueCodeActive ? 1 : 0,
-                        payment_timeout: this.paymentTimeout
+                        payment_timeout: this.paymentTimeout,
+                        holding_period: this.holdingPeriod
                     }, 'Pengaturan pembayaran berhasil disimpan');
                 },
 
@@ -953,6 +956,21 @@
                                     </div>
                                     <div class="w-32">
                                         <input type="number" min="1" class="rounded border-gray-300 text-sm w-full text-center" x-model="paymentTimeout">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Holding Period -->
+                            <div class="mb-6 border-t pt-4 dark:border-gray-700">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-md font-medium">Periode Holding (hari)</h4>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                            Jangka waktu penahanan dana komisi sebelum dapat dicairkan oleh Silverchannel.
+                                        </p>
+                                    </div>
+                                    <div class="w-32">
+                                        <input type="number" min="0" max="90" class="rounded border-gray-300 text-sm w-full text-center" x-model="holdingPeriod">
                                     </div>
                                 </div>
                             </div>

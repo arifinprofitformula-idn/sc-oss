@@ -32,8 +32,13 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
 
         \Illuminate\Support\Facades\Event::listen(
-            \App\Events\OrderPaid::class,
+            \App\Events\OrderStatusChanged::class,
             \App\Listeners\DistributeOrderCommission::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\OrderStatusChanged::class,
+            \App\Listeners\ReverseOrderCommission::class,
         );
 
         \Illuminate\Support\Facades\Event::listen(
