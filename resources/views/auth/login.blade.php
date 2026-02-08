@@ -9,7 +9,7 @@
         <!-- Logo -->
         <div class="mb-8">
             <a href="/" class="flex items-center space-x-2">
-                <x-application-logo />
+                <x-application-logo class="h-20" />
             </a>
         </div>
 

@@ -6,7 +6,6 @@
     <div class="flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-700 shrink-0">
         <a href="{{ route('dashboard') }}" class="flex items-center">
             <x-application-logo class="block h-9 w-auto fill-current text-indigo-600 dark:text-indigo-400" />
-            <span class="ml-2 text-xl font-semibold text-gray-800 dark:text-gray-200">{{ config('app.name') }}</span>
         </a>
     </div>
 
@@ -144,8 +143,8 @@
             </div>
         </div>
 
-        <div class="flex items-center justify-between gap-2">
-            <form method="POST" action="{{ route('logout') }}">
+        <div class="flex items-center justify-between gap-2 w-full mt-4">
+            <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf
                 <style>
                     /* From Uiverse.io by JaydipPrajapati1910 - Modified for Laravel */
@@ -153,10 +152,10 @@
                         display: flex;
                         align-items: center;
                         justify-content: flex-start;
-                        width: 45px;
+                        width: 100%;
                         height: 45px;
                         border: none;
-                        border-radius: 50%;
+                        border-radius: 8px;
                         cursor: pointer;
                         position: relative;
                         overflow: hidden;
@@ -198,8 +197,8 @@
 
                     /* hover effect on button width */
                     .Btn-logout:hover {
-                        width: 125px;
-                        border-radius: 40px;
+                        /* width: 125px; -- removed to keep full width */
+                        /* border-radius: 40px; -- keep original radius */
                         transition-duration: .3s;
                     }
 
