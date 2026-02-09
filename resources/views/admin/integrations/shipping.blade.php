@@ -179,7 +179,7 @@
 
             <div class="space-y-6" x-data="{ activeProvider: '{{ $activeProvider }}' }">
                 <!-- Settings Form -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">Shipping Configuration</h3>
                         
@@ -473,7 +473,7 @@
                 </div>
 
                 <!-- Global Shipping Configuration -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
                     <div class="p-6 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">Global Shipping Configuration</h3>
                         <form action="{{ route('admin.integrations.update') }}" method="POST">
@@ -502,7 +502,7 @@
                 </div>
 
                 <!-- Silverchannel Configuration -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6" x-data="{ showModal: false, selectedStore: null, storeCouriers: [] }">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6" x-data="{ showModal: false, selectedStore: null, storeCouriers: [] }">
                     <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Silverchannel Configuration</h3>
                         <p class="text-sm text-gray-500 mb-4">Configure specific shipping couriers for each Silverchannel store.</p>
@@ -788,7 +788,7 @@
                 </div>
 
                 <!-- Integration Logs -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">Integration Logs</h3>
                         <div class="overflow-x-auto">

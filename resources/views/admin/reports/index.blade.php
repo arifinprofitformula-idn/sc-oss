@@ -170,7 +170,7 @@
             @endif
 
             <!-- Filters -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <form method="GET" action="{{ route('admin.reports.index') }}" class="flex flex-wrap gap-4 items-end">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
@@ -196,13 +196,13 @@
             <!-- Summary Stats -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Total Sales -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-blue-500">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-blue-500">
                     <div class="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Sales (Paid)</div>
                     <div class="text-2xl font-bold text-gray-900 dark:text-white mt-1">Rp {{ number_format($stats['total_sales'], 0, ',', '.') }}</div>
                 </div>
 
                 <!-- Total Orders -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-indigo-500">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-indigo-500">
                     <div class="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Orders</div>
                     <div class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ number_format($stats['total_orders']['total']) }}</div>
                     <div class="mt-3 grid grid-cols-2 gap-1 text-xs text-gray-500 dark:text-gray-400">
@@ -218,13 +218,13 @@
                 </div>
 
                 <!-- Commissions Paid -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-green-500">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-green-500">
                     <div class="text-gray-500 dark:text-gray-400 text-sm font-medium">Commissions Paid</div>
                     <div class="text-2xl font-bold text-gray-900 dark:text-white mt-1">Rp {{ number_format($stats['total_commission_paid'], 0, ',', '.') }}</div>
                 </div>
 
                 <!-- Pending Liability -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-yellow-500">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-yellow-500">
                     <div class="text-gray-500 dark:text-gray-400 text-sm font-medium">Pending Liability</div>
                     <div class="text-2xl font-bold text-yellow-600 mt-1">Rp {{ number_format($stats['pending_payouts']['total_pending_liability'], 0, ',', '.') }}</div>
                     <div class="mt-3 space-y-1 text-xs text-gray-500 dark:text-gray-400">
@@ -245,7 +245,7 @@
             </div>
 
             <!-- Export Actions -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Export Reports</h3>
                 <div class="flex flex-wrap gap-4">
                     <a href="{{ route('admin.reports.export', ['type' => 'orders']) }}" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">
@@ -258,7 +258,7 @@
             </div>
 
             <!-- Monthly Sales Chart -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Monthly Sales Performance</h3>
                 
                 @if($monthlySales->isEmpty())

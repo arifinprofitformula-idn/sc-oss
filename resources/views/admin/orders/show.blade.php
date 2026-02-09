@@ -149,7 +149,7 @@
                 <!-- Order Info -->
                 <div class="md:col-span-2 space-y-6">
                     <!-- Items -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Order Items</h3>
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
@@ -191,7 +191,7 @@
                     </div>
 
                     <!-- Order History -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Activity Log</h3>
                         <ul class="space-y-4">
                             @foreach ($order->logs as $log)
@@ -215,7 +215,7 @@
                     <!-- Additional Info Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Silverchannel Info -->
-                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Silverchannel</h3>
                             <div class="space-y-3 text-sm">
                                 <div>
@@ -230,7 +230,7 @@
                         </div>
 
                         <!-- Shipping Info -->
-                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                        <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                             <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Shipping Details</h3>
                             <div class="space-y-3 text-sm">
                                 <div>
@@ -251,7 +251,7 @@
                 <!-- Sidebar -->
                 <div class="space-y-6">
                     <!-- Shipping & Tracking -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Shipping Information</h3>
                         
                         <div class="mb-4">
@@ -295,7 +295,7 @@
                     </div>
 
                     <!-- Chat with Silverchannel -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Communication</h3>
                         <a href="{{ route('admin.orders.chat', $order) }}" class="btn-3d btn-3d-blue shimmer w-full justify-center inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,7 +306,7 @@
                     </div>
 
                     <!-- Update Status -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Update Status</h3>
                         <form action="{{ route('admin.orders.update-status', $order) }}" method="POST">
                             @csrf
@@ -338,7 +338,7 @@
                     </div>
 
                     <!-- Internal Note -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Internal Note</h3>
                         <form action="{{ route('admin.orders.store-note', $order) }}" method="POST">
                             @csrf

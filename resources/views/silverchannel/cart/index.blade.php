@@ -10,7 +10,7 @@
             <div class="flex flex-col lg:flex-row gap-8">
                 <!-- Cart List -->
                 <div class="flex-1">
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 text-gray-900 dark:text-gray-100">
                             
                             <!-- Loading State -->
@@ -79,7 +79,7 @@
 
                 <!-- Order Summary -->
                 <div class="w-full lg:w-96" x-show="!isLoading && cartItems.length > 0" style="display: none;">
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 sticky top-6">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 sticky top-6">
                         <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-6">Ringkasan Pesanan</h2>
                         
                         <div class="flow-root">

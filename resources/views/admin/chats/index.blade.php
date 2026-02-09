@@ -7,7 +7,7 @@
 
     <div class="py-12" x-data="chatManagement()" x-init="initChat()">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg h-[80vh] flex">
+            <div class="mx-[10px] sm:mx-0 bg-white overflow-hidden shadow-xl sm:rounded-lg h-[80vh] flex">
                 
                 <!-- Left Sidebar: Conversations List -->
                 <div class="w-1/4 border-r border-gray-200 flex flex-col">

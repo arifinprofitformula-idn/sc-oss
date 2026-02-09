@@ -634,7 +634,7 @@
                 @method('PATCH')
 
                 <!-- 7. Toggle Menu Access (Top Section) -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <div class="flex items-center justify-between">
                             <div>
@@ -661,7 +661,7 @@
                 </div>
 
                 <!-- Store Details Tabs -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         
                         <!-- Horizontal Navigation -->

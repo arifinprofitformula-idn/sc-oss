@@ -39,13 +39,13 @@
             </div>
 
             <!-- Search & Filter -->
-            <div class="mb-6 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
-                <form action="{{ route('silverchannel.products.index') }}" method="GET" class="flex flex-col md:flex-row gap-4">
+            <div class="mb-6 mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
+                <form action="{{ route('silverchannel.products.index') }}" method="GET" class="flex flex-row gap-2 items-center">
                     <div class="flex-1">
                         <x-text-input name="search" class="w-full" placeholder="Search product..." value="{{ request('search') }}" />
                     </div>
                     <div>
-                        <x-primary-button>{{ __('Search') }}</x-primary-button>
+                        <x-primary-button class="h-full justify-center">{{ __('Search') }}</x-primary-button>
                     </div>
                 </form>
             </div>
@@ -53,12 +53,12 @@
             <!-- Operational Status -->
             <div class="mb-6 space-y-4" x-data>
                 <template x-if="$store.storeStatus.error">
-                    <div class="bg-red-50 border border-red-200 text-red-800 text-xs px-3 py-2 rounded" x-text="$store.storeStatus.error"></div>
+                    <div class="mx-[10px] sm:mx-0 bg-red-50 border border-red-200 text-red-800 text-xs px-3 py-2 rounded" x-text="$store.storeStatus.error"></div>
                 </template>
 
                 <template x-if="$store.storeStatus.loaded && !$store.storeStatus.isOpen && !$store.storeStatus.error">
                     <div>
-                        <div class="mt-3 bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-4 border border-gray-200 dark:border-gray-700"
+                        <div class="mt-3 mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-4 border border-gray-200 dark:border-gray-700"
                              x-show="true" x-transition>
                             <div class="mb-4 flex items-center p-3 text-red-800 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800 dark:text-red-300 shadow-sm">
                                 <svg class="flex-shrink-0 w-6 h-6 mr-3 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -82,12 +82,6 @@
                                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                     Jam Operasional Toko
                                 </h3>
-                                <span class="text-xs px-2 py-1 rounded-full"
-                                      :class="$store.storeStatus.isOpen
-                                        ? 'bg-green-100 text-green-800 border border-green-200'
-                                        : 'bg-red-100 text-red-800 border border-red-200'">
-                                    <span x-text="$store.storeStatus.isOpen ? 'BUKA' : 'TUTUP'"></span>
-                                </span>
                             </div>
 
                             <div class="space-y-1 text-xs text-gray-800 dark:text-gray-200">
@@ -168,7 +162,7 @@
             </style>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 @foreach ($products as $product)
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg flex flex-col">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg flex flex-col">
                         <div class="aspect-w-16 aspect-h-9 bg-gray-200 dark:bg-gray-700">
                             @if($product->image)
                                 <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="object-cover w-full h-48">

@@ -11,7 +11,7 @@
             <!-- Details & Test Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- API Info -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <h3 class="text-lg font-bold mb-4">Configuration</h3>
                         <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
@@ -55,7 +55,7 @@
                 </div>
 
                 <!-- Test Console -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg" x-data="testConsole()">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg" x-data="testConsole()">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <h3 class="text-lg font-bold mb-4">Test Console</h3>
                         
@@ -82,7 +82,7 @@
             </div>
 
             <!-- Logs Section -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <h3 class="text-lg font-bold mb-4">Recent Activity Logs</h3>
                     <div class="relative overflow-x-auto">

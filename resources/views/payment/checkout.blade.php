@@ -21,7 +21,7 @@
                 </div>
             @endif
 
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                 
                 <!-- Order Summary Header -->
                 <div class="border-b border-gray-200 dark:border-gray-700 pb-6 mb-6">

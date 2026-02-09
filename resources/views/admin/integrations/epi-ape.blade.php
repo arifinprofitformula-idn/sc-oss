@@ -162,7 +162,7 @@
                 
                 <!-- Settings Form -->
                 <div class="lg:col-span-1 space-y-6">
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 text-gray-900 dark:text-gray-100">
                             <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">EPI APE Configuration</h3>
                             
@@ -252,7 +252,7 @@
                     </div>
 
                     <!-- Sync Status & Manual Sync -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 text-gray-900 dark:text-gray-100">
                             <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">Sync Status</h3>
                             
@@ -333,7 +333,7 @@
                     </div>
                     
                     <!-- Activity Log -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
                             <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                                 Recent Activity
@@ -370,7 +370,7 @@
                 <div class="lg:col-span-2 space-y-6">
                     
                     <!-- Product Mapping Guide -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                             <div class="flex items-center mb-4">
                                 <svg class="h-6 w-6 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -463,7 +463,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 text-gray-900 dark:text-gray-100">
                             <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">Product Mapping</h3>
                             <p class="text-sm text-gray-500 mb-4">Map your local products to EPI APE Brand ID and Level ID to enable auto-pricing.</p>
@@ -551,7 +551,7 @@
                     </div>
 
                     <!-- Error Log Section -->
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mt-6" id="error-log-section">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mt-6" id="error-log-section">
                         <div class="p-6 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                             <div>
                                 <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">Integration Error Log</h3>

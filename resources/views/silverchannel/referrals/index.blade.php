@@ -144,7 +144,7 @@
                 </div>
             @endif
 
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
+            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6">
                 <div class="mb-4">
                     <form method="GET" action="{{ route('silverchannel.referrals.index') }}" x-ref="filterForm">
                         <input type="hidden" name="per_page" value="{{ $filters['per_page'] ?? 10 }}">

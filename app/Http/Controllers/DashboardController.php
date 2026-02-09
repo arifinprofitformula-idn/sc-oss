@@ -9,9 +9,17 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\CommissionLedger;
 use App\Models\Order;
+use App\Services\StoreOperationalService;
 
 class DashboardController extends Controller
 {
+    protected $storeOperationalService;
+
+    public function __construct(StoreOperationalService $storeOperationalService)
+    {
+        $this->storeOperationalService = $storeOperationalService;
+    }
+
     /**
      * Display the dashboard.
      */
@@ -27,6 +35,9 @@ class DashboardController extends Controller
         $data = [];
 
         if ($user->hasRole('SILVERCHANNEL')) {
+            // Store Operational Status
+            $storeStatus = $this->storeOperationalService->getStatus();
+            
             // Referral Stats
             $referralCount = User::where('referrer_id', $user->id)->count();
             
@@ -37,7 +48,7 @@ class DashboardController extends Controller
                 
             $referralLink = route('register', ['ref' => $user->referral_code]);
             
-            $data = compact('referralCount', 'totalCommission', 'referralLink');
+            $data = compact('referralCount', 'totalCommission', 'referralLink', 'storeStatus');
             
             // Add Recent Orders for Silverchannel
             $recentOrders = Order::where('user_id', $user->id)->latest()->take(5)->get();

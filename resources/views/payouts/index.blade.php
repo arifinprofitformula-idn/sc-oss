@@ -130,7 +130,7 @@
 
             <!-- Wallet Stats -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 flex justify-between items-center">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 flex justify-between items-center">
                     <div>
                         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Available Balance</h3>
                         <div class="mt-2 text-3xl font-bold text-green-600">
@@ -146,7 +146,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Pending Commission</h3>
                     <div class="mt-2 text-3xl font-bold text-yellow-600">
                         Rp {{ number_format($pendingCommission, 0, ',', '.') }}
@@ -298,7 +298,7 @@
             </div>
 
             <!-- Payout History -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <h3 class="text-lg font-bold mb-4">Payout History</h3>
                     <div class="overflow-x-auto">
@@ -351,7 +351,7 @@
             </div>
 
             <!-- Commission History -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <h3 class="text-lg font-bold mb-4">Commission History</h3>
                     <div class="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4 dark:bg-gray-700 dark:border-blue-600">

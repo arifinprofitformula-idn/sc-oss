@@ -23,7 +23,7 @@
             @endif
 
             <!-- Profile Completeness Progress Bar -->
-            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 mb-6" 
+            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 mb-6" 
                  x-data="{ 
                     progress: {{ $user->profile_completeness }},
                     saveToStorage() {
@@ -63,7 +63,7 @@
                 <!-- COLUMN 1: PHOTO & IDENTITY (Standalone - No Form) -->
                 <div class="space-y-6 w-full">
                     <!-- Photo & ID Card -->
-                    <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg text-center"
+                    <div class="p-4 sm:p-8 mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 shadow sm:rounded-lg text-center"
                          x-data="photoProfile()">
                         
                         <header class="mb-6 border-b border-gray-100 dark:border-gray-700 pb-4 flex items-center justify-center gap-2">
@@ -266,7 +266,7 @@
                     </div>
 
                     <!-- Password Update -->
-                    <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                    <div class="p-4 sm:p-8 mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                         <header class="mb-6 border-b border-gray-100 dark:border-gray-700 pb-4 flex items-center gap-2">
                             <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                             <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">UPDATE PASSWORD</h2>
@@ -284,7 +284,7 @@
                         
                         <!-- Personal Data -->
                         <div class="space-y-6 h-full">
-                            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg h-full flex flex-col">
+                            <div class="p-4 sm:p-8 mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 shadow sm:rounded-lg h-full flex flex-col">
                                 <header class="mb-6 border-b border-gray-100 dark:border-gray-700 pb-4 flex items-center gap-2">
                                     <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                     <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">DATA PRIBADI</h2>
@@ -746,7 +746,7 @@
                         @method('patch')
                         <input type="hidden" name="section" value="contact">
 
-                        <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg h-full flex flex-col">
+                        <div class="p-4 sm:p-8 mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 shadow sm:rounded-lg h-full flex flex-col">
                             <header class="mb-6 border-b border-gray-100 dark:border-gray-700 pb-4 flex items-center gap-2">
                                 <svg class="w-5 h-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                                 <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">KONTAK</h2>

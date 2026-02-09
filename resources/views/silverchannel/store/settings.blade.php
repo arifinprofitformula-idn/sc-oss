@@ -42,7 +42,7 @@
                 @csrf
                 @method('PUT')
 
-                <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                     <div class="border-b border-gray-200 dark:border-gray-700 px-4 pt-4 sm:px-6">
                         <nav class="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto" aria-label="Tabs">
                             <template x-for="tab in tabs" :key="tab.id">

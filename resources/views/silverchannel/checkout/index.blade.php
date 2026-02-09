@@ -12,7 +12,7 @@
                 <div class="flex-1 space-y-6">
                     
                     <!-- Billing Details -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
                         <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Detail Tagihan</h3>
                         
                         <!-- Readonly Form -->
@@ -98,7 +98,7 @@
                     </div>
 
                     <!-- Shipping Address Form (Only visible if shipDifferent) -->
-                    <div x-show="shipDifferent" x-transition class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-yellow-500">
+                    <div x-show="shipDifferent" x-transition class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-yellow-500">
                         <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Alamat Pengiriman Baru</h3>
                         <div class="grid grid-cols-1 gap-4">
                             <!-- Name -->
@@ -200,7 +200,7 @@
                     </div>
                     
                     <!-- Notes -->
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
                         <x-input-label for="notes" value="Catatan Pesanan (opsional)" />
                         <textarea id="notes" rows="2" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" 
                             x-model="notes" placeholder="Catatan khusus untuk pengiriman..."></textarea>

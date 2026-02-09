@@ -173,7 +173,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Settings Form -->
                 <div class="md:col-span-2">
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 text-gray-900 dark:text-gray-100">
                             <h3 class="text-lg font-medium mb-4">Brevo Email Marketing</h3>
                             
@@ -232,7 +232,7 @@
 
                 <!-- Recent Logs -->
                 <div class="md:col-span-1">
-                    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg h-full">
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg h-full">
                         <div class="p-6 text-gray-900 dark:text-gray-100">
                             <h3 class="text-lg font-medium mb-4">Recent Logs</h3>
                             <div class="space-y-3">

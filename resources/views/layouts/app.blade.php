@@ -19,7 +19,7 @@
             @vite(['resources/css/app.css', 'resources/js/app.js'])
         @endif
     </head>
-    <body class="font-sans antialiased" x-data="{ sidebarOpen: localStorage.getItem('sidebarOpen') ? localStorage.getItem('sidebarOpen') === 'true' : window.innerWidth >= 1024 }" x-init="$watch('sidebarOpen', val => localStorage.setItem('sidebarOpen', val))">
+    <body class="font-sans antialiased" x-data="{ sidebarOpen: window.innerWidth >= 1024 ? (localStorage.getItem('sidebarOpen') ? localStorage.getItem('sidebarOpen') === 'true' : true) : false }" x-init="$watch('sidebarOpen', val => localStorage.setItem('sidebarOpen', val))">
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
             @include('layouts.sidebar')
 
