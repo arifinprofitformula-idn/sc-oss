@@ -13,7 +13,7 @@ Route::domain(env('ADMIN_DOMAIN'))->group(function () {
             /** @var \App\Models\User $user */
             $user = Auth::user();
             if ($user && $user->hasRole('SUPER_ADMIN')) {
-                return redirect()->route('admin.silverchannels.index');
+                return redirect()->route('admin.dashboard');
             }
             return redirect()->route('dashboard');
         }
@@ -21,7 +21,7 @@ Route::domain(env('ADMIN_DOMAIN'))->group(function () {
     });
 
     Route::get('/admin', function () {
-        return redirect()->route('admin.silverchannels.index');
+        return redirect()->route('admin.dashboard');
     })->middleware(['auth', 'role:SUPER_ADMIN']);
 
     Route::middleware(['auth', 'role:SUPER_ADMIN'])->prefix('admin')->name('admin.')->group(function () {
@@ -48,6 +48,11 @@ Route::get('/', function () {
     ]);
 
     if (Auth::check()) {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user && $user->hasRole('SUPER_ADMIN')) {
+            return redirect()->route('admin.dashboard');
+        }
         // Jika user sudah login, arahkan ke dashboard
         return redirect()->route('dashboard');
     }

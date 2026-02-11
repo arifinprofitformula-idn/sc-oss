@@ -138,9 +138,11 @@
         }
     </style>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Integration System') }}
-        </h2>
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 md:gap-0">
+            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                {{ __('Integration System') }}
+            </h2>
+        </div>
     </x-slot>
 
     <div class="py-12">
@@ -178,9 +180,9 @@
             @endif
 
             <div class="space-y-6" x-data="{ activeProvider: '{{ $activeProvider }}' }">
-                <!-- Settings Form -->
-                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
+                <!-- Configuration Form -->
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-[10px]">
+                    <div class="p-4 sm:p-6 text-gray-900 dark:text-gray-100">
                         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">Shipping Configuration</h3>
                         
                         <form action="{{ route('admin.integrations.update') }}" method="POST">
@@ -200,16 +202,22 @@
 
                             <!-- Global Shipping Configuration (Insurance) -->
                             <div class="mb-6 border-b border-gray-200 dark:border-gray-700 pb-6">
-                                <h4 class="text-md font-semibold mb-4 text-gray-900 dark:text-gray-100">Global Shipping Configuration (Insurance)</h4>
+                                <h4 class="text-md font-semibold mb-4 text-gray-900 dark:text-gray-100 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                    Global Shipping Configuration (Insurance)
+                                </h4>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <!-- Active Toggle -->
-                                    <div class="flex items-center md:col-span-2">
-                                        <input type="checkbox" name="shipping_insurance_active" id="shipping_insurance_active" value="1" 
-                                            {{ $insuranceSettings['active'] ? 'checked' : '' }}
-                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                        <label for="shipping_insurance_active" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-                                            Enable Shipping Insurance Service
-                                        </label>
+                                    <div class="flex items-center md:col-span-2 bg-gray-50 dark:bg-gray-700 p-4 rounded-md border border-gray-200 dark:border-gray-600">
+                                        <div class="flex items-center h-5">
+                                            <input type="checkbox" name="shipping_insurance_active" id="shipping_insurance_active" value="1" 
+                                                {{ $insuranceSettings['active'] ? 'checked' : '' }}
+                                                class="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-300 rounded">
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="shipping_insurance_active" class="font-medium text-gray-900 dark:text-gray-100">Enable Shipping Insurance Service</label>
+                                            <p class="text-gray-500 dark:text-gray-400">If enabled, insurance cost will be calculated based on the percentage below.</p>
+                                        </div>
                                     </div>
 
                                     <!-- Percentage -->
@@ -226,17 +234,8 @@
                                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Percentage of total item price.</p>
                                     </div>
 
-                                    <!-- Description -->
-                                    <div>
-                                        <label for="shipping_insurance_description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Service Description (Frontend)</label>
-                                        <input type="text" name="shipping_insurance_description" id="shipping_insurance_description" 
-                                            value="{{ $insuranceSettings['description'] }}" 
-                                            class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white rounded-md">
-                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Text displayed to customer during checkout.</p>
-                                    </div>
-
                                     <!-- Packing Fee -->
-                                    <div class="md:col-span-2">
+                                    <div>
                                         <label for="shipping_packing_fee" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Biaya Packing (Packing Fee)</label>
                                         <div class="mt-1 relative rounded-md shadow-sm">
                                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -247,6 +246,15 @@
                                                 class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white rounded-md" placeholder="0">
                                         </div>
                                         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Fixed cost added to shipping total for packing.</p>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="md:col-span-2">
+                                        <label for="shipping_insurance_description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Service Description (Frontend)</label>
+                                        <input type="text" name="shipping_insurance_description" id="shipping_insurance_description" 
+                                            value="{{ $insuranceSettings['description'] }}" 
+                                            class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white rounded-md">
+                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Text displayed to customer during checkout.</p>
                                     </div>
                                 </div>
                             </div>
@@ -458,14 +466,14 @@
                                 </div>
                             </div>
 
-                            <div class="mt-8 flex justify-between items-center">
-                                <button type="button" @click="testConnection(activeProvider)" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <div class="mt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                                <button type="button" @click="testConnection(activeProvider)" class="w-full md:w-auto btn-3d btn-3d-green shimmer justify-center px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest inline-flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                     Test Connection
                                 </button>
                                 
-                                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                    Save Configuration
+                                <button type="submit" class="w-full md:w-auto btn-3d btn-3d-blue shimmer justify-center px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">
+                                    {{ __('Save Configuration') }}
                                 </button>
                             </div>
                         </form>
@@ -473,8 +481,8 @@
                 </div>
 
                 <!-- Global Shipping Configuration -->
-                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                    <div class="p-6 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-[10px] mb-6">
+                    <div class="p-4 sm:p-6 text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">Global Shipping Configuration</h3>
                         <form action="{{ route('admin.integrations.update') }}" method="POST">
                             @csrf
@@ -502,8 +510,8 @@
                 </div>
 
                 <!-- Silverchannel Configuration -->
-                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6" x-data="{ showModal: false, selectedStore: null, storeCouriers: [] }">
-                    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-[10px] mb-6" x-data="{ showModal: false, selectedStore: null, storeCouriers: [] }">
+                    <div class="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Silverchannel Configuration</h3>
                         <p class="text-sm text-gray-500 mb-4">Configure specific shipping couriers for each Silverchannel store.</p>
                         
@@ -592,7 +600,7 @@
 
                 <!-- Check Shipping Cost -->
                 <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg mb-6 relative z-20" x-data="shippingTest">
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <div class="p-4 sm:p-6 text-gray-900 dark:text-gray-100">
                         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">Check Shipping Cost</h3>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -643,11 +651,11 @@
                                     <div x-show="destinationResults.length > 0" 
                                         class="absolute z-50 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg min-h-[200px] max-h-[400px] rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm" 
                                         role="listbox">
-                                        <template x-for="(item, index) in destinationResults" :key="item.subdistrict_id || index">
-                                            <div @click="selectDestination(item)" 
-                                                :class="{ 'bg-indigo-600 text-white': focusedIndex === index, 'text-gray-900 dark:text-gray-200': focusedIndex !== index }"
-                                                class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white group">
-                                                <span class="block truncate" x-text="formatLocation(item)"></span>
+                                        <template x-for="(item, index) in destinationResults" :key="item.subdistrict_id">
+                                <div @click="selectDestination(item)" 
+                                     :class="{ 'bg-indigo-600 text-white': focusedIndex === index, 'text-gray-900 dark:text-gray-200': focusedIndex !== index }"
+                                     class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white group">
+                                    <span class="block truncate" x-text="formatLocation(item)"></span>
                                             </div>
                                         </template>
                                     </div>
@@ -656,7 +664,7 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Weight (grams)</label>
                                 <div class="relative rounded-md shadow-sm">
@@ -688,7 +696,7 @@
                                     </div>
                                 </div>
 
-                                <button @click="checkCost" :disabled="loading || !destinationId" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
+                                <button @click="checkCost" :disabled="loading || !destinationId" class="w-full btn-3d btn-3d-blue shimmer inline-flex justify-center py-2 px-4 rounded-md text-sm font-medium disabled:opacity-50">
                                     <span x-show="!loading">Check Cost</span>
                                     <span x-show="loading">Checking...</span>
                                 </button>
@@ -730,7 +738,7 @@
 
                                 <template x-if="results && !loading">
                                     <div class="space-y-3 overflow-y-auto max-h-[500px] pr-1">
-                                        <template x-for="item in sortedResults" :key="item.courier_code + item.service + item.price">
+                                        <template x-for="item in sortedResults" :key="item.courier_code + '-' + item.service">
                                             <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 flex items-center justify-between hover:shadow-md transition-shadow">
                                                 <div class="flex items-center space-x-3">
                                                     <!-- Logo Badge -->
@@ -769,7 +777,7 @@
                                     <button @click="history = []; localStorage.removeItem('shipping_cost_history')" class="text-xs text-red-500 hover:text-red-700">Clear</button>
                                 </div>
                                 <div class="space-y-2">
-                                    <template x-for="(h, i) in history" :key="i">
+                                    <template x-for="h in history" :key="h.id">
                                         <div class="bg-white dark:bg-gray-700 p-2 rounded border border-gray-200 dark:border-gray-600 text-xs flex justify-between items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors" @click="restoreHistory(h)">
                                             <div>
                                                 <div class="font-medium text-gray-900 dark:text-gray-100" x-text="h.destination"></div>
@@ -788,39 +796,39 @@
                 </div>
 
                 <!-- Integration Logs -->
-                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
+                <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-[10px]">
+                    <div class="p-4 sm:p-6 text-gray-900 dark:text-gray-100">
                         <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4">Integration Logs</h3>
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto md:overflow-visible">
                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead class="bg-gray-50 dark:bg-gray-700">
+                                <thead class="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
                                     <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Time</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Provider</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Method</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Endpoint</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Duration</th>
+                                        <th scope="col" class="px-3 py-3 md:px-6 md:py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Time</th>
+                                        <th scope="col" class="px-3 py-3 md:px-6 md:py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Provider</th>
+                                        <th scope="col" class="px-3 py-3 md:px-6 md:py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Method</th>
+                                        <th scope="col" class="px-3 py-3 md:px-6 md:py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Endpoint</th>
+                                        <th scope="col" class="px-3 py-3 md:px-6 md:py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                                        <th scope="col" class="px-3 py-3 md:px-6 md:py-4 text-left text-xs font-bold text-white uppercase tracking-wider">Duration</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     @forelse($logs as $log)
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    <tr class="hover:bg-blue-50 transition-colors">
+                                        <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                             {{ $log->created_at->diffForHumans() }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 uppercase">
+                                        <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 uppercase">
                                             {{ $log->integration }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                                                 {{ $log->method }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-mono">
+                                        <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-mono">
                                             {{ Str::limit($log->endpoint, 30) }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-sm">
                                             @if($log->status_code >= 200 && $log->status_code < 300)
                                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                                     {{ $log->status_code }}
@@ -831,13 +839,13 @@
                                                 </span>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                             {{ $log->duration_ms }}ms
                                         </td>
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No logs available.</td>
+                                        <td colspan="6" class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-500 text-center">No logs available.</td>
                                     </tr>
                                     @endforelse
                                 </tbody>
@@ -1209,6 +1217,7 @@
                             }
                             
                             this.history.unshift({
+                                id: Date.now() + Math.random().toString(36).substr(2, 9),
                                 time: new Date().toLocaleTimeString(),
                                 destination: this.destinationName,
                                 weight: this.weight,

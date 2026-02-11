@@ -124,7 +124,7 @@
             </style>
 
             <!-- Toolbar -->
-            <div class="flex flex-col md:flex-row gap-4 mb-6">
+            <div class="flex flex-col md:flex-row gap-4 mb-6 px-[10px] md:px-0">
                 <!-- Kolom 1: Search (40%) -->
                 <div class="w-full md:w-[40%]">
                     <form method="GET" action="{{ route('admin.silverchannels.index') }}" class="w-full">
@@ -181,21 +181,21 @@
                         </div>
                     @endif
 
-                    <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div class="overflow-x-auto rounded-lg border border-blue-200 dark:border-blue-900 shadow-md">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 table-fixed">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
+                            <thead class="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
                                 <tr>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-[15%]">ID / Pereferral</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-[20%]">Email / Phone</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-[12%]">Status</th>
-                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-[15%] hidden lg:table-cell">Joined</th>
-                                    <th scope="col" class="px-4 py-3 text-end text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-[10%]">Actions</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider w-[15%]">ID / Pereferral</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Name</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider w-[20%]">Email / Phone</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider w-[12%]">Status</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider w-[15%] hidden lg:table-cell">Joined</th>
+                                    <th scope="col" class="px-4 py-3 text-end text-xs font-bold text-white uppercase tracking-wider w-[10%]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse($silverchannels as $user)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                    <tr class="hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
                                         <td class="px-4 py-4 align-top">
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100 break-words">{{ $user->silver_channel_id ?? $user->referral_code ?? '-' }}</div>
                                             @if($user->referrer)

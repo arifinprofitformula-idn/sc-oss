@@ -53,9 +53,12 @@ class ChatManagementController extends Controller
                 $query->where('support_status', $request->status);
             }
         } else {
-            // Default: Hide closed unless searched
+            // Default: Hide closed unless searched. Handle NULL safely.
             if (!$request->search) {
-                $query->where('support_status', '!=', 'closed');
+                $query->where(function($q) {
+                    $q->where('support_status', '!=', 'closed')
+                      ->orWhereNull('support_status');
+                });
             }
         }
 
@@ -73,75 +76,62 @@ class ChatManagementController extends Controller
             }
         }
 
-        // Sort by Priority (Urgent > High > Medium > Low) then Latest Message
-        // Priority mapping: urgent=4, high=3, medium=2, low=1, null=0
+        // Sort by Unread Messages (Unread first)
+        $query->orderBy('unread_count', 'desc');
+
+        // Sort by Priority (Urgent > High > Medium > Low)
         $query->orderByRaw("FIELD(chat_priority, 'urgent', 'high', 'medium', 'low') DESC");
         
-        // Then sort by latest message time
-        $conversations = $query->get()->sortByDesc(function ($order) {
-             // If we want "terlama" (oldest active chat?), users usually mean "waiting longest".
-             // But standard chat UI is "newest message on top".
-             // User instruction: "urutannya berdasarkan chat terlama dan yang paling tinggi prioritasnya"
-             // Interpretation: High Priority first. Then among them, oldest chat (waiting longest)?
-             // Let's stick to standard chat sort within priority: Newest activity first.
-             // If they really meant "Oldest created chat first" (FIFO queue), I should use created_at ASC.
-             // But "Chat terlama" in a list usually implies the one that hasn't been touched in a while?
-             // Or simply "Oldest created".
-             // Let's try: Priority DESC, then Created At ASC (Oldest first - FIFO).
-             // Wait, the existing code was `sortByDesc(latestMessageTime)`.
-             // User wants "Chat terlama".
-             return $order->created_at; // Sort by created_at desc (newest) or asc (oldest)?
-             // "Terlama" = Oldest. So sortBy(created_at).
-        });
+        // Then sort by latest activity (Newest updated_at first)
+        $query->orderBy('updated_at', 'desc');
         
-        // Let's refine the sort based on "Chat terlama" and "Paling tinggi prioritasnya".
-        // Primary Sort: Priority (Urgent -> High -> Medium -> Low).
-        // Secondary Sort: "Chat Terlama" (Oldest).
-        
-        $conversations = $query->get()->sort(function ($a, $b) {
-            // 1. Priority Score
-            $priorityScore = function ($p) {
-                return match ($p) {
-                    'urgent' => 4,
-                    'high' => 3,
-                    'medium' => 2,
-                    'low' => 1,
-                    default => 0,
-                };
-            };
-            
-            $scoreA = $priorityScore($a->chat_priority);
-            $scoreB = $priorityScore($b->chat_priority);
-            
-            if ($scoreA !== $scoreB) {
-                return $scoreB <=> $scoreA; // Higher priority first
-            }
-            
-            // 2. Chat Terlama (Oldest Created At first? or Oldest Unanswered?)
-            // Assuming "Chat Terlama" means Oldest Ticket (FIFO).
-            return $a->created_at <=> $b->created_at; // Oldest first
-        })->values();
+        // Pagination
+        $page = $request->input('page', 1);
+        $limit = $request->input('limit', 10);
+        $conversations = $query->paginate($limit, ['*'], 'page', $page);
 
-        // Manual pagination for collection (since we sorted by relation)
-        // For MVP, just return top 50
-        return response()->json($conversations->take(50));
+        return response()->json([
+            'data' => $conversations->items(),
+            'current_page' => $conversations->currentPage(),
+            'last_page' => $conversations->lastPage(),
+            'total' => $conversations->total(),
+        ]);
     }
 
-    public function getMessages(Order $order)
+    public function getMessages(Request $request, Order $order)
     {
         // Mark as read
-        ChatMessage::where('order_id', $order->id)
-            ->where('sender_id', '!=', Auth::id())
-            ->update(['is_read' => true]);
+        if (!$request->has('before_id')) {
+            ChatMessage::where('order_id', $order->id)
+                ->where('sender_id', '!=', Auth::id())
+                ->update(['is_read' => true]);
+        }
 
-        $messages = $order->chatMessages()
-            ->with('sender:id,name')
-            ->orderBy('created_at', 'asc') // Chat usually flows down
-            ->get();
+        $query = $order->chatMessages()->with('sender:id,name');
+
+        if ($request->has('before_id')) {
+            $query->where('id', '<', $request->before_id);
+        }
+        
+        if ($request->has('after_id')) {
+            $query->where('id', '>', $request->after_id);
+        }
+
+        $messages = $query->orderBy('created_at', 'desc')->take(50)->get();
+        
+        $hasMore = false;
+        if ($messages->count() === 50) {
+             $oldestId = $messages->last()->id;
+             $hasMore = $order->chatMessages()->where('id', '<', $oldestId)->exists();
+        }
+
+        // Reverse to show oldest first
+        $messages = $messages->reverse()->values();
 
         return response()->json([
             'order' => $order->load(['user', 'items', 'chatAssignee', 'supportStatusHistories.user']),
-            'messages' => $messages
+            'messages' => $messages,
+            'has_more' => $hasMore
         ]);
     }
 

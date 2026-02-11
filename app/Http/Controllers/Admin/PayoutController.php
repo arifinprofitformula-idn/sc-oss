@@ -23,12 +23,39 @@ class PayoutController extends Controller
         if ($request->has('status') && $request->status != '') {
             $query->where('status', $request->status);
         }
-        
-        // Export logic can be added here similar to PaymentController
 
+        if ($request->has('export') && $request->export == 'csv') {
+            return $this->exportCsv($query->get());
+        }
+        
         $payouts = $query->paginate(15);
 
         return view('admin.payouts.index', compact('payouts'));
+    }
+
+    private function exportCsv($payouts)
+    {
+        $filename = "payouts-" . date('Y-m-d') . ".csv";
+        $handle = fopen('php://output', 'w');
+        
+        return response()->stream(function () use ($handle, $payouts) {
+            fputcsv($handle, ['Payout Number', 'User', 'Amount', 'Status', 'Date']);
+            
+            foreach ($payouts as $payout) {
+                fputcsv($handle, [
+                    $payout->payout_number,
+                    $payout->user->name,
+                    $payout->amount,
+                    $payout->status,
+                    $payout->created_at->format('Y-m-d H:i:s'),
+                ]);
+            }
+            
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ]);
     }
 
     public function show(Payout $payout)

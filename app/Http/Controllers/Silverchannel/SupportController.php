@@ -79,33 +79,54 @@ class SupportController extends Controller
         ]);
     }
 
-    public function getMessages(Order $order)
+    public function getMessages(Request $request, Order $order)
     {
         // Authorize
         if ($order->user_id !== Auth::id()) {
             abort(403);
         }
 
-        // Mark as read
-        ChatMessage::where('order_id', $order->id)
-            ->where('sender_id', '!=', Auth::id())
-            ->update(['is_read' => true]);
+        // Mark as read only if we are fetching latest messages (not historical)
+        if (!$request->has('before_id')) {
+            ChatMessage::where('order_id', $order->id)
+                ->where('sender_id', '!=', Auth::id())
+                ->update(['is_read' => true]);
+        }
 
-        $messages = $order->chatMessages()
-            ->with('sender:id,name')
-            ->orderBy('created_at', 'asc')
-            ->get()
-            ->map(function ($msg) {
-                return [
-                    'id' => $msg->id,
-                    'message' => $msg->message,
-                    'is_sender' => $msg->sender_id === Auth::id(),
-                    'sender_name' => $msg->sender->name,
-                    'created_at' => $msg->created_at->format('H:i'),
-                    'attachment_url' => $msg->attachment_path ? Storage::url($msg->attachment_path) : null,
-                    'is_read' => $msg->is_read,
-                ];
-            });
+        $query = $order->chatMessages()->with('sender:id,name');
+
+        if ($request->has('before_id')) {
+            $query->where('id', '<', $request->before_id);
+        }
+        
+        if ($request->has('after_id')) {
+            $query->where('id', '>', $request->after_id);
+        }
+
+        // Get 50 messages, ordered by newest first
+        $messages = $query->orderBy('created_at', 'desc')->take(50)->get();
+        
+        // Check if there are more messages (this is an approximation, robust way needs count or fetching 51)
+        $hasMore = false;
+        if ($messages->count() === 50) {
+             $oldestId = $messages->last()->id;
+             $hasMore = $order->chatMessages()->where('id', '<', $oldestId)->exists();
+        }
+
+        // Reverse to chronological order
+        $messages = $messages->reverse()->values();
+
+        $transformed = $messages->map(function ($msg) {
+            return [
+                'id' => $msg->id,
+                'message' => $msg->message,
+                'is_sender' => $msg->sender_id === Auth::id(),
+                'sender_name' => $msg->sender->name,
+                'created_at' => $msg->created_at->format('H:i'),
+                'attachment_url' => $msg->attachment_path ? Storage::url($msg->attachment_path) : null,
+                'is_read' => $msg->is_read,
+            ];
+        });
 
         return response()->json([
             'order' => [
@@ -115,7 +136,8 @@ class SupportController extends Controller
                 'support_status' => $order->support_status ?? 'open',
                 'chat_priority' => $order->chat_priority,
             ],
-            'messages' => $messages
+            'messages' => $transformed,
+            'has_more' => $hasMore
         ]);
     }
 

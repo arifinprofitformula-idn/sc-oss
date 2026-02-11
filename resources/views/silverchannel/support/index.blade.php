@@ -36,7 +36,7 @@
             <div class="flex-1 overflow-y-auto custom-scrollbar" @scroll="onScroll">
                 <template x-if="loadingConversations && conversations.length === 0">
                     <div class="p-4 space-y-4">
-                        <template x-for="i in 5">
+                        <template x-for="i in 5" :key="'skeleton-'+i">
                             <div class="animate-pulse flex space-x-4">
                                 <div class="rounded-full bg-gray-200 dark:bg-gray-700 h-10 w-10"></div>
                                 <div class="flex-1 space-y-2 py-1">
@@ -149,19 +149,24 @@
                     </div>
 
                     <!-- Messages Area -->
-                    <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900 scroll-smooth" x-ref="chatContainer">
+                    <div class="flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-gray-50 dark:bg-gray-900 relative" 
+                         x-ref="chatContainer"
+                         @scroll="handleChatScroll">
+                        <template x-if="loadingPrevious">
+                             <div class="flex justify-center py-2"><svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
+                        </template>
                         <template x-if="loadingMessages">
                              <div class="flex justify-center py-4"><svg class="animate-spin h-6 w-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
                         </template>
                         
                         <template x-for="msg in messages" :key="msg.id">
                             <div class="flex w-full" :class="msg.is_sender ? 'justify-end' : 'justify-start'">
-                                <div class="max-w-[75%] md:max-w-[60%] flex flex-col" :class="msg.is_sender ? 'items-end' : 'items-start'">
-                                    <div class="px-4 py-2 rounded-2xl shadow-sm relative text-sm"
+                                <div class="max-w-[75%] flex flex-col" :class="msg.is_sender ? 'items-end' : 'items-start'">
+                                    <div class="px-3 py-2 rounded-2xl shadow-sm relative text-[13px]"
                                          :class="msg.is_sender ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-none border border-gray-100 dark:border-gray-600'">
                                         
                                         <template x-if="!msg.is_sender">
-                                            <p class="text-[10px] text-gray-400 mb-1 font-bold" x-text="msg.sender_name"></p>
+                                            <p class="text-[10px] text-gray-400 mb-0.5 font-bold" x-text="msg.sender_name"></p>
                                         </template>
 
                                         <p class="whitespace-pre-wrap leading-relaxed" x-text="msg.message"></p>
@@ -174,7 +179,7 @@
                                             </div>
                                         </template>
 
-                                        <div class="flex items-center justify-end space-x-1 mt-1 opacity-70">
+                                        <div class="flex items-center justify-end space-x-1 mt-0.5 opacity-70">
                                             <span class="text-[10px]" x-text="msg.created_at"></span>
                                             <template x-if="msg.is_sender">
                                                 <span>
@@ -187,18 +192,40 @@
                                 </div>
                             </div>
                         </template>
+
+                        <!-- Scroll to Bottom / New Message Button -->
+                        <div x-show="userScrolledUp" 
+                             x-transition:enter="transition ease-out duration-300"
+                             x-transition:enter-start="opacity-0 translate-y-4"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-200"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 translate-y-4"
+                             class="sticky bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center z-10">
+                            <button @click="scrollToBottom(true)" 
+                                    class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 shadow-lg flex items-center space-x-2 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                <span x-show="showNewMessageBadge" class="flex h-2 w-2 relative mr-1">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-200 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                                </span>
+                                <span x-text="showNewMessageBadge ? 'Pesan Baru' : 'Ke Bawah'"></span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Input Area -->
-                    <div class="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                    <div class="p-2 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                         <template x-if="!activeConversation.support_status || activeConversation.support_status !== 'closed'">
                             <form @submit.prevent="sendMessage" class="relative flex items-end gap-2">
                                 <button type="button" @click="$refs.fileInput.click()" class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
                                 </button>
                                 <input type="file" x-ref="fileInput" class="hidden" @change="handleFileSelect">
                                 
-                                <div class="flex-1 bg-gray-100 dark:bg-gray-700 rounded-2xl px-4 py-2 flex flex-col">
+                                <div class="flex-1 bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2 flex flex-col">
                                     <div x-show="previewFile" class="flex items-center justify-between p-2 mb-2 bg-white dark:bg-gray-600 rounded-lg shadow-sm">
                                         <span class="text-xs truncate max-w-[150px]" x-text="previewFile?.name"></span>
                                         <button type="button" @click="clearFile" class="text-red-500 hover:text-red-700">×</button>
@@ -207,23 +234,23 @@
                                               @keydown.enter="if(!$event.shiftKey) { $event.preventDefault(); sendMessage(); }"
                                               rows="1" 
                                               placeholder="Tulis pesan..." 
-                                              class="w-full bg-transparent border-none focus:ring-0 text-gray-800 dark:text-gray-200 resize-none max-h-32 text-sm p-0 disabled:opacity-50"
+                                              class="w-full bg-transparent border-none focus:ring-0 text-gray-800 dark:text-gray-200 resize-none max-h-32 text-[13px] p-0 disabled:opacity-50"
                                               :disabled="sending"></textarea>
                                 </div>
 
                                 <button type="submit" 
                                         :disabled="(!newMessage.trim() && !previewFile) || sending"
-                                        class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md">
-                                    <svg x-show="!sending" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                                    <svg x-show="sending" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm h-[38px] w-[44px] flex items-center justify-center">
+                                    <svg x-show="!sending" class="w-4 h-4 transform rotate-90" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                                    <svg x-show="sending" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                 </button>
                             </form>
                         </template>
                         <template x-if="activeConversation.support_status === 'closed'">
-                            <div class="text-center py-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                                <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center gap-2">
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                    <span>Tiket ini telah ditutup. Anda tidak dapat mengirim pesan lagi.</span>
+                            <div class="text-center py-2 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                    <span>Tiket ditutup.</span>
                                 </p>
                             </div>
                         </template>
@@ -287,8 +314,10 @@
                 loadingConversations: false,
                 loadingMessages: false,
                 loadingMore: false,
+                loadingPrevious: false,
                 page: 1,
                 hasMore: true,
+                hasMoreMessages: false,
                 newMessage: '',
                 previewFile: null,
                 file: null,
@@ -297,6 +326,8 @@
                 pollInterval: null,
                 echoChannel: null,
                 error: null,
+                userScrolledUp: false,
+                showNewMessageBadge: false,
 
                 init() {
                     this.fetchConversations();
@@ -339,7 +370,12 @@
                                      e.message.is_sender = (e.message.sender_id == this.currentUserId);
                                      
                                      this.messages.push(e.message);
-                                     this.scrollToBottom();
+                                     
+                                     if (this.userScrolledUp) {
+                                         this.showNewMessageBadge = true;
+                                     } else {
+                                         this.scrollToBottom();
+                                     }
                                      
                                      // Update conversation list preview
                                      const conv = this.conversations.find(c => c.id === orderId);
@@ -407,14 +443,39 @@
                 fetchMessages(orderId, silent = false) {
                     if (!silent) this.loadingMessages = true;
                     
-                    fetch(`{{ url('silverchannel/support/messages') }}/${orderId}`)
+                    let url = `{{ url('silverchannel/support/messages') }}/${orderId}`;
+                    // If polling (silent=true) and we have messages, use after_id to fetch only new ones
+                    if (silent && this.messages.length > 0) {
+                        const lastId = this.messages[this.messages.length - 1].id;
+                        url += `?after_id=${lastId}`;
+                    }
+
+                    fetch(url)
                         .then(res => {
                             if (!res.ok) throw new Error('Network response was not ok');
                             return res.json();
                         })
                         .then(data => {
-                            this.messages = data.messages;
-                            if (!silent) this.scrollToBottom();
+                            if (silent && this.messages.length > 0) {
+                                // Append new messages
+                                if (data.messages.length > 0) {
+                                    // Filter duplicates just in case
+                                    const newMsgs = data.messages.filter(nm => !this.messages.find(m => m.id === nm.id));
+                                    if (newMsgs.length > 0) {
+                                        this.messages = [...this.messages, ...newMsgs];
+                                        if (this.userScrolledUp) {
+                                            this.showNewMessageBadge = true;
+                                        } else {
+                                            this.scrollToBottom();
+                                        }
+                                    }
+                                }
+                            } else {
+                                // Initial load
+                                this.messages = data.messages;
+                                this.hasMoreMessages = data.has_more;
+                                if (!silent) this.scrollToBottom(true);
+                            }
                         })
                         .catch(err => {
                             console.error('Error fetching messages:', err);
@@ -424,10 +485,64 @@
                         });
                 },
 
-                scrollToBottom() {
+                loadPreviousMessages() {
+                    if (this.loadingPrevious || !this.hasMoreMessages || this.messages.length === 0) return;
+                    
+                    this.loadingPrevious = true;
+                    const oldestId = this.messages[0].id;
+                    const container = this.$refs.chatContainer;
+                    const oldScrollHeight = container.scrollHeight;
+                    
+                    fetch(`{{ url('silverchannel/support/messages') }}/${this.activeConversation.id}?before_id=${oldestId}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.messages.length > 0) {
+                                // Prepend messages
+                                this.messages = [...data.messages, ...this.messages];
+                                this.hasMoreMessages = data.has_more;
+                                
+                                // Restore scroll position
+                                this.$nextTick(() => {
+                                    const newScrollHeight = container.scrollHeight;
+                                    container.scrollTop = newScrollHeight - oldScrollHeight;
+                                });
+                            } else {
+                                this.hasMoreMessages = false;
+                            }
+                        })
+                        .finally(() => {
+                            this.loadingPrevious = false;
+                        });
+                },
+
+                handleChatScroll(e) {
+                    const container = e.target;
+                    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+                    
+                    this.userScrolledUp = !isAtBottom;
+                    
+                    if (isAtBottom) {
+                        this.showNewMessageBadge = false;
+                    }
+                    
+                    // Load previous messages if at top
+                    if (container.scrollTop === 0) {
+                        this.loadPreviousMessages();
+                    }
+                },
+
+                scrollToBottom(force = false) {
                     this.$nextTick(() => {
                         const container = this.$refs.chatContainer;
-                        if (container) container.scrollTop = container.scrollHeight;
+                        if (container) {
+                            if (force || !this.userScrolledUp) {
+                                container.scrollTop = container.scrollHeight;
+                                if(force) {
+                                    this.userScrolledUp = false;
+                                    this.showNewMessageBadge = false;
+                                }
+                            }
+                        }
                     });
                 },
 
@@ -519,7 +634,7 @@
                             }
                             this.newMessage = '';
                             this.clearFile();
-                            this.scrollToBottom();
+                            this.scrollToBottom(true);
                             
                             // Update list preview
                             const conv = this.conversations.find(c => c.id === this.activeConversation.id);

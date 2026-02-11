@@ -298,15 +298,15 @@
                                     </div>
 
                                     <div x-show="!shippingLoading && !shippingError && shippingOptions.length > 0" class="space-y-2">
-                                        <template x-for="(option, index) in shippingOptions" :key="index">
-                                            <div @click="selectedShippingIndex = index"
+                                        <template x-for="option in shippingOptions" :key="option.service">
+                                            <div @click="selectedService = option.service"
                                                 class="cursor-pointer p-3 rounded-lg border transition-all duration-200 flex justify-between items-center group"
-                                                :class="selectedShippingIndex === index ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500' : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'">
+                                                :class="selectedService === option.service ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500' : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'">
                                                 
                                                 <div class="flex items-center gap-3">
                                                     <div class="flex items-center justify-center w-5 h-5 rounded-full border border-gray-300" 
-                                                         :class="selectedShippingIndex === index ? 'border-blue-600 bg-blue-600' : 'bg-white'">
-                                                        <div class="w-2 h-2 rounded-full bg-white" x-show="selectedShippingIndex === index"></div>
+                                                         :class="selectedService === option.service ? 'border-blue-600 bg-blue-600' : 'bg-white'">
+                                                        <div class="w-2 h-2 rounded-full bg-white" x-show="selectedService === option.service"></div>
                                                     </div>
                                                     <div>
                                                         <p class="text-sm font-medium text-gray-900 dark:text-gray-100" x-text="option.service"></p>
@@ -453,7 +453,7 @@
                             </style>
                             <!-- Pay Now Button -->
                             <button @click="submitOrder" 
-                                :disabled="processing || cartItems.length === 0 || selectedShippingIndex === ''"
+                                :disabled="processing || cartItems.length === 0 || !selectedService"
                                 class="mt-6 button-shine w-full disabled:opacity-50 disabled:cursor-not-allowed">
                                 
                                 <span x-show="!processing" class="flex items-center gap-2">
@@ -477,7 +477,7 @@
                             </p>
                         </div>
 
-                        <div x-show="selectedShippingIndex === '' && cartItems.length > 0" class="px-5 pb-5 text-center text-xs text-red-500">
+                        <div x-show="!selectedService && cartItems.length > 0" class="px-5 pb-5 text-center text-xs text-red-500">
                             Silakan pilih layanan pengiriman terlebih dahulu
                         </div>
                     </div>
@@ -780,7 +780,7 @@
                 availableCouriers: [],
                 selectedCourier: '',
                 shippingOptions: [],
-                selectedShippingIndex: '',
+                selectedService: null,
                 sortMode: 'price',
                 shippingLoading: false,
                 shippingError: '',
@@ -827,13 +827,13 @@
                                 if (this.shippingForm.subdistrict_id) {
                                     if (this.addressProvider === 'api_id' && !this.shippingForm.village_id) {
                                         this.shippingOptions = [];
-                                        this.selectedShippingIndex = '';
+                                        this.selectedService = null;
                                         return;
                                     }
                                     this.fetchShippingCosts();
                                 } else {
                                     this.shippingOptions = [];
-                                    this.selectedShippingIndex = '';
+                                    this.selectedService = null;
                                 }
                             }
                         }
@@ -845,14 +845,14 @@
                 },
                 
                 get shippingCost() {
-                    if (this.selectedShippingIndex === '') return 0;
-                    const option = this.shippingOptions[this.selectedShippingIndex];
+                    if (!this.selectedService) return 0;
+                    const option = this.shippingOptions.find(o => o.service === this.selectedService);
                     return option ? option.cost[0].value : 0;
                 },
 
                 get selectedShippingOption() {
-                    if (this.selectedShippingIndex === '') return null;
-                    return this.shippingOptions[this.selectedShippingIndex] || null;
+                    if (!this.selectedService) return null;
+                    return this.shippingOptions.find(o => o.service === this.selectedService) || null;
                 },
 
                 get shippingEta() {
@@ -907,7 +907,7 @@
                         });
                     }
 
-                    this.selectedShippingIndex = '';
+                    // No reset needed for selectedService as it is ID based
                 },
 
                 // Location Fetchers
@@ -1023,7 +1023,7 @@
 
                     if (!locationId) {
                         this.shippingOptions = [];
-                        this.selectedShippingIndex = '';
+                        this.selectedService = null;
                         if (this.selectedCourier) {
                             if (useVillage) {
                                 this.shippingError = 'Mohon lengkapi alamat (Kelurahan) untuk menghitung ongkir.';
@@ -1038,7 +1038,7 @@
 
                     if (!this.selectedCourier) {
                         this.shippingOptions = [];
-                        this.selectedShippingIndex = '';
+                        this.selectedService = null;
                         this.shippingError = 'Silakan pilih kurir pengiriman terlebih dahulu.';
                         return;
                     }
@@ -1047,13 +1047,13 @@
 
                     if (this.shippingCostCache[cacheKey]) {
                         this.shippingOptions = this.shippingCostCache[cacheKey];
-                        this.selectedShippingIndex = '';
+                        this.selectedService = null;
                         return;
                     }
 
                     this.shippingLoading = true;
                     this.shippingOptions = [];
-                    this.selectedShippingIndex = '';
+                    this.selectedService = null;
 
                     try {
                         const res = await fetch(window.checkoutBootstrap.routes.shippingCost, {
@@ -1071,7 +1071,7 @@
                         const data = await res.json();
                         if (!res.ok || !data.success) {
                             this.shippingOptions = [];
-                            this.selectedShippingIndex = '';
+                            this.selectedService = null;
                             this.shippingError = data.message || 'Maaf, layanan pengiriman tidak tersedia untuk lokasi ini. Silakan hubungi CS.';
                             return;
                         }
@@ -1091,7 +1091,7 @@
                     } catch (e) {
                         console.error(e);
                         this.shippingOptions = [];
-                        this.selectedShippingIndex = '';
+                        this.selectedService = null;
                         this.shippingError = 'Gagal terhubung ke server ongkir. Periksa koneksi internet Anda.';
                     } finally {
                         this.shippingLoading = false;
@@ -1131,7 +1131,7 @@
                         shipping_address: this.shipDifferent ? this.shippingForm : window.checkoutBootstrap.billingAddress,
                         shipping_service: {
                             courier: this.selectedCourier,
-                            service: this.shippingOptions[this.selectedShippingIndex].service,
+                            service: this.selectedService,
                             cost: this.shippingCost
                         },
                         payment_method: this.paymentMethod,

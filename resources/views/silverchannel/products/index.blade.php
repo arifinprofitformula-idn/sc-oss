@@ -86,8 +86,8 @@
 
                             <div class="space-y-1 text-xs text-gray-800 dark:text-gray-200">
                                 <template x-for="line in $store.storeStatus.simplifiedScheduleLines()" :key="line">
-                                    <div x-text="line"></div>
-                                </template>
+                                        <div x-text="line"></div>
+                                    </template>
                             </div>
 
                         </div>

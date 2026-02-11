@@ -169,17 +169,23 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Filter -->
             <div class="mb-6 mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-4">
-                <form action="{{ route('admin.payments.index') }}" method="GET" class="flex gap-4">
-                    <select name="status" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
-                        <option value="">All Statuses</option>
-                        <option value="PENDING_VERIFICATION" {{ request('status') == 'PENDING_VERIFICATION' ? 'selected' : '' }}>Pending Verification</option>
-                        <option value="PAID" {{ request('status') == 'PAID' ? 'selected' : '' }}>Paid</option>
-                        <option value="FAILED" {{ request('status') == 'FAILED' ? 'selected' : '' }}>Failed</option>
-                    </select>
-                    <button type="submit" class="btn-3d btn-3d-blue shimmer px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">{{ __('Filter') }}</button>
-                    <a href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="btn-3d btn-3d-green shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">
-                        {{ __('Export CSV') }}
-                    </a>
+                <form action="{{ route('admin.payments.index') }}" method="GET" class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <select name="status" class="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm">
+                            <option value="">All Statuses</option>
+                            <option value="PENDING_VERIFICATION" {{ request('status') == 'PENDING_VERIFICATION' ? 'selected' : '' }}>Pending Verification</option>
+                            <option value="PAID" {{ request('status') == 'PAID' ? 'selected' : '' }}>Paid</option>
+                            <option value="FAILED" {{ request('status') == 'FAILED' ? 'selected' : '' }}>Failed</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <button type="submit" class="btn-3d btn-3d-blue shimmer w-full md:w-auto justify-center px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">{{ __('Filter') }}</button>
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <a href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}" class="btn-3d btn-3d-green shimmer w-full md:w-auto justify-center inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">
+                            {{ __('Export CSV') }}
+                        </a>
+                    </div>
                 </form>
             </div>
 
@@ -206,22 +212,23 @@
                 </div>
             @endif
 
-            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead>
-                        <tr>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Payment #</th>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Order #</th>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Method</th>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Proof</th>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-end text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach ($payments as $payment)
+            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-md sm:rounded-lg border border-blue-200">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
                             <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Payment #</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Order #</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Method</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Proof</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-end text-xs font-bold text-white uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            @foreach ($payments as $payment)
+                                <tr class="hover:bg-blue-50 transition-colors">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                     {{ $payment->payment_number }}
                                 </td>
@@ -285,10 +292,11 @@
                         @endforeach
                     </tbody>
                 </table>
-                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-                    {{ $payments->links() }}
-                </div>
             </div>
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                {{ $payments->links() }}
+            </div>
+        </div>
         </div>
 
         <!-- Confirmation Modal -->

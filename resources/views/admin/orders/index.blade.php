@@ -186,58 +186,57 @@
                             <option value="CANCELLED" {{ request('status') == 'CANCELLED' ? 'selected' : '' }}>Cancelled</option>
                         </select>
                     </div>
-                    <div>
-                        <button type="submit" class="btn-3d btn-3d-blue shimmer px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">{{ __('Filter') }}</button>
+                    <div class="w-full md:w-auto">
+                        <button type="submit" class="btn-3d btn-3d-blue shimmer w-full md:w-auto justify-center px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-widest">{{ __('Filter') }}</button>
                     </div>
                 </form>
             </div>
 
             <!-- Orders Table -->
-            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead>
-                        <tr>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Order #</th>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Silverchannel</th>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total</th>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        @foreach ($orders as $order)
+            <div class="ml-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-md sm:rounded-lg border border-blue-200">
+                <div class="overflow-x-auto md:overflow-visible">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    {{ $order->order_number }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                    {{ $order->user->name }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                    {{ $order->created_at->format('d M Y H:i') }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    IDR {{ number_format($order->total_amount, 0, ',', '.') }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        @if($order->status == 'DRAFT') bg-gray-100 text-gray-800 
-                                        @elseif($order->status == 'PAID') bg-green-100 text-green-800 
-                                        @elseif($order->status == 'CANCELLED') bg-red-100 text-red-800 
-                                        @else bg-blue-100 text-blue-800 @endif">
-                                        {{ str_replace('_', ' ', $order->status) }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('admin.orders.show', $order) }}" class="btn-3d btn-3d-blue shimmer px-3 py-1 rounded-md text-xs">Manage</a>
-                                </td>
+                                <th class="px-3 py-3 md:px-6 text-left text-xs font-bold text-white uppercase tracking-wider">Order #</th>
+                                <th class="px-3 py-3 md:px-6 text-left text-xs font-bold text-white uppercase tracking-wider">Silverchannel</th>
+                                <th class="px-3 py-3 md:px-6 text-left text-xs font-bold text-white uppercase tracking-wider">Date</th>
+                                <th class="px-3 py-3 md:px-6 text-left text-xs font-bold text-white uppercase tracking-wider">Total</th>
+                                <th class="px-3 py-3 md:px-6 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                                <th class="px-3 py-3 md:px-6 text-left text-xs font-bold text-white uppercase tracking-wider">Action</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-                    {{ $orders->links() }}
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            @foreach ($orders as $order)
+                                <tr class="hover:bg-blue-50 transition-colors">
+                                    <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                                        {{ $order->order_number }}
+                                    </td>
+                                    <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap md:whitespace-normal text-sm text-gray-500 dark:text-gray-400">
+                                        {{ $order->user->name }}
+                                    </td>
+                                    <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        {{ $order->created_at->format('d M Y H:i') }}
+                                    </td>
+                                    <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                        IDR {{ number_format($order->total_amount, 0, ',', '.') }}
+                                    </td>
+                                    <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            @if($order->status == 'DRAFT') bg-gray-100 text-gray-800 
+                                            @elseif($order->status == 'PAID') bg-green-100 text-green-800 
+                                            @elseif($order->status == 'CANCELLED') bg-red-100 text-red-800 
+                                            @else bg-blue-100 text-blue-800 @endif">
+                                            {{ str_replace('_', ' ', $order->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-3 py-3 md:px-6 md:py-4 whitespace-nowrap text-sm font-medium">
+                                        <a href="{{ route('admin.orders.show', $order) }}" class="btn-3d btn-3d-blue shimmer px-3 py-1 rounded-md text-xs">Manage</a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

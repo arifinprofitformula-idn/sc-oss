@@ -17,6 +17,12 @@ class ChatMessage extends Model
         'is_read',
     ];
 
+    /**
+     * Touch the parent order timestamp when a message is created/updated.
+     * This ensures the order moves to the top of the chat list.
+     */
+    protected $touches = ['order'];
+
     public function order()
     {
         return $this->belongsTo(Order::class);

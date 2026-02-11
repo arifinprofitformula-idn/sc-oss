@@ -273,9 +273,11 @@
                         if (response.ok) {
                             // Add new option to select
                             const select = document.getElementById('brand_id');
-                            const option = new Option(data.brand.name, data.brand.id);
-                            // Insert before the last option (+ Add New)
-                            select.add(option, select.options[select.options.length - 1]);
+                            if (select) {
+                                const option = new Option(data.brand.name, data.brand.id);
+                                // Insert before the last option (+ Add New)
+                                select.add(option, select.options[select.options.length - 1]);
+                            }
                             
                             this.selectedBrand = data.brand.id;
                             this.closeBrandModal();
@@ -317,9 +319,11 @@
                         if (response.ok) {
                             // Add new option to select
                             const select = document.getElementById('category_id');
-                            const option = new Option(data.category.name, data.category.id);
-                            // Insert before the last option (+ Add New)
-                            select.add(option, select.options[select.options.length - 1]);
+                            if (select) {
+                                const option = new Option(data.category.name, data.category.id);
+                                // Insert before the last option (+ Add New)
+                                select.add(option, select.options[select.options.length - 1]);
+                            }
                             
                             this.selectedCategory = data.category.id;
                             this.closeCategoryModal();

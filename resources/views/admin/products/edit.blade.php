@@ -215,6 +215,8 @@
 
             function syncPrices() {
                 if (isSyncing) return;
+                if (!statusEl || !silverInput || !customerInput) return;
+
                 isSyncing = true;
                 
                 statusEl.classList.remove('hidden');

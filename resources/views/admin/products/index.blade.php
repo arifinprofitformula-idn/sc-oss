@@ -353,8 +353,8 @@
                 }
             </style>
 
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center space-x-2 text-sm text-gray-600 bg-white p-2 rounded shadow-sm border border-gray-200">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4 px-[10px] md:px-0">
+                <div class="w-full md:w-auto flex items-center justify-center md:justify-start space-x-2 text-sm text-gray-600 bg-white p-2 rounded shadow-sm border border-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -364,12 +364,12 @@
                     </span>
                 </div>
 
-                <div class="flex space-x-3">
-                    <a href="{{ route('admin.products.import') }}" class="btn-3d btn-3d-gold shimmer text-white font-bold py-2 px-4 rounded inline-flex items-center text-sm h-12">
+                <div class="w-full md:w-auto flex flex-col md:flex-row gap-4">
+                    <a href="{{ route('admin.products.import') }}" class="btn-3d btn-3d-gold shimmer w-full md:w-auto justify-center text-white font-bold py-2 px-4 rounded inline-flex items-center text-sm h-12">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                         Import Produk
                     </a>
-                    <a href="{{ route('admin.products.create') }}" class="btn-3d btn-3d-blue shimmer text-white font-bold py-2 px-4 rounded inline-flex items-center text-sm h-12">
+                    <a href="{{ route('admin.products.create') }}" class="btn-3d btn-3d-blue shimmer w-full md:w-auto justify-center text-white font-bold py-2 px-4 rounded inline-flex items-center text-sm h-12">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         Add Product
                     </a>
@@ -378,53 +378,53 @@
 
             <div class="mx-[10px] sm:mx-0 bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead>
-                                <tr>
-                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand / Category</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price (SC)</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Weight</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach ($products as $product)
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            @if ($product->image)
-                                                <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" class="h-10 w-10 object-cover rounded" width="40" height="40" loading="lazy">
-                                            @else
-                                                <span class="text-gray-400">No Image</span>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm font-medium text-gray-900">{{ $product->name }}</div>
-                                            <div class="text-sm text-gray-500">{{ $product->sku }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">{{ $product->brand->name }}</div>
-                                            <div class="text-sm text-gray-500">{{ $product->category->name }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-gray-900">Rp {{ number_format($product->price_silverchannel, 0, ',', '.') }}</div>
-                                            @if($product->price_customer)
-                                                <div class="text-xs text-gray-500 line-through">Rp {{ number_format($product->price_customer, 0, ',', '.') }}</div>
-                                            @elseif($product->price_msrp)
-                                                <div class="text-xs text-gray-500 line-through">Rp {{ number_format($product->price_msrp, 0, ',', '.') }}</div>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ number_format($product->weight, 0, ',', '.') }} gr
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $product->stock }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap" x-data="{
+                    <div class="overflow-x-auto rounded-lg border border-blue-200 shadow-md">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
+                        <tr>
+                            <th class="px-3 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Image</th>
+                            <th class="px-3 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Product</th>
+                            <th class="px-3 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Brand / Category</th>
+                            <th class="px-3 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Price (SC)</th>
+                            <th class="px-3 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Weight</th>
+                            <th class="px-3 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Stock</th>
+                            <th class="px-3 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Status</th>
+                            <th class="px-3 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach ($products as $product)
+                            <tr class="hover:bg-blue-50 transition-colors">
+                                <td class="px-3 py-3 align-top whitespace-nowrap">
+                                    @if ($product->image)
+                                        <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}" class="h-10 w-10 object-cover rounded" width="40" height="40" loading="lazy">
+                                    @else
+                                        <span class="text-gray-400 text-xs">No Image</span>
+                                    @endif
+                                </td>
+                                <td class="px-3 py-3 align-top">
+                                    <div class="text-sm font-medium text-gray-900">{{ $product->name }}</div>
+                                    <div class="text-xs text-gray-500">{{ $product->sku }}</div>
+                                </td>
+                                <td class="px-3 py-3 align-top">
+                                    <div class="text-sm text-gray-900">{{ $product->brand->name }}</div>
+                                    <div class="text-xs text-gray-500">{{ $product->category->name }}</div>
+                                </td>
+                                <td class="px-3 py-3 align-top whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">Rp {{ number_format($product->price_silverchannel, 0, ',', '.') }}</div>
+                                    @if($product->price_customer)
+                                        <div class="text-xs text-gray-500 line-through">Rp {{ number_format($product->price_customer, 0, ',', '.') }}</div>
+                                    @elseif($product->price_msrp)
+                                        <div class="text-xs text-gray-500 line-through">Rp {{ number_format($product->price_msrp, 0, ',', '.') }}</div>
+                                    @endif
+                                </td>
+                                <td class="px-3 py-3 align-top whitespace-nowrap text-sm text-gray-900">
+                                    {{ number_format($product->weight, 0, ',', '.') }} gr
+                                </td>
+                                <td class="px-3 py-3 align-top whitespace-nowrap text-sm text-gray-900">
+                                    {{ $product->stock }}
+                                </td>
+                                <td class="px-3 py-3 align-top whitespace-nowrap" x-data="{
                                             active: {{ $product->is_active ? 'true' : 'false' }},
                                             loading: false,
                                             error: null,
@@ -478,8 +478,8 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <a href="{{ route('admin.products.edit', $product) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+                                <td class="px-3 py-3 align-top whitespace-nowrap text-sm font-medium">
+                                    <a href="{{ route('admin.products.edit', $product) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
                                             <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure?');">
                                                 @csrf
                                                 @method('DELETE')

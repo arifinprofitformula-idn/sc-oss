@@ -135,9 +135,9 @@
                         <!-- Benefits -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Fitur / Keuntungan</label>
-                            <template x-for="(benefit, index) in benefits" :key="index">
+                            <template x-for="(benefit, index) in benefits" :key="benefit._id">
                                 <div class="flex items-center mb-2">
-                                    <input type="text" :name="'benefits[' + index + ']'" x-model="benefits[index]" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Contoh: Akses Video Premium">
+                                    <input type="text" :name="'benefits[' + index + ']'" x-model="benefit.value" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Contoh: Akses Video Premium">
                                     <button type="button" @click="removeBenefit(index)" class="ml-2 text-red-600 hover:text-red-800">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                     </button>
@@ -290,7 +290,10 @@
                 successMessage: '',
                 
                 addBenefit() {
-                    this.benefits.push('');
+                    this.benefits.push({
+                        value: '',
+                        _id: Math.random().toString(36).substr(2, 9)
+                    });
                 },
                 removeBenefit(index) {
                     this.benefits.splice(index, 1);

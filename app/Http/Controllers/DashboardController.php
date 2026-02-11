@@ -34,7 +34,7 @@ class DashboardController extends Controller
 
         $data = [];
 
-        if ($user->hasRole('SILVERCHANNEL')) {
+        if ($user->role === 'SILVERCHANNEL') {
             // Store Operational Status
             $storeStatus = $this->storeOperationalService->getStatus();
             
