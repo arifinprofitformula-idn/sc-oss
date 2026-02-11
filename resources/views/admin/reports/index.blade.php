@@ -142,15 +142,21 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Reports & Analytics') }}
             </h2>
-            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded self-start md:self-auto">
-                Last Update: {{ $stats['integrity']['last_update'] }}
-            </span>
         </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
+            <div class="flex justify-end">
+                <span class="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 ring-1 ring-white/20">
+                    <svg class="w-3.5 h-3.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Last Update: {{ $stats['integrity']['last_update'] }}
+                </span>
+            </div>
+
             <!-- Data Integrity Warnings -->
             @if($stats['integrity']['orders_vs_payments']['status'] !== 'OK' || $stats['integrity']['payouts_vs_ledger']['status'] !== 'OK')
                 <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-sm" role="alert">
