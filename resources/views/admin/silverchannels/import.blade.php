@@ -300,6 +300,7 @@
                                                 <li>email (Login)</li>
                                                 <li>telepon</li>
                                                 <li>password (Opsional, default: 12345678)</li>
+                                                <li>referrer_id (Opsional, ID Referral Upline)</li>
                                             </ul>
                                         </div>
                                         <div>
@@ -331,68 +332,7 @@
 
                             <!-- Upload Form -->
                             <div class="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-lg border border-gray-200 dark:border-gray-700"
-                                x-data="{
-                                    fileName: null,
-                                    fileSize: null,
-                                    isValid: false,
-                                    errorMsg: null,
-                                    isDragging: false,
-                                    
-                                    handleFile(event) {
-                                        const file = event.target.files[0];
-                                        this.processFile(file);
-                                    },
-                                    
-                                    handleDrop(event) {
-                                        this.isDragging = false;
-                                        const file = event.dataTransfer.files[0];
-                                        
-                                        // Update input file manually for form submission
-                                        const dataTransfer = new DataTransfer();
-                                        dataTransfer.items.add(file);
-                                        document.getElementById('file').files = dataTransfer.files;
-                                        
-                                        this.processFile(file);
-                                    },
-                                    
-                                    processFile(file) {
-                                        if (!file) {
-                                            this.reset();
-                                            return;
-                                        }
-                                        
-                                        this.fileName = file.name;
-                                        
-                                        // Basic validation
-                                        // Note: file.type might be empty or specific on some systems for CSV
-                                        const validTypes = ['text/csv', 'application/vnd.ms-excel', 'text/plain', 'text/x-csv', 'application/csv', 'application/x-csv', 'text/comma-separated-values', 'text/x-comma-separated-values'];
-                                        const isCsvExtension = file.name.toLowerCase().endsWith('.csv');
-                                        
-                                        if (!isCsvExtension && !validTypes.includes(file.type)) {
-                                            this.errorMsg = 'Format file harus CSV (.csv).';
-                                            this.isValid = false;
-                                            return;
-                                        }
-                                        
-                                        if (file.size > 2 * 1024 * 1024) { // 2MB
-                                            this.errorMsg = 'Ukuran file melebihi batas maksimum 2MB.';
-                                            this.isValid = false;
-                                            return;
-                                        }
-
-                                        this.fileSize = (file.size / 1024).toFixed(2) + ' KB';
-                                        this.isValid = true;
-                                        this.errorMsg = null;
-                                    },
-                                    
-                                    reset() {
-                                        this.fileName = null;
-                                        this.fileSize = null;
-                                        this.isValid = false;
-                                        this.errorMsg = null;
-                                        document.getElementById('file').value = '';
-                                    }
-                                }">
+                                x-data="silverchannelImport()">
                                 <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Langkah 2: Upload & Preview</h4>
                                 <form action="{{ route('admin.silverchannels.import.preview') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                                     @csrf
@@ -443,6 +383,17 @@
                                                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" x-show="fileSize" x-text="fileSize"></p>
                                                     
                                                     <p class="text-sm text-red-600 dark:text-red-400 mt-2 font-semibold" x-show="errorMsg" x-text="errorMsg"></p>
+                                                    
+                                                    <!-- Client-side Validation Errors -->
+                                                    <div x-show="validationErrors.length > 0" class="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-md border border-red-200 dark:border-red-800 text-left">
+                                                        <strong class="block text-xs font-bold text-red-700 dark:text-red-300 mb-1">Detail Error:</strong>
+                                                        <ul class="list-disc pl-4 text-xs text-red-600 dark:text-red-400 max-h-32 overflow-y-auto">
+                                                            <template x-for="error in validationErrors">
+                                                                <li x-text="error"></li>
+                                                            </template>
+                                                        </ul>
+                                                    </div>
+
                                                     <p class="text-sm text-green-600 dark:text-green-400 mt-2 font-semibold" x-show="isValid">File siap diupload</p>
 
                                                     <button type="button" @click.prevent="reset()" class="mt-4 text-xs text-gray-500 underline hover:text-gray-700 dark:hover:text-gray-300">
@@ -476,4 +427,183 @@
             </div>
         </div>
     </div>
+    <script>
+        function silverchannelImport() {
+            return {
+                fileName: null,
+                fileSize: null,
+                isValid: false,
+                errorMsg: null,
+                validationErrors: [],
+                isDragging: false,
+                
+                handleFile(event) {
+                    const file = event.target.files[0];
+                    this.processFile(file);
+                },
+                
+                handleDrop(event) {
+                    this.isDragging = false;
+                    const file = event.dataTransfer.files[0];
+                    
+                    // Update input file manually for form submission
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    document.getElementById('file').files = dataTransfer.files;
+                    
+                    this.processFile(file);
+                },
+                
+                processFile(file) {
+                    if (!file) {
+                        this.reset();
+                        return;
+                    }
+                    
+                    this.fileName = file.name;
+                    
+                    // Basic validation
+                    const validTypes = ['text/csv', 'application/vnd.ms-excel', 'text/plain', 'text/x-csv', 'application/csv', 'application/x-csv', 'text/comma-separated-values', 'text/x-comma-separated-values'];
+                    const isCsvExtension = file.name.toLowerCase().endsWith('.csv');
+                    
+                    if (!isCsvExtension && !validTypes.includes(file.type)) {
+                        this.errorMsg = 'Format file harus CSV (.csv).';
+                        this.isValid = false;
+                        return;
+                    }
+                    
+                    if (file.size > 2 * 1024 * 1024) { // 2MB
+                        this.errorMsg = 'Ukuran file melebihi batas maksimum 2MB.';
+                        this.isValid = false;
+                        return;
+                    }
+
+                    this.fileSize = (file.size / 1024).toFixed(2) + ' KB';
+                    
+                    // Content Validation
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.validateContent(e.target.result);
+                    };
+                    reader.onerror = () => {
+                        this.errorMsg = 'Gagal membaca file.';
+                        this.isValid = false;
+                    };
+                    reader.readAsText(file);
+                },
+
+                validateContent(csvText) {
+                    this.validationErrors = [];
+                    this.errorMsg = null;
+                    this.isValid = true;
+                    
+                    const lines = csvText.split(/\r\n|\n/);
+                    if (lines.length < 2) {
+                        this.errorMsg = 'File CSV kosong atau tidak memiliki header.';
+                        this.isValid = false;
+                        return;
+                    }
+
+                    const headers = lines[0].split(',').map(h => h.trim().replace(/^[\"\']|[\"\']$/g, ''));
+                    const requiredFields = ['nama_channel', 'id_silverchannel', 'tanggal_bergabung', 'email'];
+                    
+                    const missingHeaders = requiredFields.filter(f => !headers.includes(f));
+                    
+                    if (missingHeaders.length > 0) {
+                        this.errorMsg = 'Header CSV tidak lengkap. Hilang: ' + missingHeaders.join(', ');
+                        this.isValid = false;
+                        return;
+                    }
+                    
+                    // Map header indices
+                    const headerMap = {};
+                    headers.forEach((h, i) => headerMap[h] = i);
+                    
+                    let hasContentError = false;
+                    const seenIds = new Set();
+                    const seenEmails = new Set();
+
+                    // Validate Rows
+                    for (let i = 1; i < lines.length; i++) {
+                        if (!lines[i].trim()) continue; // Skip empty lines
+                        
+                        // Split by comma ignoring quotes
+                        const row = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^["']|["']$/g, ''));
+                        
+                        // Check required fields
+                        requiredFields.forEach(field => {
+                            const val = row[headerMap[field]];
+                            if (!val || val.trim() === '') {
+                                this.validationErrors.push(`Baris ${i+1}: Field '${field}' wajib diisi.`);
+                                hasContentError = true;
+                            }
+                        });
+                        
+                        // Validate Email
+                        const email = row[headerMap['email']];
+                        if (email) {
+                            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                                this.validationErrors.push(`Baris ${i+1}: Format email tidak valid (${email}).`);
+                                hasContentError = true;
+                            }
+                            if (seenEmails.has(email)) {
+                                this.validationErrors.push(`Baris ${i+1}: Email duplikat dalam file (${email}).`);
+                                hasContentError = true;
+                            } else {
+                                seenEmails.add(email);
+                            }
+                        }
+
+                        // Validate ID Uniqueness
+                        const id = row[headerMap['id_silverchannel']];
+                        if (id) {
+                            if (seenIds.has(id)) {
+                                this.validationErrors.push(`Baris ${i+1}: ID Silverchannel duplikat dalam file (${id}).`);
+                                hasContentError = true;
+                            } else {
+                                seenIds.add(id);
+                            }
+                        }
+                        
+                        // Validate Date (YYYY-MM-DD or DD-MM-YYYY or M/D/YYYY)
+                        const date = row[headerMap['tanggal_bergabung']];
+                        if (date) {
+                            // YYYY-MM-DD
+                            const ymd = /^\d{4}-\d{2}-\d{2}$/;
+                            // DD-MM-YYYY
+                            const dmy = /^\d{2}-\d{2}-\d{4}$/;
+                            // M/D/YYYY (Excel US format)
+                            const mdy = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+                            
+                            if (!ymd.test(date) && !dmy.test(date) && !mdy.test(date)) {
+                                this.validationErrors.push(`Baris ${i+1}: Format tanggal tidak valid (${date}). Gunakan YYYY-MM-DD, DD-MM-YYYY, atau M/D/YYYY.`);
+                                hasContentError = true;
+                            }
+                        }
+                        
+                        if (this.validationErrors.length >= 10) {
+                            this.validationErrors.push('... dan error lainnya.');
+                            break;
+                        }
+                    }
+                    
+                    if (hasContentError) {
+                        this.isValid = false;
+                        if (!this.errorMsg) {
+                            this.errorMsg = 'Terdapat kesalahan pada data CSV.';
+                        }
+                    }
+                },
+                
+                reset() {
+                    this.fileName = null;
+                    this.fileSize = null;
+                    this.isValid = false;
+                    this.errorMsg = null;
+                    this.validationErrors = [];
+                    document.getElementById('file').value = '';
+                }
+            };
+        }
+    </script>
 </x-app-layout>

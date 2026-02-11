@@ -665,6 +665,7 @@
 
         function silverchannelManager() {
             return {
+                pageLoading: false,
                 showModal: false,
                 showRefModal: false,
                 referrer: null,

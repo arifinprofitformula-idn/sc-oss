@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
+use Illuminate\Support\Facades\Log;
+
 class SilverchannelImportService
 {
     protected $successCount = 0;
@@ -36,6 +38,7 @@ class SilverchannelImportService
             'pekerjaan',
             'tanggal_bergabung',
             'status_aktif', // 1/0 or TRUE/FALSE
+            'referrer_id', // ID Silverchannel of the referrer (MANDATORY)
         ];
     }
 
@@ -58,7 +61,8 @@ class SilverchannelImportService
                 'Menikah',
                 'Wiraswasta',
                 '01-01-2024',
-                '1'
+                '1',
+                'REF001' // Example valid referrer
             ],
             [
                 'SC002',
@@ -76,7 +80,8 @@ class SilverchannelImportService
                 'Belum Menikah',
                 'Pedagang',
                 '15-01-2024',
-                '1'
+                '1',
+                'SC001' // Referencing the first row if already exists, or an existing upline
             ],
         ];
     }
@@ -88,21 +93,56 @@ class SilverchannelImportService
         $this->errors = [];
         $this->logs = [];
 
-        foreach ($rows as $index => $row) {
-            $rowNumber = $index + 2; // Assuming header is row 1
-            
-            // Normalize keys
+        Log::info("Starting Silverchannel Import process by User ID: {$userId}", ['total_rows' => count($rows)]);
+
+        // 1. Pre-processing & Bulk Lookup
+        $silverChannelIds = [];
+        $referrerCodes = [];
+
+        // Collect IDs for lookup
+        foreach ($rows as $row) {
             $row = array_change_key_case($row, CASE_LOWER);
-            
-            // Validation
+            if (!empty($row['id_silverchannel'])) {
+                $silverChannelIds[] = $row['id_silverchannel'];
+            }
+            if (!empty($row['referrer_id'])) {
+                $referrerCodes[] = $row['referrer_id'];
+            }
+        }
+
+        // Bulk Fetch Existing Users
+        $existingUsersMap = User::whereIn('silver_channel_id', $silverChannelIds)
+            ->get()
+            ->keyBy('silver_channel_id');
+
+        // Bulk Fetch Referrers
+        $potentialReferrers = User::whereIn('silver_channel_id', $referrerCodes)
+            ->orWhereIn('referral_code', $referrerCodes)
+            ->get();
+        
+        $referrerMap = [];
+        foreach ($potentialReferrers as $ref) {
+            if ($ref->silver_channel_id) $referrerMap[$ref->silver_channel_id] = $ref->id;
+            if ($ref->referral_code) $referrerMap[$ref->referral_code] = $ref->id;
+        }
+
+        // 2. Validation Phase (All-or-Nothing)
+        $validationErrors = [];
+        $validatedRows = [];
+
+        foreach ($rows as $index => $row) {
+            $rowNumber = $index + 2;
+            $row = array_change_key_case($row, CASE_LOWER);
+
+            // Basic Validation
             $validator = Validator::make($row, [
                 'id_silverchannel' => 'required',
                 'nama_channel' => 'required|string',
                 'email' => 'required|email',
                 'telepon' => 'nullable|string',
                 'nik' => 'nullable|string|max:16',
-                'alamat' => 'required|string',
-                'kota' => 'required|string',
+                'alamat' => 'nullable|string',
+                'kota' => 'nullable|string',
                 'kode_pos' => 'nullable|string',
                 'tempat_lahir' => 'nullable|string',
                 'tanggal_lahir' => 'nullable|date_format:Y-m-d',
@@ -113,51 +153,114 @@ class SilverchannelImportService
                 'nama_bank' => 'nullable|string',
                 'no_rekening' => 'nullable|string',
                 'pemilik_rekening' => 'nullable|string',
-                'tanggal_bergabung' => 'required|date_format:d-m-Y',
+                'tanggal_bergabung' => 'required',
                 'status_aktif' => 'required',
+                'referrer_id' => 'required|string', // MANDATORY
             ]);
 
             if ($validator->fails()) {
-                $this->failedCount++;
-                $this->errors[] = [
+                $validationErrors[] = [
                     'row' => $rowNumber,
                     'data' => $row,
                     'errors' => $validator->errors()->all()
                 ];
+                continue; 
+            }
+
+            // Referrer Existence Validation
+            $referrerCode = $row['referrer_id'];
+            if (!isset($referrerMap[$referrerCode])) {
+                $validationErrors[] = [
+                    'row' => $rowNumber,
+                    'data' => $row,
+                    'errors' => ["Referrer ID '{$referrerCode}' tidak ditemukan di sistem. Pastikan referrer sudah terdaftar."]
+                ];
                 continue;
             }
 
-            $data = $validator->validated();
+            $validatedRows[] = [
+                'row_number' => $rowNumber,
+                'data' => $validator->validated(),
+                'referrer_db_id' => $referrerMap[$referrerCode]
+            ];
+        }
 
-            DB::beginTransaction();
-            try {
+        // If any validation errors occurred, abort everything
+        if (count($validationErrors) > 0) {
+            Log::warning("Import failed due to validation errors", ['errors' => $validationErrors]);
+            
+            // Check if there is a referrer specific error to customize the general message if needed, 
+            // but the requirement says "Import dibatalkan karena referrer ID tidak tercatat..." 
+            // We'll append this to the response.
+            
+            return [
+                'success_count' => 0,
+                'failed_count' => count($rows),
+                'errors' => $validationErrors,
+                'logs' => ["Import dibatalkan karena terdapat error validasi (termasuk validasi referrer ID)."],
+                'status' => 'failed'
+            ];
+        }
+
+        // 3. Execution Phase (Atomic Transaction)
+        DB::beginTransaction();
+        try {
+            foreach ($validatedRows as $item) {
+                $data = $item['data'];
+                $rowNumber = $item['row_number'];
+                $referrerId = $item['referrer_db_id'];
+
                 $status = filter_var($data['status_aktif'], FILTER_VALIDATE_BOOLEAN) ? 'ACTIVE' : 'INACTIVE';
-                $joinDate = Carbon::createFromFormat('d-m-Y', $data['tanggal_bergabung'])->format('Y-m-d H:i:s');
                 
-                // Upsert by silver_channel_id
-                $userData = [
-                    'name' => $data['nama_channel'],
-                    'email' => $data['email'],
-                    'phone' => $data['telepon'] ?? null,
-                    'nik' => $data['nik'] ?? null,
-                    'address' => $data['alamat'],
-                    'city_name' => $data['kota'],
-                    'postal_code' => $data['kode_pos'] ?? null,
-                    'status' => $status,
-                    'referral_code' => $data['id_silverchannel'],
-                ];
+                // Date Parsing Logic
+                $joinDateStr = $data['tanggal_bergabung'];
+                $joinDate = null;
+                $formats = ['d-m-Y', 'Y-m-d', 'm/d/Y', 'n/j/Y', 'd/m/Y', 'Y/m/d'];
+                
+                foreach ($formats as $fmt) {
+                    try {
+                        $joinDate = Carbon::createFromFormat($fmt, $joinDateStr)->format('Y-m-d H:i:s');
+                        break;
+                    } catch (\Exception $e) { continue; }
+                }
 
-                $existing = User::where('silver_channel_id', $data['id_silverchannel'])->first();
+                if (!$joinDate) {
+                    try {
+                        $joinDate = Carbon::parse($joinDateStr)->format('Y-m-d H:i:s');
+                    } catch (\Exception $e) {
+                         // Should be caught in validation phase ideally, but fail-safe here
+                         throw new \Exception("Format tanggal bergabung tidak valid di baris {$rowNumber}");
+                    }
+                }
+
+                $scId = $data['id_silverchannel'];
+                $existing = $existingUsersMap[$scId] ?? null;
+
                 $action = $existing ? 'UPDATE' : 'CREATE';
                 $oldValues = $existing ? $existing->toArray() : null;
 
-                $user = User::updateOrCreate(
-                    ['silver_channel_id' => $data['id_silverchannel']],
-                    array_merge($userData, [
-                        // For create, ensure password set; for update, it will be ignored if already set
-                        'password' => $existing ? $existing->password : Hash::make('password'),
-                    ])
-                );
+                $userData = [
+                    'name' => $data['nama_channel'],
+                    'email' => $data['email'],
+                    'phone' => !empty($data['telepon']) ? $data['telepon'] : null,
+                    'nik' => !empty($data['nik']) ? $data['nik'] : null,
+                    'address' => !empty($data['alamat']) ? $data['alamat'] : null,
+                    'city_name' => !empty($data['kota']) ? $data['kota'] : null,
+                    'postal_code' => !empty($data['kode_pos']) ? $data['kode_pos'] : null,
+                    'status' => $status,
+                    'referral_code' => $scId,
+                    'referrer_id' => $referrerId,
+                ];
+
+                if ($existing) {
+                    $user = $existing;
+                    $user->fill($userData);
+                } else {
+                    $user = new User($userData);
+                    $user->silver_channel_id = $scId;
+                    $user->password = Hash::make('password');
+                }
+                
                 $user->created_at = $joinDate;
                 $user->save();
                 
@@ -165,16 +268,16 @@ class SilverchannelImportService
                     $user->assignRole('SILVERCHANNEL');
                 }
 
-                // Update detail & bank info directly on users table
-                $user->gender = $data['jenis_kelamin'] ?? null;
-                $user->birth_place = $data['tempat_lahir'] ?? null;
-                $user->birth_date = $data['tanggal_lahir'] ?? null;
-                $user->religion = $data['agama'] ?? null;
-                $user->marital_status = $data['status_perkawinan'] ?? null;
-                $user->job = $data['pekerjaan'] ?? null;
+                // Details
+                $user->gender = !empty($data['jenis_kelamin']) ? $data['jenis_kelamin'] : null;
+                $user->birth_place = !empty($data['tempat_lahir']) ? $data['tempat_lahir'] : null;
+                $user->birth_date = !empty($data['tanggal_lahir']) ? $data['tanggal_lahir'] : null;
+                $user->religion = !empty($data['agama']) ? $data['agama'] : null;
+                $user->marital_status = !empty($data['status_perkawinan']) ? $data['status_perkawinan'] : null;
+                $user->job = !empty($data['pekerjaan']) ? $data['pekerjaan'] : null;
                 $user->save();
 
-                // Log
+                // Audit Log
                 AuditLog::create([
                     'user_id' => $userId,
                     'action' => 'IMPORT_SILVERCHANNEL_' . $action,
@@ -186,26 +289,36 @@ class SilverchannelImportService
                     'user_agent' => request()->userAgent(),
                 ]);
 
-                DB::commit();
                 $this->successCount++;
-                $this->logs[] = "Row {$rowNumber}: {$action} ID {$data['id_silverchannel']} successfully.";
-
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $this->failedCount++;
-                $this->errors[] = [
-                    'row' => $rowNumber,
-                    'data' => $row,
-                    'errors' => [$e->getMessage()]
-                ];
+                $this->logs[] = "Row {$rowNumber}: {$action} ID {$scId} successfully.";
             }
+
+            DB::commit();
+            Log::info("Import success. Processed {$this->successCount} rows.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Import failed during execution phase: " . $e->getMessage());
+            
+            return [
+                'success_count' => 0,
+                'failed_count' => count($rows),
+                'errors' => [[
+                    'row' => 'General',
+                    'data' => [],
+                    'errors' => ["Terjadi kesalahan sistem saat memproses data: " . $e->getMessage()]
+                ]],
+                'logs' => ["Import dibatalkan karena kesalahan sistem."],
+                'status' => 'failed'
+            ];
         }
 
         return [
             'success_count' => $this->successCount,
-            'failed_count' => $this->failedCount,
-            'errors' => $this->errors,
+            'failed_count' => 0,
+            'errors' => [],
             'logs' => $this->logs,
+            'status' => 'success'
         ];
     }
 }

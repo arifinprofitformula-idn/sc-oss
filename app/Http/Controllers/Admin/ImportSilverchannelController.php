@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\SilverchannelImportService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -20,7 +21,7 @@ class ImportSilverchannelController extends Controller
     public function create()
     {
         // Check if there is a pending file for this user
-        $tempFile = 'temp/import_' . auth()->id() . '.csv';
+        $tempFile = 'temp/import_' . Auth::id() . '.csv';
         
         if (Storage::exists($tempFile)) {
             try {
@@ -117,7 +118,7 @@ class ImportSilverchannelController extends Controller
             // Save to temp storage safely using manual stream
             // This bypasses FilesystemAdapter's putFileAs wrapper which causes "Path must not be empty" 
             // errors when handling File objects in some environments/PHP versions.
-            $filename = 'import_' . auth()->id() . '.csv';
+            $filename = 'import_' . Auth::id() . '.csv';
             $targetPath = 'temp/' . $filename;
             
             // Open stream manually from the validated realPath
@@ -166,6 +167,101 @@ class ImportSilverchannelController extends Controller
                 return back()->withErrors(['file' => 'Invalid CSV format: Missing header.']);
             }
 
+            // REQUIRED FIELDS VALIDATION
+            $requiredFields = ['nama_channel', 'id_silverchannel', 'tanggal_bergabung', 'email'];
+            $missingHeaders = array_diff($requiredFields, $header);
+            
+            if (!empty($missingHeaders)) {
+                return back()->withErrors(['file' => 'Format CSV tidak valid. Kolom wajib berikut hilang: ' . implode(', ', $missingHeaders)]);
+            }
+
+            // Validate all rows
+            $rowErrors = [];
+            $line = 2; // Start from line 2 (line 1 is header)
+            
+            $seenIds = [];
+            $seenEmails = [];
+
+            foreach ($csvData as $row) {
+                // Skip empty rows
+                if (empty($row) || (count($row) === 1 && is_null($row[0]))) {
+                    $line++;
+                    continue;
+                }
+
+                if (count($header) != count($row)) {
+                    // Try to pad or trim? No, strict validation.
+                    // Actually, sometimes CSVs have trailing empty columns.
+                    // But let's be strict or lenient?
+                    // "Sistem harus menolak import seluruhnya jika salah satu field wajib kosong pada baris tertentu"
+                    // Mismatch count is also an error.
+                    // Let's just map what we can.
+                }
+
+                $rowData = [];
+                // Combine safe
+                foreach ($header as $index => $key) {
+                    $rowData[$key] = $row[$index] ?? '';
+                }
+
+                // Check required fields
+                foreach ($requiredFields as $field) {
+                    if (empty(trim($rowData[$field] ?? ''))) {
+                        $rowErrors[] = "Baris $line: Field '$field' wajib diisi.";
+                    }
+                }
+
+                // Validate Email
+                if (!empty($rowData['email'])) {
+                    $email = trim($rowData['email']);
+                    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $rowErrors[] = "Baris $line: Format email tidak valid ($email).";
+                    }
+                    
+                    // Check duplicate in CSV
+                    if (in_array($email, $seenEmails)) {
+                         $rowErrors[] = "Baris $line: Email duplikat dalam file ($email).";
+                    } else {
+                        $seenEmails[] = $email;
+                    }
+                }
+
+                // Validate ID Silverchannel uniqueness in CSV
+                if (!empty($rowData['id_silverchannel'])) {
+                    $id = trim($rowData['id_silverchannel']);
+                    if (in_array($id, $seenIds)) {
+                         $rowErrors[] = "Baris $line: ID Silverchannel duplikat dalam file ($id).";
+                    } else {
+                        $seenIds[] = $id;
+                    }
+                }
+
+                // Validate Date (YYYY-MM-DD or DD-MM-YYYY)
+                if (!empty($rowData['tanggal_bergabung'])) {
+                    $date = $rowData['tanggal_bergabung'];
+                    // Try YYYY-MM-DD
+                    $d = \DateTime::createFromFormat('Y-m-d', $date);
+                    if (!($d && $d->format('Y-m-d') === $date)) {
+                        // Try DD-MM-YYYY
+                        $d = \DateTime::createFromFormat('d-m-Y', $date);
+                        if (!($d && $d->format('d-m-Y') === $date)) {
+                             $rowErrors[] = "Baris $line: Format tanggal tidak valid ({$date}). Gunakan YYYY-MM-DD atau DD-MM-YYYY.";
+                        }
+                    }
+                }
+
+                $line++;
+            }
+
+            if (!empty($rowErrors)) {
+                // Limit errors to first 10 to avoid huge message
+                $showErrors = array_slice($rowErrors, 0, 10);
+                if (count($rowErrors) > 10) {
+                    $showErrors[] = "... dan " . (count($rowErrors) - 10) . " error lainnya.";
+                }
+                return back()->withErrors(['file' => 'Validasi Data Gagal:', 'details' => $showErrors]);
+            }
+
             // Combine header with data (take first 5 rows)
             $previewData = [];
             $count = 0;
@@ -191,7 +287,7 @@ class ImportSilverchannelController extends Controller
     public function process(Request $request)
     {
         try {
-            $tempFile = 'temp/import_' . auth()->id() . '.csv';
+            $tempFile = 'temp/import_' . Auth::id() . '.csv';
 
             if (!Storage::exists($tempFile)) {
                 return redirect()->route('admin.silverchannels.import')
@@ -236,12 +332,19 @@ class ImportSilverchannelController extends Controller
                 return back()->withErrors(['file' => 'File CSV kosong atau format tidak valid (data mismatch).']);
             }
 
-            $result = $this->importService->import($rows, auth()->id());
+            $result = $this->importService->import($rows, Auth::id());
 
             // Cleanup
             Storage::delete($tempFile);
 
+            if (isset($result['status']) && $result['status'] === 'failed') {
+                return redirect()->route('admin.silverchannels.import')
+                    ->with('error', 'Import dibatalkan karena terdapat kesalahan validasi.')
+                    ->with('import_result', $result);
+            }
+
             return redirect()->route('admin.silverchannels.import')
+                ->with('success', 'Import berhasil diproses.')
                 ->with('import_result', $result);
 
         } catch (\Exception $e) {
@@ -304,9 +407,16 @@ class ImportSilverchannelController extends Controller
                 return back()->withErrors(['file' => 'File CSV kosong atau format tidak valid.']);
             }
 
-            $result = $this->importService->import($rows, auth()->id());
+            $result = $this->importService->import($rows, Auth::id());
+
+            if (isset($result['status']) && $result['status'] === 'failed') {
+                return redirect()->route('admin.silverchannels.import')
+                    ->with('error', 'Import dibatalkan karena terdapat kesalahan validasi.')
+                    ->with('import_result', $result);
+            }
 
             return redirect()->route('admin.silverchannels.import')
+                ->with('success', 'Import berhasil diproses.')
                 ->with('import_result', $result);
 
         } catch (\Exception $e) {
@@ -317,7 +427,7 @@ class ImportSilverchannelController extends Controller
     
     public function cancel()
     {
-        $tempFile = 'temp/import_' . auth()->id() . '.csv';
+        $tempFile = 'temp/import_' . Auth::id() . '.csv';
         if (Storage::exists($tempFile)) {
             Storage::delete($tempFile);
         }

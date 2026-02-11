@@ -45,9 +45,12 @@ class ImportSilverchannelTest extends TestCase
     {
         $admin = User::factory()->create();
         $admin->assignRole('SUPER_ADMIN');
+        
+        // Create a referrer
+        $referrer = User::factory()->create(['silver_channel_id' => 'REF001']);
 
-        $csvContent = "id_silverchannel,nama_channel,alamat,kota,kode_pos,telepon,email,tanggal_bergabung,status_aktif\n";
-        $csvContent .= "SC001,Channel A,Jl. Contoh No.1,Jakarta,12345,0211234567,channelA@example.com,15-01-2023,true";
+        $csvContent = "id_silverchannel,nama_channel,alamat,kota,kode_pos,telepon,email,tanggal_bergabung,status_aktif,referrer_id\n";
+        $csvContent .= "SC001,Channel A,Jl. Contoh No.1,Jakarta,12345,0211234567,channelA@example.com,15-01-2023,true,REF001";
 
         $file = UploadedFile::fake()->createWithContent('silverchannels.csv', $csvContent);
 
@@ -63,6 +66,7 @@ class ImportSilverchannelTest extends TestCase
         $this->assertEquals('channelA@example.com', $user->email);
         $this->assertEquals('ACTIVE', $user->status);
         $this->assertEquals('12345', $user->postal_code);
+        $this->assertEquals($referrer->id, $user->referrer_id);
         $this->assertTrue($user->hasRole('SILVERCHANNEL'));
     }
 
@@ -71,16 +75,20 @@ class ImportSilverchannelTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('SUPER_ADMIN');
 
+        // Create a referrer
+        $referrer = User::factory()->create(['silver_channel_id' => 'REF001']);
+
         // Create existing user
         $user = User::factory()->create([
             'silver_channel_id' => 'SC001',
             'name' => 'Old Name',
             'email' => 'old@example.com',
+            'referrer_id' => $referrer->id,
         ]);
         $user->assignRole('SILVERCHANNEL');
 
-        $csvContent = "id_silverchannel,nama_channel,alamat,kota,kode_pos,telepon,email,tanggal_bergabung,status_aktif\n";
-        $csvContent .= "SC001,New Name,Jl. Baru,Bandung,54321,08123456789,new@example.com,20-02-2023,false";
+        $csvContent = "id_silverchannel,nama_channel,alamat,kota,kode_pos,telepon,email,tanggal_bergabung,status_aktif,referrer_id\n";
+        $csvContent .= "SC001,New Name,Jl. Baru,Bandung,54321,08123456789,new@example.com,20-02-2023,false,REF001";
 
         $file = UploadedFile::fake()->createWithContent('update.csv', $csvContent);
 
