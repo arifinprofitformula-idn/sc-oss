@@ -147,81 +147,14 @@
             <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf
                 <style>
-                    /* From Uiverse.io by JaydipPrajapati1910 - Modified for Laravel */
-                    .Btn-logout {
-                        display: flex;
-                        align-items: center;
-                        justify-content: flex-start;
-                        width: 100%;
-                        height: 45px;
-                        border: none;
-                        border-radius: 8px;
-                        cursor: pointer;
+                    @keyframes shimmer {
+                        0% { transform: translateX(-100%) skewX(-15deg); }
+                        100% { transform: translateX(200%) skewX(-15deg); }
+                    }
+                    .shimmer {
                         position: relative;
                         overflow: hidden;
-                        transition-duration: .3s;
-                        box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.199);
-                        background-color: #4f46e5; /* indigo-600 */
-                        margin: 0 auto;
                     }
-
-                    /* plus sign - adapted for logout icon */
-                    .sign {
-                        width: 100%;
-                        transition-duration: .3s;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    }
-
-                    .sign svg {
-                        width: 20px;
-                    }
-
-                    .sign svg path {
-                        stroke: white; /* Changed from fill to stroke for logout icon */
-                    }
-
-                    /* text */
-                    .text {
-                        position: absolute;
-                        right: 0%;
-                        width: 0%;
-                        opacity: 0;
-                        color: white;
-                        font-size: 1em;
-                        font-weight: 600;
-                        transition-duration: .3s;
-                        white-space: nowrap;
-                    }
-
-                    /* hover effect on button width */
-                    .Btn-logout:hover {
-                        /* width: 125px; -- removed to keep full width */
-                        /* border-radius: 40px; -- keep original radius */
-                        transition-duration: .3s;
-                    }
-
-                    .Btn-logout:hover .sign {
-                        width: 30%;
-                        transition-duration: .3s;
-                        padding-left: 20px;
-                    }
-
-                    /* hover effect button's text */
-                    .Btn-logout:hover .text {
-                        opacity: 1;
-                        width: 70%;
-                        transition-duration: .3s;
-                        padding-right: 10px;
-                    }
-
-                    /* button click effect*/
-                    .Btn-logout:active {
-                        transform: translate(2px ,2px);
-                    }
-
-                    /* Shimmer Effect */
                     .shimmer::after {
                         content: '';
                         position: absolute;
@@ -234,19 +167,31 @@
                         animation: shimmer 2s infinite;
                         pointer-events: none;
                     }
-                    
-                    @keyframes shimmer {
-                        0% { transform: translateX(-150%) skewX(-15deg); }
-                        100% { transform: translateX(200%) skewX(-15deg); }
+                    /* 3D Button Effect */
+                    .btn-3d {
+                        transition: all 0.1s;
+                        position: relative;
+                        top: 0;
+                    }
+                    .btn-3d:active {
+                        top: 2px;
+                        box-shadow: 0 0px 0 0 var(--btn-shadow-color) !important;
+                    }
+                    .btn-3d-indigo {
+                        background-color: #4f46e5;
+                        box-shadow: 0 4px 0 0 #312e81;
+                        --btn-shadow-color: #312e81;
+                        color: white;
+                    }
+                    .btn-3d-indigo:hover {
+                        background-color: #4338ca;
                     }
                 </style>
-                <button type="submit" class="Btn-logout shimmer">
-                    <div class="sign">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                        </svg>
-                    </div>
-                    <div class="text">{{ __('Log Out') }}</div>
+                <button type="submit" class="w-full flex items-center justify-center px-4 py-3 rounded-full font-bold btn-3d btn-3d-indigo shimmer group">
+                    <svg class="w-5 h-5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span class="ml-3">{{ __('Log Out') }}</span>
                 </button>
             </form>
         </div>
