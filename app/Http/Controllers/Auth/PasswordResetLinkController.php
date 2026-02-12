@@ -32,13 +32,32 @@ class PasswordResetLinkController extends Controller
         // We will send the password reset link to this user. Once we have attempted
         // to send the link, we will examine the response then see the message we
         // need to show to the user. Finally, we'll send out a proper response.
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        try {
+            $status = Password::sendResetLink(
+                $request->only('email')
+            );
 
-        return $status == Password::RESET_LINK_SENT
-                    ? back()->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+            return $status == Password::RESET_LINK_SENT
+                        ? back()->with('status', __($status))
+                        : back()->withInput($request->only('email'))
+                            ->withErrors(['email' => __($status)]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Password reset email failed: ' . $e->getMessage());
+            
+            $errorMessage = 'Terjadi kesalahan saat mengirim email reset password.';
+            
+            // Check for connection/timeout issues
+            if (str_contains(strtolower($e->getMessage()), 'timeout') || str_contains(strtolower($e->getMessage()), 'connection')) {
+                $errorMessage = 'Gagal terhubung ke layanan email. Silakan coba beberapa saat lagi.';
+            } 
+            // Check for authentication issues
+            elseif (str_contains(strtolower($e->getMessage()), 'auth') || str_contains(strtolower($e->getMessage()), 'credential')) {
+                $errorMessage = 'Layanan email sedang dalam pemeliharaan (Auth Error). Silakan hubungi admin.';
+            }
+
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors(['email' => $errorMessage]);
+        }
     }
 }

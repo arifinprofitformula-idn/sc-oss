@@ -145,7 +145,7 @@
                         </div>
 
                         <div class="flex items-center justify-end mt-4">
-                            <a href="{{ route('admin.email-templates.index') }}" class="text-gray-600 hover:text-gray-900 mr-4">Cancel</a>
+                            <a href="{{ route('admin.integrations.email') }}" class="text-gray-600 hover:text-gray-900 mr-4">Cancel</a>
                             <button type="submit" class="btn-3d btn-3d-blue shimmer inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest ml-4">
                                 {{ __('Create Template') }}
                             </button>

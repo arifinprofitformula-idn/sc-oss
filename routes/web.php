@@ -162,6 +162,15 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::patch('/payouts/{payout}/approve', [\App\Http\Controllers\Admin\PayoutController::class, 'approve'])->name('payouts.approve');
             Route::patch('/payouts/{payout}/reject', [\App\Http\Controllers\Admin\PayoutController::class, 'reject'])->name('payouts.reject');
 
+            // Email Templates
+            Route::prefix('email-templates')->name('email-templates.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'index'])->name('index');
+                Route::get('/{id}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'show'])->name('show');
+                Route::put('/{id}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'update'])->name('update');
+                Route::post('/preview', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'preview'])->name('preview');
+                Route::post('/history/{historyId}/revert', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'revert'])->name('revert');
+            });
+
             // Reports
             Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
             Route::get('/reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
@@ -215,6 +224,12 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
                 Route::get('/docs', [\App\Http\Controllers\Admin\IntegrationController::class, 'docs'])->name('docs');
                 Route::post('/update', [\App\Http\Controllers\Admin\IntegrationController::class, 'update'])->name('update');
                 
+                // Email Template Editor API
+                Route::get('/email/templates', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'index'])->name('email.templates.index');
+                Route::get('/email/templates/{id}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'show'])->name('email.templates.show');
+                Route::put('/email/templates/{id}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'update'])->name('email.templates.update');
+                Route::post('/email/templates/revert/{historyId}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'revert'])->name('email.templates.revert');
+
                 Route::post('/test/rajaongkir', [\App\Http\Controllers\Admin\IntegrationController::class, 'testRajaOngkir'])
                     ->middleware('throttle:10,1')
                     ->name('test.rajaongkir');
@@ -232,10 +247,13 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
                 Route::post('/shipping/test-cost', [\App\Http\Controllers\Admin\IntegrationController::class, 'testShippingCost'])->name('shipping.test-cost');
                 Route::post('/shipping/store-update', [\App\Http\Controllers\Admin\IntegrationController::class, 'updateStoreShipping'])->name('shipping.store-update');
                 
-                Route::get('/brevo', [\App\Http\Controllers\Admin\IntegrationController::class, 'brevo'])->name('brevo');
+                Route::get('/email', [\App\Http\Controllers\Admin\IntegrationController::class, 'email'])->name('email');
                 Route::post('/test/brevo', [\App\Http\Controllers\Admin\IntegrationController::class, 'testBrevo'])
                     ->middleware('throttle:10,1')
                     ->name('test.brevo');
+                Route::post('/test/mailketing', [\App\Http\Controllers\Admin\IntegrationController::class, 'testMailketing'])
+                    ->middleware('throttle:10,1')
+                    ->name('test.mailketing');
             });
 
             // External API Management

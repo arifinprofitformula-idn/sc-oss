@@ -51,4 +51,13 @@ class SystemSetting extends Model
             $this->attributes['value'] = $value;
         }
     }
+
+    /**
+     * Helper to get value by key statically.
+     */
+    public static function getValue($key, $default = null)
+    {
+        $setting = self::where('key', $key)->first();
+        return $setting ? $setting->value : $default;
+    }
 }

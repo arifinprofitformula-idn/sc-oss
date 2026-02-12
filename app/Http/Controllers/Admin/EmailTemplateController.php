@@ -4,172 +4,108 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\EmailTemplate;
-use App\Services\IntegrationService;
+use App\Models\EmailTemplateHistory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class EmailTemplateController extends Controller
 {
-    protected $integrationService;
-
-    public function __construct(IntegrationService $integrationService)
+    /**
+     * Get all email templates.
+     */
+    public function index()
     {
-        $this->integrationService = $integrationService;
+        return response()->json(EmailTemplate::all());
     }
 
-    public function index(Request $request)
+    /**
+     * Get a specific email template.
+     */
+    public function show($id)
     {
-        $query = EmailTemplate::query();
+        $template = EmailTemplate::with(['histories' => function($query) {
+            $query->with('user')->limit(10);
+        }])->findOrFail($id);
 
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('subject', 'like', "%{$search}%")
-                  ->orWhere('key', 'like', "%{$search}%");
-            });
-        }
-
-        $templates = $query->latest()->paginate(10);
-        return view('admin.email-templates.index', compact('templates'));
+        return response()->json($template);
     }
 
-    public function create()
+    /**
+     * Update an email template.
+     */
+    public function update(Request $request, $id)
     {
-        return view('admin.email-templates.create');
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'key' => 'required|string|max:255|unique:email_templates,key',
+        $request->validate([
             'subject' => 'required|string|max:255',
             'body' => 'required|string',
-            'is_active' => 'boolean',
-            'sync_brevo' => 'nullable|boolean',
         ]);
 
-        $template = EmailTemplate::create($validated);
+        $template = EmailTemplate::findOrFail($id);
 
-        if ($request->boolean('sync_brevo')) {
-            $this->syncToBrevo($template);
-        }
-
-        return redirect()->route('admin.email-templates.index')
-            ->with('success', 'Email template created successfully.');
-    }
-
-    public function edit(EmailTemplate $emailTemplate)
-    {
-        return view('admin.email-templates.edit', compact('emailTemplate'));
-    }
-
-    public function update(Request $request, EmailTemplate $emailTemplate)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'key' => 'required|string|max:255|unique:email_templates,key,' . $emailTemplate->id,
-            'subject' => 'required|string|max:255',
-            'body' => 'required|string',
-            'is_active' => 'boolean',
-            'sync_brevo' => 'nullable|boolean',
+        // Save history before updating
+        EmailTemplateHistory::create([
+            'email_template_id' => $template->id,
+            'user_id' => Auth::id(),
+            'subject' => $template->subject,
+            'body' => $template->body,
         ]);
 
-        $emailTemplate->update($validated);
+        // Update template
+        $template->update([
+            'subject' => $request->subject,
+            'body' => $request->body,
+        ]);
 
-        if ($request->boolean('sync_brevo')) {
-            $this->syncToBrevo($emailTemplate);
-        }
-
-        return redirect()->route('admin.email-templates.index')
-            ->with('success', 'Email template updated successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Template updated successfully',
+            'template' => $template
+        ]);
     }
 
-    public function destroy(EmailTemplate $emailTemplate)
+    /**
+     * Revert to a previous version.
+     */
+    public function revert($historyId)
     {
-        $emailTemplate->delete();
-        return redirect()->route('admin.email-templates.index')
-            ->with('success', 'Email template deleted successfully.');
+        $history = EmailTemplateHistory::findOrFail($historyId);
+        $template = EmailTemplate::findOrFail($history->email_template_id);
+
+        // Save current state to history before reverting? 
+        // Yes, always good to have a way back.
+        EmailTemplateHistory::create([
+            'email_template_id' => $template->id,
+            'user_id' => Auth::id(),
+            'subject' => $template->subject,
+            'body' => $template->body,
+        ]);
+
+        $template->update([
+            'subject' => $history->subject,
+            'body' => $history->body,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Template reverted successfully',
+            'template' => $template
+        ]);
     }
 
-    public function duplicate(EmailTemplate $emailTemplate)
+    /**
+     * Preview template (simple rendering).
+     */
+    public function preview(Request $request)
     {
-        $newTemplate = $emailTemplate->replicate();
-        $newTemplate->name = $newTemplate->name . ' (Copy)';
-        $newTemplate->key = $newTemplate->key . '_copy_' . time();
-        $newTemplate->brevo_id = null;
-        $newTemplate->save();
-
-        return redirect()->route('admin.email-templates.index')
-            ->with('success', 'Email template duplicated successfully.');
-    }
-
-    public function export(EmailTemplate $emailTemplate)
-    {
-        $fileName = Str::slug($emailTemplate->name) . '.html';
-        return response()->streamDownload(function () use ($emailTemplate) {
-            echo $emailTemplate->body;
-        }, $fileName);
-    }
-
-    public function sync(EmailTemplate $emailTemplate)
-    {
-        $result = $this->syncToBrevo($emailTemplate);
-
-        if ($result['success']) {
-            return back()->with('success', 'Synced with Brevo successfully. Brevo ID: ' . $emailTemplate->brevo_id);
-        } else {
-            return back()->with('error', 'Sync failed: ' . ($result['message'] ?? 'Unknown error'));
-        }
-    }
-
-    public function preview(Request $request, EmailTemplate $emailTemplate)
-    {
-        $content = $emailTemplate->body;
-        $variables = [
-            '{{name}}' => 'John Doe',
-            '{{reset_url}}' => url('/reset-password/token'),
-            '{{count}}' => '60',
-            '{{app_name}}' => config('app.name'),
-            '{{email}}' => 'john@example.com',
-        ];
-
+        $content = $request->input('body');
+        // Simple variable replacement for preview
+        // In real usage, this should be more robust or use the same logic as the mailer
+        $variables = $request->input('variables', []);
+        
         foreach ($variables as $key => $value) {
-            $content = str_replace($key, $value, $content);
+            $content = str_replace('{{'.$key.'}}', $value, $content);
         }
 
-        return view('admin.email-templates.preview', compact('emailTemplate', 'content'));
-    }
-
-    protected function syncToBrevo(EmailTemplate $template)
-    {
-        if ($template->brevo_id) {
-            $response = $this->integrationService->updateBrevoTemplate(
-                $template->brevo_id,
-                $template->name,
-                $template->subject,
-                $template->body,
-                $template->is_active
-            );
-        } else {
-            $response = $this->integrationService->createBrevoTemplate(
-                $template->name,
-                $template->subject,
-                $template->body,
-                $template->is_active
-            );
-
-            if (isset($response['id'])) {
-                $template->brevo_id = $response['id'];
-                $template->save();
-            }
-        }
-
-        if (isset($response['id']) || (isset($response['success']) && $response['success'])) {
-             return ['success' => true];
-        }
-
-        return ['success' => false, 'message' => json_encode($response)];
+        return response()->json(['html' => $content]);
     }
 }

@@ -322,5 +322,200 @@ class EmailTemplateSeeder extends Seeder
                 'is_active' => true,
             ]
         );
+
+        // 3. Welcome Silverchannel Template
+        EmailTemplate::updateOrCreate(
+            ['key' => 'welcome_silverchannel'],
+            [
+                'name' => 'Welcome Silverchannel',
+                'subject' => 'Welcome to {{app_name}}! Your Account is Ready',
+                'body' => '
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+' . $commonStyles . '
+</style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="outer">
+            <!-- Logo -->
+            <div style="padding: 20px 0; text-align: center;">
+                <img src="{{logo_url}}" alt="{{app_name}}" width="150" style="display: inline-block;">
+            </div>
+
+            <div class="webkit">
+                <!-- Header -->
+                <div class="header">
+                    <h1 class="header-title">Welcome Aboard!</h1>
+                    <p class="header-subtitle">We are excited to have you as a Silverchannel partner.</p>
+                </div>
+
+                <div class="content">
+                    <p class="text-dark" style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+                        Hello {{name}},
+                    </p>
+                    <p class="text-dark" style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+                        Congratulations! Your application to join <strong>{{app_name}}</strong> as a Silverchannel distributor has been approved. You now have full access to our catalog, exclusive pricing, and order management system.
+                    </p>
+
+                    <div class="info-box">
+                        <h3 class="text-dark" style="margin: 0 0 10px 0; font-size: 16px;">What\'s Next?</h3>
+                        <ul class="text-gray" style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
+                            <li>Log in to your dashboard to view the product catalog.</li>
+                            <li>Set up your profile and shipping preferences.</li>
+                            <li>Start placing orders and earning commissions!</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="{{login_url}}" class="btn">Login to Dashboard</a>
+                    </div>
+
+                    <p class="text-gray" style="font-size: 14px; margin-top: 30px; text-align: center;">
+                        If you have any questions or need assistance getting started, our support team is here to help.
+                    </p>
+                </div>
+
+                <!-- Customer Service -->
+                <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+                    <p class="text-gray" style="margin: 0; font-size: 14px;">
+                        Contact Support: <a href="mailto:{{support_email}}" class="text-primary">{{support_email}}</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <p>
+                    &copy; {{year}} {{app_name}}. All rights reserved.<br>
+                    Jalan Emas Perak No. 123, Jakarta, Indonesia
+                </p>
+                <p>
+                    <a href="#">Privacy Policy</a> | 
+                    <a href="#">Terms of Service</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>',
+                'variables' => [
+                    'logo_url', 'app_name', 'name', 'login_url', 'support_email', 'year'
+                ],
+                'is_active' => true,
+            ]
+        );
+
+        // 4. Order Registration Template
+        EmailTemplate::updateOrCreate(
+            ['key' => 'order_registration'],
+            [
+                'name' => 'Order Registration',
+                'subject' => 'Registration Package Order #{{order_number}} - {{app_name}}',
+                'body' => '
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+' . $commonStyles . '
+</style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="outer">
+            <div style="padding: 20px 0; text-align: center;">
+                <img src="{{logo_url}}" alt="{{app_name}}" width="150" style="display: inline-block;">
+            </div>
+            <div class="webkit">
+                <div class="header">
+                    <h1 class="header-title">Welcome Aboard!</h1>
+                    <p class="header-subtitle">Your Registration Package is Confirmed</p>
+                </div>
+                <div class="content">
+                    <p class="text-dark" style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+                        Hi {{customer_name}},<br>
+                        Thank you for joining us! Your registration package order has been received and is being processed.
+                    </p>
+                    
+                    <div class="info-box">
+                         <span class="text-gray text-sm">Order Number:</span><br>
+                         <strong class="text-secondary text-lg">#{{order_number}}</strong><br>
+                         <span class="text-gray text-sm">Total:</span> <strong class="text-primary">{{total_amount}}</strong>
+                    </div>
+
+                    <div class="text-center">
+                        <a href="{{login_url}}" class="btn">Login to Dashboard</a>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>&copy; {{year}} {{app_name}}. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>',
+                'variables' => [
+                    'logo_url', 'app_name', 'customer_name', 'order_number', 'total_amount', 'login_url', 'year'
+                ],
+                'is_active' => true,
+            ]
+        );
+
+        // 5. Marketing Campaign Template (Base)
+        EmailTemplate::updateOrCreate(
+            ['key' => 'marketing_campaign'],
+            [
+                'name' => 'Marketing Campaign',
+                'subject' => '{{campaign_subject}}',
+                'body' => '
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+' . $commonStyles . '
+</style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="outer">
+            <div style="padding: 20px 0; text-align: center;">
+                <img src="{{logo_url}}" alt="{{app_name}}" width="150" style="display: inline-block;">
+            </div>
+            <div class="webkit">
+                <div class="header">
+                    <h1 class="header-title">{{campaign_title}}</h1>
+                </div>
+                <div class="content">
+                    <div class="text-dark" style="font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+                        {{campaign_content}}
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="{{cta_url}}" class="btn">{{cta_text}}</a>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>
+                        <a href="{{unsubscribe_url}}">Unsubscribe</a>
+                    </p>
+                    <p>&copy; {{year}} {{app_name}}. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>',
+                'variables' => [
+                    'logo_url', 'app_name', 'campaign_title', 'campaign_content', 'cta_url', 'cta_text', 'unsubscribe_url', 'year'
+                ],
+                'is_active' => true,
+            ]
+        );
     }
 }

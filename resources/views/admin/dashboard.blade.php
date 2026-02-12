@@ -156,6 +156,155 @@
                                     </div>
                                 </div>
                             </a>
+
+                            <!-- Quick Action: Sync EPI APE Prices -->
+                            <div x-data="{ 
+                                loading: false, 
+                                showConfirm: false,
+                                showNotification: false,
+                                notificationMessage: '',
+                                notificationType: 'success', // success or error
+                                
+                                performSync() {
+                                    this.showConfirm = false;
+                                    this.loading = true;
+                                    
+                                    fetch('{{ route('admin.integrations.epi-ape.sync') }}', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Accept': 'application/json',
+                                            'X-Requested-With': 'XMLHttpRequest',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        }
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        this.loading = false;
+                                        this.showNotification = true;
+                                        if (data.success) {
+                                            this.notificationType = 'success';
+                                            this.notificationMessage = data.message || 'Sinkronisasi berhasil!';
+                                            setTimeout(() => { this.showNotification = false; }, 3000);
+                                        } else {
+                                            this.notificationType = 'error';
+                                            this.notificationMessage = data.message || 'Gagal melakukan sinkronisasi.';
+                                        }
+                                    })
+                                    .catch(error => {
+                                        this.loading = false;
+                                        this.showNotification = true;
+                                        this.notificationType = 'error';
+                                        this.notificationMessage = 'Terjadi kesalahan jaringan.';
+                                        console.error(error);
+                                    });
+                                }
+                            }">
+                                <!-- Notification Toast -->
+                                <div 
+                                    x-show="showNotification" 
+                                    x-transition:enter="transform ease-out duration-300 transition"
+                                    x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+                                    x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+                                    x-transition:leave="transition ease-in duration-100"
+                                    x-transition:leave-start="opacity-100"
+                                    x-transition:leave-end="opacity-0"
+                                    class="fixed bottom-4 right-4 z-50 max-w-sm w-full shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden"
+                                    :class="notificationType === 'success' ? 'bg-green-50' : 'bg-red-50'"
+                                    style="display: none;"
+                                >
+                                    <div class="p-4">
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0">
+                                                <svg x-show="notificationType === 'success'" class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <svg x-show="notificationType === 'error'" class="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                            <div class="ml-3 w-0 flex-1 pt-0.5">
+                                                <p x-text="notificationMessage" class="text-sm font-medium" :class="notificationType === 'success' ? 'text-green-800' : 'text-red-800'"></p>
+                                            </div>
+                                            <div class="ml-4 flex-shrink-0 flex">
+                                                <button @click="showNotification = false" class="bg-transparent rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                    <span class="sr-only">Close</span>
+                                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Trigger Button -->
+                                <button 
+                                    @click="showConfirm = true" 
+                                    :disabled="loading"
+                                    class="w-full block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition text-left focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed group"
+                                >
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 bg-yellow-500 rounded-md p-2 group-hover:bg-yellow-600 transition-colors">
+                                            <!-- Sync Icon -->
+                                            <svg x-show="!loading" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            <!-- Loading Spinner -->
+                                            <svg x-show="loading" class="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" style="display: none;">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-4">
+                                            <h4 class="text-md font-medium text-gray-900 dark:text-gray-100">
+                                                <span x-show="!loading">Sinkronisasi Harga EPI APE</span>
+                                                <span x-show="loading">Sedang Menyinkronkan...</span>
+                                            </h4>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Update harga manual dari server pusat</p>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <!-- Confirmation Modal -->
+                                <div x-show="showConfirm" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
+                                    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                                        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                                            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                                        </div>
+                                        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+                                        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                                            <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                                <div class="sm:flex sm:items-start">
+                                                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
+                                                        <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
+                                                            Konfirmasi Sinkronisasi
+                                                        </h3>
+                                                        <div class="mt-2">
+                                                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                                Apakah Anda yakin ingin melakukan sinkronisasi harga EPI APE secara manual? Proses ini mungkin memerlukan waktu beberapa saat.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                                <button @click="performSync()" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-yellow-600 text-base font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:ml-3 sm:w-auto sm:text-sm">
+                                                    Ya, Sinkronisasi
+                                                </button>
+                                                <button @click="showConfirm = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+                                                    Batal
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -13,6 +13,7 @@ use App\Models\IntegrationError;
 use App\Models\Store;
 use App\Models\Product;
 use App\Models\EpiProductMapping;
+use App\Models\EmailTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -306,19 +307,59 @@ class IntegrationController extends Controller
         return view('admin.integrations.payment', compact('settings', 'logs'));
     }
 
-    public function brevo()
+    public function email(Request $request)
     {
-        $settings = $this->integrationService->getAll('brevo');
-        $logs = \App\Models\IntegrationLog::where('integration', 'brevo')
+        $brevoSettings = $this->integrationService->getAll('brevo');
+        $mailketingSettings = $this->integrationService->getAll('mailketing');
+        $emailSettings = $this->integrationService->getAll('email');
+        $routingSettings = $this->integrationService->getAll('email_routing');
+        
+        $settings = array_merge($brevoSettings, $mailketingSettings, $emailSettings, $routingSettings);
+
+        $logs = \App\Models\IntegrationLog::whereIn('integration', ['brevo', 'mailketing'])
             ->latest()
-            ->take(10)
+            ->take(20)
             ->get();
-        return view('admin.integrations.brevo', compact('settings', 'logs'));
+
+        // Email Templates Logic
+        $query = EmailTemplate::query();
+
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('subject', 'like', "%{$search}%")
+                  ->orWhere('key', 'like', "%{$search}%");
+            });
+        }
+
+        $templates = $query->latest()->paginate(10);
+
+        return view('admin.integrations.email', compact('settings', 'logs', 'templates'));
     }
 
     public function testBrevo()
     {
         $result = $this->integrationService->testBrevoConnection();
+        return response()->json($result);
+    }
+
+    public function testMailketing()
+    {
+        // Simple test send to configured sender email
+        $provider = new \App\Services\Email\MailketingProvider();
+        $senderEmail = \App\Models\SystemSetting::getValue('mailketing_sender_email');
+        
+        if (!$senderEmail) {
+            return response()->json(['success' => false, 'message' => 'Sender Email not configured']);
+        }
+
+        $result = $provider->sendEmail(
+            $senderEmail,
+            'Test Email from EPI OSS',
+            '<h1>It Works!</h1><p>This is a test email from Mailketing integration.</p>'
+        );
+
         return response()->json($result);
     }
 
@@ -378,6 +419,13 @@ class IntegrationController extends Controller
                 $group = 'brevo';
                 if ($key === 'brevo_active') $type = 'boolean';
                 if ($key === 'brevo_api_key') $type = 'encrypted';
+                if ($key === 'brevo_smtp_login') $type = 'text'; // Added this line
+            } elseif (str_contains($key, 'mailketing')) {
+                $group = 'mailketing';
+                if ($key === 'mailketing_api_token') $type = 'encrypted';
+            } elseif (str_starts_with($key, 'email_route_')) {
+                $group = 'email_routing';
+                $type = 'text';
             } elseif (str_contains($key, 'epi_ape')) {
                 $group = 'epi_ape';
                 if ($key === 'epi_ape_active') $type = 'boolean';
@@ -388,6 +436,13 @@ class IntegrationController extends Controller
             // Handle array values (like couriers list)
             if (is_array($value)) {
                 $value = json_encode($value);
+            } elseif (is_string($value)) {
+                $value = trim($value);
+            }
+
+            // Skip updating encrypted fields if value is empty (to keep existing)
+            if ($type === 'encrypted' && empty($value)) {
+                continue;
             }
 
             $this->integrationService->set($key, $value, $group, $type);

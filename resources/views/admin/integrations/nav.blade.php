@@ -11,19 +11,14 @@
             'active' => request()->routeIs('admin.integrations.payment'),
         ],
         [
-            'name' => 'Brevo (Email)',
-            'route' => 'admin.integrations.brevo',
-            'active' => request()->routeIs('admin.integrations.brevo'),
+            'name' => 'API Email',
+            'route' => 'admin.integrations.email',
+            'active' => request()->routeIs('admin.integrations.email') || request()->routeIs('admin.email-templates.*'),
         ],
         [
             'name' => 'EPI APE',
             'route' => 'admin.integrations.epi-ape',
             'active' => request()->routeIs('admin.integrations.epi-ape'),
-        ],
-        [
-            'name' => 'Email Templates',
-            'route' => 'admin.email-templates.index',
-            'active' => request()->routeIs('admin.email-templates.*'),
         ],
         [
             'name' => 'Documentation',
@@ -38,7 +33,7 @@
 <div class="mb-6">
     <!-- Mobile Dropdown Navigation (<= 768px) -->
     <div class="md:hidden" x-data="{ open: false }">
-        <label for="tabs" class="sr-only">Select a tab</label>
+        <span id="mobile-nav-label" class="sr-only">Select a tab</span>
         
         <!-- Main Button (Accordion Header) -->
         <div class="relative">
@@ -48,7 +43,7 @@
                 class="relative z-30 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-[10px] shadow-sm pl-4 pr-10 py-3 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
                 aria-haspopup="listbox" 
                 :aria-expanded="open" 
-                aria-labelledby="listbox-label"
+                aria-labelledby="mobile-nav-label"
             >
                 <span class="flex items-center">
                     <span class="ml-1 block truncate font-medium text-gray-700 dark:text-gray-200">

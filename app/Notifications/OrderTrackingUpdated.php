@@ -8,6 +8,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
+use App\Services\Email\EmailRoutingService;
+
 class OrderTrackingUpdated extends Notification implements ShouldQueue
 {
     use Queueable;
@@ -41,7 +43,10 @@ class OrderTrackingUpdated extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        $routing = app(EmailRoutingService::class);
+        $mailer = $routing->getMailer('order');
+
+        $mail = (new MailMessage)
                     ->subject('Update Resi Pengiriman Order #' . $this->order->order_number)
                     ->greeting('Halo ' . $notifiable->name . ',')
                     ->line('Pesanan Anda #' . $this->order->order_number . ' telah dikirim.')
@@ -49,6 +54,12 @@ class OrderTrackingUpdated extends Notification implements ShouldQueue
                     ->line('No. Resi: ' . $this->trackingNumber)
                     ->action('Lacak Pesanan', route('silverchannel.orders.show', $this->order->id))
                     ->line('Terima kasih telah berbelanja di EPI Order System.');
+        
+        if ($mailer) {
+            $mail->mailer($mailer);
+        }
+
+        return $mail;
     }
 
     /**

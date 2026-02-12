@@ -20,4 +20,9 @@ class EmailTemplate extends Model
         'variables' => 'array',
         'is_active' => 'boolean',
     ];
+
+    public function histories()
+    {
+        return $this->hasMany(EmailTemplateHistory::class)->latest();
+    }
 }

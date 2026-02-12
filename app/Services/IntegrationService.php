@@ -188,6 +188,7 @@ class IntegrationService
             ];
         }
 
+        $apiKey = trim($apiKey); // Ensure no whitespace
         $startTime = microtime(true);
         
         try {
@@ -243,6 +244,8 @@ class IntegrationService
             return ['success' => false, 'message' => 'Brevo configuration missing.'];
         }
 
+        $apiKey = trim($apiKey);
+
         $payload = [
             'sender' => ['name' => $senderName, 'email' => $senderEmail],
             'to' => [['email' => $to]],
@@ -270,6 +273,8 @@ class IntegrationService
     {
         $apiKey = $this->get('brevo_api_key');
         if (!$apiKey) return ['success' => false, 'message' => 'API Key missing'];
+        
+        $apiKey = trim($apiKey);
 
         $payload = [
             'email' => $email,
@@ -300,6 +305,8 @@ class IntegrationService
     {
         $apiKey = $this->get('brevo_api_key');
         if (!$apiKey) return ['success' => false, 'message' => 'API Key missing'];
+
+        $apiKey = trim($apiKey);
 
         $senderEmail = $this->get('brevo_sender_email');
         $senderName = $this->get('brevo_sender_name', config('app.name'));
@@ -342,6 +349,8 @@ class IntegrationService
     {
         $apiKey = $this->get('brevo_api_key');
         if (!$apiKey) return ['success' => false, 'message' => 'API Key missing'];
+
+        $apiKey = trim($apiKey);
 
         $senderEmail = $this->get('brevo_sender_email');
         $senderName = $this->get('brevo_sender_name', config('app.name'));
