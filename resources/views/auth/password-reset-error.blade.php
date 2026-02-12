@@ -45,9 +45,9 @@
 
                 <!-- Action Buttons -->
                 <div class="space-y-3">
-                    <a href="{{ route('password.request') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105">
-                        Coba Lagi
-                    </a>
+                    <a href="{{ route('password.request.enhanced') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105">
+                Coba Lagi
+            </a>
                     
                     <a href="{{ route('login') }}" class="inline-flex items-center justify-center w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200">
                         Kembali ke Login

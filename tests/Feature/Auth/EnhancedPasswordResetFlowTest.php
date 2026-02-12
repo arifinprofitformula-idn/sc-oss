@@ -17,13 +17,13 @@ class EnhancedPasswordResetFlowTest extends TestCase
     {
         // Create user
         $user = User::factory()->create([
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
             'password' => Hash::make('old-password'),
         ]);
 
         // Step 1: Request password reset
         $response = $this->post(route('password.email.enhanced'), [
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
         ]);
 
         $response->assertRedirect(route('password.request.confirmation'));
@@ -31,10 +31,10 @@ class EnhancedPasswordResetFlowTest extends TestCase
 
         // Verify password reset record was created
         $this->assertDatabaseHas('password_resets', [
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
         ]);
 
-        $passwordReset = PasswordReset::where('email', 'test@example.com')->first();
+        $passwordReset = PasswordReset::where('email', 'test@gmail.com')->first();
         
         // Extract token from database (since it's hashed)
         // In real scenario, you'd get this from email
@@ -43,7 +43,7 @@ class EnhancedPasswordResetFlowTest extends TestCase
         // Step 2: Access reset password form
         $response = $this->get(route('password.reset.enhanced', [
             'token' => $token,
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
         ]));
 
         $response->assertStatus(200);
@@ -66,19 +66,19 @@ class EnhancedPasswordResetFlowTest extends TestCase
 
         // Verify token was deleted
         $this->assertDatabaseMissing('password_resets', [
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
         ]);
     }
 
     /** @test */
     public function it_prevents_password_reset_with_weak_password()
     {
-        $user = User::factory()->create(['email' => 'test@example.com']);
+        $user = User::factory()->create(['email' => 'test@gmail.com']);
         
         // Create password reset token
         $token = 'test-token-1234567890123456789012345678901234567890123456789012345678901234';
         $passwordReset = PasswordReset::create([
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
             'token' => Hash::make($token),
             'created_at' => now(),
             'expires_at' => now()->addHour(),
@@ -87,7 +87,7 @@ class EnhancedPasswordResetFlowTest extends TestCase
         // Try with weak password
         $response = $this->post(route('password.store.enhanced'), [
             'token' => $token,
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
             'password' => 'weak123',
             'password_confirmation' => 'weak123',
         ]);
@@ -102,12 +102,12 @@ class EnhancedPasswordResetFlowTest extends TestCase
     /** @test */
     public function it_prevents_password_reset_with_expired_token()
     {
-        $user = User::factory()->create(['email' => 'test@example.com']);
+        $user = User::factory()->create(['email' => 'test@gmail.com']);
         
         // Create expired password reset token
         $token = 'test-token-1234567890123456789012345678901234567890123456789012345678901234';
         $passwordReset = PasswordReset::create([
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
             'token' => Hash::make($token),
             'created_at' => now()->subHours(2),
             'expires_at' => now()->subHour(), // Expired
@@ -115,7 +115,7 @@ class EnhancedPasswordResetFlowTest extends TestCase
 
         $response = $this->post(route('password.store.enhanced'), [
             'token' => $token,
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
             'password' => 'NewStrongPass123!',
             'password_confirmation' => 'NewStrongPass123!',
         ]);
@@ -128,19 +128,19 @@ class EnhancedPasswordResetFlowTest extends TestCase
     /** @test */
     public function it_applies_rate_limiting_to_password_reset_requests()
     {
-        $user = User::factory()->create(['email' => 'test@example.com']);
+        $user = User::factory()->create(['email' => 'test@gmail.com']);
 
         // Make 3 requests (limit)
         for ($i = 0; $i < 3; $i++) {
             $response = $this->post(route('password.email.enhanced'), [
-                'email' => 'test@example.com',
+                'email' => 'test@gmail.com',
             ]);
             $response->assertRedirect(route('password.request.confirmation'));
         }
 
         // 4th request should be rate limited
         $response = $this->post(route('password.email.enhanced'), [
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
         ]);
 
         $response->assertSessionHasErrors(['email']);
@@ -156,10 +156,10 @@ class EnhancedPasswordResetFlowTest extends TestCase
             ->shouldReceive('send')
             ->andThrow(new \Exception('Email service error'));
 
-        $user = User::factory()->create(['email' => 'test@example.com']);
+        $user = User::factory()->create(['email' => 'test@gmail.com']);
 
         $response = $this->post(route('password.email.enhanced'), [
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
         ]);
 
         $response->assertRedirect(route('password.request.error'));
@@ -179,11 +179,11 @@ class EnhancedPasswordResetFlowTest extends TestCase
     /** @test */
     public function it_includes_password_strength_requirements_in_reset_form()
     {
-        $user = User::factory()->create(['email' => 'test@example.com']);
+        $user = User::factory()->create(['email' => 'test@gmail.com']);
         
         $token = 'test-token-1234567890123456789012345678901234567890123456789012345678901234';
         $passwordReset = PasswordReset::create([
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
             'token' => Hash::make($token),
             'created_at' => now(),
             'expires_at' => now()->addHour(),
@@ -191,7 +191,7 @@ class EnhancedPasswordResetFlowTest extends TestCase
 
         $response = $this->get(route('password.reset.enhanced', [
             'token' => $token,
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
         ]));
 
         $response->assertStatus(200);
@@ -205,7 +205,7 @@ class EnhancedPasswordResetFlowTest extends TestCase
     /** @test */
     public function it_invalidates_all_sessions_after_password_reset()
     {
-        $user = User::factory()->create(['email' => 'test@example.com']);
+        $user = User::factory()->create(['email' => 'test@gmail.com']);
         
         // Create some sessions
         \Illuminate\Support\Facades\DB::table('sessions')->insert([
@@ -230,7 +230,7 @@ class EnhancedPasswordResetFlowTest extends TestCase
         $token = 'test-token-1234567890123456789012345678901234567890123456789012345678901234';
         
         $passwordReset = PasswordReset::create([
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
             'token' => Hash::make($token),
             'created_at' => now(),
             'expires_at' => now()->addHour(),
@@ -238,7 +238,7 @@ class EnhancedPasswordResetFlowTest extends TestCase
 
         $this->post(route('password.store.enhanced'), [
             'token' => $token,
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
             'password' => 'NewStrongPass123!',
             'password_confirmation' => 'NewStrongPass123!',
         ]);

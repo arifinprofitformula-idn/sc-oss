@@ -49,9 +49,9 @@
                         Kembali ke Login
                     </a>
                     
-                    <a href="{{ route('password.request') }}" class="inline-flex items-center justify-center w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200">
-                        Kirim Ulang Email
-                    </a>
+                    <a href="{{ route('password.request.enhanced') }}" class="inline-flex items-center justify-center w-full bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200">
+                Kirim Ulang Email
+            </a>
                 </div>
 
                 <!-- Support -->

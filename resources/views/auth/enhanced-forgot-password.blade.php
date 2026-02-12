@@ -24,7 +24,7 @@
             <!-- Session Status -->
             <x-auth-session-status class="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-blue-400" :status="session('status')" />
 
-            <form method="POST" action="{{ route('password.email') }}" class="space-y-6" x-data="{ loading: false }" @submit="loading = true">
+            <form method="POST" action="{{ route('password.email.enhanced') }}" class="space-y-6" x-data="{ loading: false }" @submit="loading = true">
                 @csrf
 
                 <!-- Email Address -->
