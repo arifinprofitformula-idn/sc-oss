@@ -175,6 +175,10 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
             Route::get('/reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
 
+            // Email Logs Monitoring
+            Route::get('/email-logs', [\App\Http\Controllers\Admin\EmailLogController::class, 'index'])->name('email-logs.index');
+            Route::get('/api/email-logs', [\App\Http\Controllers\Admin\EmailLogController::class, 'list'])->name('email-logs.list');
+
             // Global Store Settings
             Route::get('/settings/store', [\App\Http\Controllers\Admin\GlobalStoreSettingController::class, 'edit'])->name('settings.store');
             Route::get('/settings/store/{tab}', [\App\Http\Controllers\Admin\GlobalStoreSettingController::class, 'edit'])
@@ -248,6 +252,9 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
                 Route::post('/shipping/store-update', [\App\Http\Controllers\Admin\IntegrationController::class, 'updateStoreShipping'])->name('shipping.store-update');
                 
                 Route::get('/email', [\App\Http\Controllers\Admin\IntegrationController::class, 'email'])->name('email');
+                Route::post('/email/test', [\App\Http\Controllers\Admin\IntegrationController::class, 'sendTestEmail'])
+        ->middleware('throttle:5,1')
+        ->name('email.test');
                 Route::post('/test/brevo', [\App\Http\Controllers\Admin\IntegrationController::class, 'testBrevo'])
                     ->middleware('throttle:10,1')
                     ->name('test.brevo');
@@ -322,5 +329,17 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
         });
     });
 });
+
+// Email tracking (public)
+Route::get('/email/track/open/{id}.png', [\App\Http\Controllers\EmailTrackingController::class, 'open'])->name('email.track.open');
+Route::get('/email/track/click/{id}', [\App\Http\Controllers\EmailTrackingController::class, 'click'])->name('email.track.click');
+
+// Mailketing webhook (public, should be protected by secret at reverse proxy or signature)
+Route::post('/webhooks/mailketing', [\App\Http\Controllers\Webhooks\MailketingWebhookController::class, 'handle'])
+    ->middleware('throttle:60,1')
+    ->name('webhooks.mailketing');
+
+// Enhanced Password Reset Routes
+require __DIR__.'/enhanced-auth.php';
 
 require __DIR__.'/auth.php';

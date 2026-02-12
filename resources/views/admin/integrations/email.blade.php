@@ -466,6 +466,7 @@
                                 <div class="flex border-b border-gray-200 dark:border-gray-700 mb-4">
                                     <button @click="tab = 'brevo'" :class="{ 'border-blue-500 text-blue-600 dark:text-blue-400': tab === 'brevo', 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300': tab !== 'brevo' }" class="py-2 px-4 border-b-2 font-medium text-sm focus:outline-none transition-colors">Brevo Guide</button>
                                     <button @click="tab = 'mailketing'" :class="{ 'border-green-500 text-green-600 dark:text-green-400': tab === 'mailketing', 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300': tab !== 'mailketing' }" class="py-2 px-4 border-b-2 font-medium text-sm focus:outline-none transition-colors">Mailketing Guide</button>
+                                    <button @click="tab = 'test_email'" :class="{ 'border-purple-500 text-purple-600 dark:text-purple-400': tab === 'test_email', 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300': tab !== 'test_email' }" class="py-2 px-4 border-b-2 font-medium text-sm focus:outline-none transition-colors">Test Email Guide</button>
                                 </div>
 
                                 <div x-show="tab === 'brevo'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100">
@@ -521,14 +522,169 @@
                                         <li>Pastikan untuk mengklik <strong>Save Changes</strong> sebelum melakukan test connection jika Anda baru saja mengubah pengaturan.</li>
                                     </ul>
                                 </div>
+                                </div>
+
+                                <div x-show="tab === 'test_email'" style="display: none;" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100">
+                                    <p class="mb-4">
+                                        Fitur <strong>Test Email</strong> memungkinkan Anda memverifikasi apakah konfigurasi SMTP/API email berjalan dengan benar sebelum digunakan untuk notifikasi sistem.
+                                    </p>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <h4 class="font-semibold text-purple-600 dark:text-purple-400 mb-2">Cara Penggunaan</h4>
+                                            <ol class="list-decimal list-inside space-y-1 text-gray-600 dark:text-gray-400">
+                                                <li>Masukkan <strong>Email Tujuan</strong> yang valid (email Anda sendiri disarankan).</li>
+                                                <li>Isi <strong>Subjek</strong> dan <strong>Pesan</strong> (opsional, default tersedia).</li>
+                                                <li>Klik tombol <strong>Kirim Test Email</strong>.</li>
+                                                <li>Tunggu hingga loading selesai dan notifikasi muncul.</li>
+                                            </ol>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-purple-600 dark:text-purple-400 mb-2">Troubleshooting & Batasan</h4>
+                                            <ul class="list-disc list-inside space-y-1 text-gray-600 dark:text-gray-400">
+                                                <li><strong>Rate Limit:</strong> Maksimal 5 email per menit untuk mencegah penyalahgunaan.</li>
+                                                <li>Jika gagal, periksa pesan error yang muncul (misal: koneksi timeout, autentikasi gagal).</li>
+                                                <li>Pastikan konfigurasi SMTP di <code>.env</code> atau settings sudah benar.</li>
+                                                <li>Cek folder Spam/Junk jika email tidak masuk ke Inbox.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Recent Logs -->
-                <div class="md:col-span-1">
-                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg h-full">
+                <!-- Right Column -->
+                <div class="md:col-span-1 space-y-6">
+                    <!-- Test Email Card -->
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg"
+                         x-data="{
+                            email: '',
+                            subject: 'Test Email from EPI OSS',
+                            message: 'This is a test email to verify the configuration.',
+                            loading: false,
+                            success: null,
+                            error: null,
+                            suggestion: null,
+                            history: {{ $testEmailLogs->map(fn($l) => ['to' => $l->to, 'created_at' => $l->created_at->diffForHumans(), 'status' => $l->status])->toJson() }},
+                            async send() {
+                                if (!this.email) {
+                                    this.error = 'Email address is required';
+                                    return;
+                                }
+                                this.loading = true;
+                                this.success = null;
+                                this.error = null;
+                                this.suggestion = null;
+                                
+                                try {
+                                    const response = await fetch('{{ route('admin.integrations.email.test') }}', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content')
+                                        },
+                                        body: JSON.stringify({
+                                            email: this.email,
+                                            subject: this.subject,
+                                            message: this.message
+                                        })
+                                    });
+                                    
+                                    const data = await response.json();
+                                    
+                                    if (response.ok) {
+                                        this.success = data.message;
+                                        this.history.unshift({
+                                            to: this.email,
+                                            created_at: 'Just now',
+                                            status: 'queued'
+                                        });
+                                        if(this.history.length > 5) this.history.pop();
+                                        this.email = ''; // Clear email on success? Maybe keep it.
+                                    } else {
+                                        this.error = data.message || 'Unknown error occurred';
+                                        this.suggestion = data.suggestion;
+                                    }
+                                } catch (e) {
+                                    this.error = 'Network or server error';
+                                    this.suggestion = 'Check your internet connection and try again.';
+                                } finally {
+                                    this.loading = false;
+                                }
+                            }
+                         }">
+                        <div class="p-6 text-gray-900 dark:text-gray-100">
+                            <h3 class="text-lg font-medium mb-4 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                                Send Test Email
+                            </h3>
+
+                            <!-- Success Message -->
+                            <div x-show="success" x-transition class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+                                <span class="block sm:inline" x-text="success"></span>
+                            </div>
+
+                            <!-- Error Message -->
+                            <div x-show="error" x-transition class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                                <strong class="font-bold">Error!</strong>
+                                <span class="block sm:inline" x-text="error"></span>
+                                <div x-show="suggestion" class="mt-2 text-sm italic bg-red-50 p-2 rounded">
+                                    <strong>Tip:</strong> <span x-text="suggestion"></span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <x-input-label for="test_email" value="Recipient Email" />
+                                    <x-text-input id="test_email" type="email" class="block mt-1 w-full" x-model="email" placeholder="email@example.com" />
+                                </div>
+                                <div>
+                                    <x-input-label for="test_subject" value="Subject" />
+                                    <x-text-input id="test_subject" type="text" class="block mt-1 w-full" x-model="subject" />
+                                </div>
+                                <div>
+                                    <x-input-label for="test_message" value="Message" />
+                                    <textarea id="test_message" x-model="message" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" rows="3"></textarea>
+                                </div>
+                                
+                                <button @click="send()" :disabled="loading" 
+                                    class="w-full btn-3d btn-3d-blue shimmer flex justify-center items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <svg x-show="loading" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span x-text="loading ? 'Sending...' : 'Send Test Email'"></span>
+                                </button>
+                            </div>
+
+                            <!-- Mini History -->
+                            <div class="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Recent Test Emails</h4>
+                                <div class="space-y-3">
+                                    <template x-for="(log, index) in history" :key="index">
+                                        <div class="flex justify-between items-start text-sm">
+                                            <div class="flex flex-col">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300" x-text="log.to"></span>
+                                                <span class="text-xs text-gray-500" x-text="log.created_at"></span>
+                                            </div>
+                                            <span class="px-2 py-0.5 text-xs rounded" 
+                                                  :class="{
+                                                    'bg-green-100 text-green-800': log.status === 'sent' || log.status === 'queued',
+                                                    'bg-red-100 text-red-800': log.status === 'failed'
+                                                  }" x-text="log.status">
+                                            </span>
+                                        </div>
+                                    </template>
+                                    <div x-show="history.length === 0" class="text-xs text-gray-500 italic">No recent test emails.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Logs (Existing) -->
+                    <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 text-gray-900 dark:text-gray-100">
                             <h3 class="text-lg font-medium mb-4">Recent Logs</h3>
                             <div class="space-y-3">

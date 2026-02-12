@@ -48,12 +48,6 @@ class MailConfigServiceProvider extends ServiceProvider
                 ])
                 ->pluck('value', 'key');
 
-            // Configure Brevo if credentials exist
-            $this->configureBrevo($settings);
-            
-            // Configure Mailketing if credentials exist
-            $this->configureMailketing($settings);
-
             // Set default provider
             $provider = $settings['email_provider'] ?? ($settings['brevo_active'] ? 'brevo' : 'log');
             
@@ -63,6 +57,18 @@ class MailConfigServiceProvider extends ServiceProvider
             }
 
             Config::set('mail.default', $provider);
+
+            // Configure Brevo if credentials exist
+            $this->configureBrevo($settings);
+            
+            // Configure Mailketing if credentials exist
+            $this->configureMailketing($settings);
+
+            Log::info('MailConfigServiceProvider booted', [
+                'mailketing_sender_email' => $settings['mailketing_sender_email'] ?? 'null',
+                'config_mail_from' => Config::get('mail.from.address'),
+                'default_mailer' => Config::get('mail.default'),
+            ]);
 
         } catch (\Exception $e) {
             // Log error but don't crash app (e.g. if encryption key changes or DB issue)

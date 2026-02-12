@@ -38,6 +38,12 @@ class EmailTemplateController extends Controller
         $request->validate([
             'subject' => 'required|string|max:255',
             'body' => 'required|string',
+            'language' => 'nullable|string|max:8',
+            'type' => 'nullable|string|max:64',
+            'is_active' => 'nullable|boolean',
+            'notes' => 'nullable|string',
+            'variant' => 'nullable|string|max:1',
+            'split_ratio' => 'nullable|integer|min:0|max:100',
         ]);
 
         $template = EmailTemplate::findOrFail($id);
@@ -48,12 +54,18 @@ class EmailTemplateController extends Controller
             'user_id' => Auth::id(),
             'subject' => $template->subject,
             'body' => $template->body,
+            'notes' => $request->input('notes'),
+            'variant' => $request->input('variant'),
+            'split_ratio' => $request->input('split_ratio', 50),
         ]);
 
         // Update template
         $template->update([
-            'subject' => $request->subject,
-            'body' => $request->body,
+            'subject' => $request->string('subject'),
+            'body' => $request->string('body'),
+            'language' => $request->string('language'),
+            'type' => $request->string('type'),
+            'is_active' => $request->boolean('is_active', true),
         ]);
 
         return response()->json([

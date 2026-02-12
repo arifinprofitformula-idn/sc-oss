@@ -12,6 +12,9 @@ class EmailTemplateHistory extends Model
         'user_id',
         'subject',
         'body',
+        'variant',
+        'split_ratio',
+        'notes',
     ];
 
     public function template(): BelongsTo

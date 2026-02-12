@@ -74,8 +74,8 @@
                 <span class="ms-2 text-sm text-gray-400 hover:text-gray-300 cursor-pointer">{{ __('Remember me') }}</span>
             </label>
 
-            @if (Route::has('password.request'))
-                <a class="text-sm text-cyan-400 hover:text-cyan-300 transition-colors duration-200 underline" href="{{ route('password.request') }}">
+            @if (Route::has('password.request.enhanced'))
+                <a class="text-sm text-cyan-400 hover:text-cyan-300 transition-colors duration-200 underline" href="{{ route('password.request.enhanced') }}">
                     {{ __('Forgot password?') }}
                 </a>
             @endif

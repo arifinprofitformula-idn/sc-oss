@@ -31,11 +31,8 @@ class EmailRoutingService
             return null; // Let Laravel use default mailer
         }
 
-        // Ensure provider is valid and configured
-        if (in_array($provider, ['brevo', 'mailketing'])) {
-            return $provider;
-        }
-
-        return null;
+        // Return the provider string directly (e.g., 'smtp', 'mailgun', 'brevo')
+        // The Job will use this as the mailer connection name.
+        return $provider;
     }
 }

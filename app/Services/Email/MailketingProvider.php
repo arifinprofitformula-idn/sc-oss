@@ -32,15 +32,16 @@ class MailketingProvider implements EmailProviderInterface
             'content' => $content,
         ];
 
-        // Handle attachments (Mailketing uses attach1, attach2, etc. with URL)
-        // Assuming attachments array contains ['url' => '...']
-        // If attachments are local files, they need to be uploaded somewhere public first or check if Mailketing supports base64.
-        // The documentation example shows 'direct url file'.
         if (!empty($attachments)) {
             $i = 1;
             foreach ($attachments as $attachment) {
                 if (isset($attachment['url'])) {
                     $params["attach{$i}"] = $attachment['url'];
+                    $i++;
+                } elseif (isset($attachment['base64']) && isset($attachment['name'])) {
+                    // Fallback format for base64 attachment if supported by API
+                    $params["attach{$i}_name"] = $attachment['name'];
+                    $params["attach{$i}_base64"] = $attachment['base64'];
                     $i++;
                 }
             }

@@ -8,8 +8,10 @@ use App\Services\RajaOngkirService;
 use App\Services\ApiIdService;
 use App\Services\ShippingService;
 use App\Services\EpiAutoPriceService;
+use App\Services\Email\EmailService;
 use App\Models\IntegrationLog;
 use App\Models\IntegrationError;
+use App\Models\EmailLog;
 use App\Models\Store;
 use App\Models\Product;
 use App\Models\EpiProductMapping;
@@ -26,13 +28,15 @@ class IntegrationController extends Controller
     protected $apiIdService;
     protected $shippingService;
     protected $epiAutoPriceService;
+    protected $emailService;
 
     public function __construct(
         IntegrationService $integrationService, 
         RajaOngkirService $rajaOngkirService,
         ApiIdService $apiIdService,
         ShippingService $shippingService,
-        EpiAutoPriceService $epiAutoPriceService
+        EpiAutoPriceService $epiAutoPriceService,
+        EmailService $emailService
     )
     {
         $this->integrationService = $integrationService;
@@ -40,6 +44,7 @@ class IntegrationController extends Controller
         $this->apiIdService = $apiIdService;
         $this->shippingService = $shippingService;
         $this->epiAutoPriceService = $epiAutoPriceService;
+        $this->emailService = $emailService;
     }
 
     public function epiApe(Request $request)
@@ -321,6 +326,11 @@ class IntegrationController extends Controller
             ->take(20)
             ->get();
 
+        $testEmailLogs = EmailLog::where('type', 'test_email')
+            ->latest()
+            ->take(5)
+            ->get();
+
         // Email Templates Logic
         $query = EmailTemplate::query();
 
@@ -335,7 +345,44 @@ class IntegrationController extends Controller
 
         $templates = $query->latest()->paginate(10);
 
-        return view('admin.integrations.email', compact('settings', 'logs', 'templates'));
+        return view('admin.integrations.email', compact('settings', 'logs', 'templates', 'testEmailLogs'));
+    }
+
+    public function sendTestEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string',
+        ]);
+
+        try {
+            $this->emailService->sendRaw(
+                $request->email,
+                $request->subject,
+                $request->message
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => "Email berhasil dikirim ke {$request->email}"
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Test Email Failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            
+            $suggestion = 'Check SMTP configuration and internet connection.';
+            if (str_contains($e->getMessage(), 'Connection could not be established')) {
+                $suggestion = 'Cannot connect to SMTP server. Verify host and port.';
+            } elseif (str_contains($e->getMessage(), 'Failed to authenticate')) {
+                $suggestion = 'Authentication failed. Verify username and password.';
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send email: ' . $e->getMessage(),
+                'suggestion' => $suggestion
+            ], 500);
+        }
     }
 
     public function testBrevo()

@@ -14,6 +14,8 @@ class EmailTemplate extends Model
         'variables',
         'brevo_id',
         'is_active',
+        'language',
+        'type',
     ];
 
     protected $casts = [

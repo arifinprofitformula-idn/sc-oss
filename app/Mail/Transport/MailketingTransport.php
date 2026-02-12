@@ -15,7 +15,7 @@ class MailketingTransport extends AbstractTransport
 {
     protected MailketingProvider $provider;
 
-    public function __construct(MailketingProvider $provider, EventDispatcherInterface $dispatcher = null, LoggerInterface $logger = null)
+    public function __construct(MailketingProvider $provider, ?EventDispatcherInterface $dispatcher = null, ?LoggerInterface $logger = null)
     {
         parent::__construct($dispatcher, $logger);
         $this->provider = $provider;
@@ -42,17 +42,16 @@ class MailketingTransport extends AbstractTransport
         $subject = $email->getSubject();
         $content = $email->getHtmlBody() ?: $email->getTextBody();
         
-        // Handle attachments
         $attachments = [];
         foreach ($email->getAttachments() as $attachment) {
-            // Mailketing expects URL for attachments in the example.
-            // If we have raw content, we might need to upload it or skip it.
-            // For now, let's assume we can't easily support raw attachments without an upload step 
-            // unless Mailketing supports base64 which isn't in the provided docs.
-            // We'll log a warning if attachments are present.
-            if ($this->logger) {
-                $this->logger->warning("MailketingTransport: Attachment '{$attachment->getName()}' skipped as API requires URL.");
-            }
+            $name = $attachment->getName();
+            $body = $attachment->getBody();
+            $attachmentContent = is_object($body) && method_exists($body, 'getBody') ? $body->getBody() : (string) $body;
+            $encoded = base64_encode($attachmentContent);
+            $attachments[] = [
+                'name' => $name,
+                'base64' => $encoded,
+            ];
         }
 
         foreach ($to as $recipient) {

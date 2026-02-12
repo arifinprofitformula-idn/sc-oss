@@ -82,6 +82,12 @@ class User extends Authenticatable
         ];
     }
 
+    public function sendPasswordResetNotification($token)
+    {
+        // Use the new EmailService for consistent logging and templating
+        app(\App\Services\Email\EmailService::class)->resetPassword($this, $token);
+    }
+
     public function referrer()
     {
         return $this->belongsTo(User::class, 'referrer_id');
@@ -174,14 +180,5 @@ class User extends Authenticatable
         return round(($filled / count($fields)) * 100);
     }
 
-    /**
-     * Send the password reset notification.
-     *
-     * @param  string  $token
-     * @return void
-     */
-    public function sendPasswordResetNotification($token)
-    {
-        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
-    }
+
 }
