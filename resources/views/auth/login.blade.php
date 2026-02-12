@@ -5,7 +5,10 @@
 @section('subtitle', 'Sign in to your account')
 
 @section('content')
-    <div class="flex flex-col items-center justify-center min-h-screen relative z-20">
+    <div class="flex flex-col items-center justify-center min-h-screen relative z-20" x-data="{ loading: false }">
+        <!-- Loader Animation -->
+        <x-loader-animation />
+
         <!-- Logo -->
         <div class="mb-8">
             <a href="/" class="flex items-center space-x-2">
@@ -27,7 +30,7 @@
             <!-- Session Status -->
             <x-auth-session-status class="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg text-blue-400" :status="session('status')" />
 
-            <form method="POST" action="{{ route('login') }}" class="space-y-6">
+            <form method="POST" action="{{ route('login') }}" class="space-y-6" @submit="loading = true">
         @csrf
 
         <!-- Email Address -->

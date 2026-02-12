@@ -50,6 +50,9 @@ class EnhancedPasswordResetLinkController extends Controller
                 'max:255',
                 function ($attribute, $value, $fail) {
                     // Cek apakah email memiliki domain yang valid
+                    if (!str_contains($value, '@')) {
+                        return;
+                    }
                     $domain = substr(strrchr($value, "@"), 1);
                     if (!checkdnsrr($domain, "MX")) {
                         $fail('Email domain tidak valid atau tidak memiliki mail server.');
@@ -79,8 +82,9 @@ class EnhancedPasswordResetLinkController extends Controller
             // Tetap hit rate limit untuk mencegah enumeration
             RateLimiter::hit($rateLimitKey, 3600); // 1 jam
             
-            return redirect()->route('password.request.confirmation')
-                ->with('status', 'Jika email tersebut terdaftar di sistem kami, kami akan mengirimkan link reset password.');
+            throw ValidationException::withMessages([
+                'email' => 'Email atau Pengguna tidak terdaftar dalam sistem'
+            ]);
         }
 
         // Hit rate limit

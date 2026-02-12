@@ -15,6 +15,21 @@ class EnhancedPasswordResetFlowTest extends TestCase
     /** @test */
     public function user_can_complete_full_password_reset_flow()
     {
+        // Mock EmailService to capture token
+        $capturedToken = null;
+        $this->mock(\App\Services\Email\EmailService::class)
+            ->shouldReceive('send')
+            ->once()
+            ->withArgs(function ($type, $user, $data) use (&$capturedToken) {
+                if ($type !== 'forgot_password') return false;
+                
+                // Extract token from reset_url
+                $path = parse_url($data['reset_url'], PHP_URL_PATH);
+                $segments = explode('/', trim($path, '/'));
+                $capturedToken = end($segments);
+                return true;
+            });
+
         // Create user
         $user = User::factory()->create([
             'email' => 'test@gmail.com',
@@ -34,11 +49,8 @@ class EnhancedPasswordResetFlowTest extends TestCase
             'email' => 'test@gmail.com',
         ]);
 
-        $passwordReset = PasswordReset::where('email', 'test@gmail.com')->first();
-        
-        // Extract token from database (since it's hashed)
-        // In real scenario, you'd get this from email
-        $token = 'test-token-1234567890123456789012345678901234567890123456789012345678901234';
+        $this->assertNotNull($capturedToken, 'Token was not captured from email service');
+        $token = $capturedToken;
 
         // Step 2: Access reset password form
         $response = $this->get(route('password.reset.enhanced', [
@@ -52,7 +64,7 @@ class EnhancedPasswordResetFlowTest extends TestCase
         // Step 3: Submit new password
         $response = $this->post(route('password.store.enhanced'), [
             'token' => $token,
-            'email' => 'test@example.com',
+            'email' => 'test@gmail.com',
             'password' => 'NewStrongPass123!',
             'password_confirmation' => 'NewStrongPass123!',
         ]);

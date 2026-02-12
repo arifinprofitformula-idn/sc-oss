@@ -88,14 +88,15 @@ class EnhancedPasswordResetLinkControllerTest extends TestCase
     }
 
     /** @test */
-    public function it_handles_non_existent_email_gracefully()
+    public function it_shows_error_for_non_existent_email()
     {
         $response = $this->postJson(route('password.email.enhanced'), [
             'email' => 'nonexistent@gmail.com'
         ]);
 
-        $response->assertStatus(302);
-        $response->assertRedirect(route('password.request.confirmation'));
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['email']);
+        $this->assertStringContainsString('Email atau Pengguna tidak terdaftar dalam sistem', $response->json('errors.email.0'));
         
         // Should not create password reset record for non-existent email
         $this->assertDatabaseMissing('password_resets', [
@@ -108,7 +109,7 @@ class EnhancedPasswordResetLinkControllerTest extends TestCase
     {
         $user = User::factory()->create(['email' => 'test@gmail.com']);
         
-        $this->emailService->expects($this->once())
+        $this->emailService->expects($this->exactly(3))
             ->method('send')
             ->willThrowException(new \Exception('SMTP Error'));
 
@@ -158,9 +159,11 @@ class EnhancedPasswordResetLinkControllerTest extends TestCase
                 $this->anything(),
                 $this->anything(),
                 $this->callback(function ($data) {
-                    // Extract token from reset_url
-                    preg_match('/token=([a-zA-Z0-9]+)/', $data['reset_url'], $matches);
-                    $token = $matches[1] ?? '';
+                    // Extract token from reset_url (path parameter)
+                    // URL: .../reset-password/enhanced/{token}?email=...
+                    $path = parse_url($data['reset_url'], PHP_URL_PATH);
+                    $segments = explode('/', trim($path, '/'));
+                    $token = end($segments);
                     return strlen($token) >= 64;
                 })
             );
