@@ -22,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
             
             return new \App\Services\RajaOngkirService($integrationService);
         });
+
+        // PDF service binding (lightweight HTML fallback)
+        $this->app->bind(\App\Services\Pdf\PdfServiceInterface::class, \App\Services\Pdf\HtmlToPdfService::class);
     }
 
     /**
@@ -50,9 +53,68 @@ class AppServiceProvider extends ServiceProvider
             \App\Listeners\RefundUniqueCodeToWallet::class,
         );
 
+        
+
+        // Email notifications
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\OrderCreated::class,
+            \App\Listeners\SendInvoiceUnpaidToCustomer::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\OrderCreated::class,
+            \App\Listeners\NotifyAdminNewOrder::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\OrderStatusChanged::class,
+            \App\Listeners\SendInvoicePaidToCustomer::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\OrderStatusChanged::class,
+            \App\Listeners\SendOrderShippedToCustomer::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\SilverchannelApproved::class,
+            \App\Listeners\SendWelcomeSilverchannelEmail::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\SilverchannelRegistered::class,
+            \App\Listeners\SendWelcomeSilverchannel::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\SilverchannelRegistered::class,
+            \App\Listeners\NotifyAdminSilverchannelRegistered::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\OrderStatusChanged::class,
+            \App\Listeners\SendTransactionCommissionEmail::class,
+        );
+
         \Illuminate\Support\Facades\Event::listen(
             \App\Events\SilverchannelApproved::class,
             \App\Listeners\AwardRegistrationCommission::class,
+        );
+
+        // Payout email notifications
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\PayoutRequested::class,
+            \App\Listeners\SendPayoutRequestedEmail::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\PayoutProcessed::class,
+            \App\Listeners\SendPayoutProcessedEmail::class,
+        );
+
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\PayoutRejected::class,
+            \App\Listeners\SendPayoutRejectedEmail::class,
         );
 
         \Illuminate\Support\Facades\RateLimiter::for('password.reset', function (\Illuminate\Http\Request $request) {

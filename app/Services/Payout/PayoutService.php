@@ -62,6 +62,9 @@ class PayoutService
                 'user_agent' => request()->userAgent(),
             ]);
 
+            // Fire event for email notification
+            \App\Events\PayoutRequested::dispatch($payout);
+
             return $payout;
         });
     }
@@ -79,6 +82,9 @@ class PayoutService
             if ($ledger) {
                 $ledger->update(['status' => 'PAID']);
             }
+
+            // Fire event for email notification
+            \App\Events\PayoutProcessed::dispatch($payout);
 
             return $payout;
         });
@@ -98,6 +104,9 @@ class PayoutService
                 // Cancel ledger so it doesn't count as debit anymore
                 $ledger->update(['status' => 'CANCELLED']);
             }
+
+            // Fire event for email notification
+            \App\Events\PayoutRejected::dispatch($payout, $reason);
 
             return $payout;
         });

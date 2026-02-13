@@ -10,19 +10,22 @@ use Illuminate\Support\Facades\Log;
 use App\Models\AuditLog;
 use App\Models\Package;
 use App\Models\ReferralCommission;
+use App\Services\Email\EmailService;
 
 class AwardRegistrationCommission implements ShouldQueue
 {
     use InteractsWithQueue;
 
     protected $commissionService;
+    protected EmailService $emails;
 
     /**
      * Create the event listener.
      */
-    public function __construct(CommissionService $commissionService)
+    public function __construct(CommissionService $commissionService, EmailService $emails)
     {
         $this->commissionService = $commissionService;
+        $this->emails = $emails;
     }
 
     /**
@@ -108,6 +111,17 @@ class AwardRegistrationCommission implements ShouldQueue
                 $status,
                 $availableAt
             );
+            
+            // 3. Send Email to Referrer
+            try {
+                $this->emails->send('commission_registration_awarded', $referrer, [
+                    'referred_name' => $user->name,
+                    'package_name' => $package->name,
+                    'amount' => 'Rp ' . number_format($amount, 0, ',', '.'),
+                ], 'ID');
+            } catch (\Throwable $e) {
+                Log::warning('Failed sending registration commission email: ' . $e->getMessage());
+            }
             
             Log::info("Registration commission awarded to User #{$referrer->id} for referring User #{$user->id}. Status: {$status}.");
 

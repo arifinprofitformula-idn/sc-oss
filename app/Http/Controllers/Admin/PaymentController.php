@@ -8,6 +8,7 @@ use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
 {
@@ -86,7 +87,7 @@ class PaymentController extends Controller
                     'from_status' => $oldStatus,
                     'to_status' => 'PAID',
                     'note' => 'Payment verified by Admin via Manual Transfer',
-                    'changed_by' => auth()->id(),
+                    'changed_by' => Auth::id(),
                 ]);
                 
                 // Dispatch OrderPaid Event for Commission
@@ -139,8 +140,18 @@ class PaymentController extends Controller
                 'from_status' => $oldStatus,
                 'to_status' => 'DRAFT',
                 'note' => 'Payment rejected: ' . $request->reason,
-                'changed_by' => auth()->id(),
+                'changed_by' => Auth::id(),
             ]);
+
+            // Send email to user about rejection
+            try {
+                app(\App\Services\Email\EmailService::class)->send('payment_rejected', $order->user, [
+                    'order_number' => $order->order_number,
+                    'reason' => $request->reason,
+                ], 'ID');
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed sending payment rejection email: ' . $e->getMessage());
+            }
         });
 
         return back()->with('success', 'Payment rejected.');

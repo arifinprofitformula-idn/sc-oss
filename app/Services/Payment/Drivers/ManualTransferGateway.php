@@ -76,7 +76,9 @@ class ManualTransferGateway implements PaymentGatewayInterface
         ]);
 
         // Update Order Status
+        $oldStatus = $order->status;
         $order->update(['status' => 'WAITING_VERIFICATION']);
+        \App\Events\OrderStatusChanged::dispatch($order, $oldStatus, 'WAITING_VERIFICATION');
 
         return $payment;
     }

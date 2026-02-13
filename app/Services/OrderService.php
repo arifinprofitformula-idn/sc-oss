@@ -143,6 +143,8 @@ class OrderService
             // Log creation
             $this->logStatusChange($order, null, $status, 'Order created via checkout', $user->id);
 
+            \App\Events\OrderCreated::dispatch($order);
+
             return $order;
         });
     }

@@ -242,6 +242,7 @@ class EmailTemplateSeeder extends Seeder
                     'shipping_estimation', 'tracking_url', 'support_email', 'support_phone', 'year'
                 ],
                 'is_active' => true,
+                'type' => 'order_confirmation',
             ]
         );
 
@@ -320,6 +321,7 @@ class EmailTemplateSeeder extends Seeder
                     'logo_url', 'app_name', 'name', 'reset_url', 'count', 'support_email', 'year'
                 ],
                 'is_active' => true,
+                'type' => 'forgot_password',
             ]
         );
 
@@ -406,6 +408,7 @@ class EmailTemplateSeeder extends Seeder
                     'logo_url', 'app_name', 'name', 'login_url', 'support_email', 'year'
                 ],
                 'is_active' => true,
+                'type' => 'welcome_silverchannel',
             ]
         );
 
@@ -463,6 +466,7 @@ class EmailTemplateSeeder extends Seeder
                     'logo_url', 'app_name', 'customer_name', 'order_number', 'total_amount', 'login_url', 'year'
                 ],
                 'is_active' => true,
+                'type' => 'order_registration',
             ]
         );
 
@@ -515,6 +519,143 @@ class EmailTemplateSeeder extends Seeder
                     'logo_url', 'app_name', 'campaign_title', 'campaign_content', 'cta_url', 'cta_text', 'unsubscribe_url', 'year'
                 ],
                 'is_active' => true,
+                'type' => 'marketing_campaign',
+            ]
+        );
+
+        // Order status templates (waiting verification, paid, packing, shipped, delivered)
+        EmailTemplate::updateOrCreate(
+            ['key' => 'order_status_waiting_verification'],
+            [
+                'name' => 'Order Waiting Verification',
+                'subject' => 'Order #{{order_number}} Menunggu Verifikasi',
+                'body' => '<html><body>Order Anda #{{order_number}} sedang menunggu verifikasi pembayaran. Total: {{total_amount}}.<br>Terima kasih.</body></html>',
+                'variables' => ['order_number','total_amount'],
+                'is_active' => true,
+                'type' => 'order_status_waiting_verification',
+            ]
+        );
+
+        EmailTemplate::updateOrCreate(
+            ['key' => 'order_status_paid'],
+            [
+                'name' => 'Order Paid',
+                'subject' => 'Pembayaran Order #{{order_number}} Diterima',
+                'body' => '<html><body>Pembayaran untuk Order #{{order_number}} telah diterima. Total: {{total_amount}}.<br>Invoice terlampir.</body></html>',
+                'variables' => ['order_number','total_amount'],
+                'is_active' => true,
+                'type' => 'order_status_paid',
+            ]
+        );
+
+        EmailTemplate::updateOrCreate(
+            ['key' => 'order_status_packing'],
+            [
+                'name' => 'Order Packing',
+                'subject' => 'Order #{{order_number}} Sedang Dikemas',
+                'body' => '<html><body>Order Anda #{{order_number}} sedang dikemas dan akan segera dikirim.</body></html>',
+                'variables' => ['order_number'],
+                'is_active' => true,
+                'type' => 'order_status_packing',
+            ]
+        );
+
+        EmailTemplate::updateOrCreate(
+            ['key' => 'order_status_shipped'],
+            [
+                'name' => 'Order Shipped',
+                'subject' => 'Order #{{order_number}} Telah Dikirim',
+                'body' => '<html><body>Order #{{order_number}} telah dikirim dengan kurir {{shipping_courier}}. Cek status di dashboard.</body></html>',
+                'variables' => ['order_number','shipping_courier'],
+                'is_active' => true,
+                'type' => 'order_status_shipped',
+            ]
+        );
+
+        EmailTemplate::updateOrCreate(
+            ['key' => 'order_status_delivered'],
+            [
+                'name' => 'Order Delivered',
+                'subject' => 'Order #{{order_number}} Telah Diterima',
+                'body' => '<html><body>Order #{{order_number}} telah diterima. Terima kasih telah berbelanja.</body></html>',
+                'variables' => ['order_number'],
+                'is_active' => true,
+                'type' => 'order_status_delivered',
+            ]
+        );
+
+        // Payment verification result
+        EmailTemplate::updateOrCreate(
+            ['key' => 'payment_rejected'],
+            [
+                'name' => 'Payment Rejected',
+                'subject' => 'Pembayaran Ditolak untuk Order #{{order_number}}',
+                'body' => '<html><body>Pembayaran untuk Order #{{order_number}} ditolak. Alasan: {{reason}}.<br>Silakan unggah ulang bukti atau hubungi admin.</body></html>',
+                'variables' => ['order_number','reason'],
+                'is_active' => true,
+                'type' => 'payment_rejected',
+            ]
+        );
+
+        // Commissions
+        EmailTemplate::updateOrCreate(
+            ['key' => 'commission_registration_awarded'],
+            [
+                'name' => 'Registration Commission Awarded',
+                'subject' => 'Komisi Referral: {{referred_name}}',
+                'body' => '<html><body>Selamat! Anda menerima komisi pendaftaran dari {{referred_name}} ({{package_name}}) sebesar {{amount}}. Saldo langsung tersedia.</body></html>',
+                'variables' => ['referred_name','package_name','amount'],
+                'is_active' => true,
+                'type' => 'commission_registration_awarded',
+            ]
+        );
+
+        EmailTemplate::updateOrCreate(
+            ['key' => 'commission_transaction_pending'],
+            [
+                'name' => 'Transaction Commission Pending',
+                'subject' => 'Komisi Order #{{order_number}} Menunggu',
+                'body' => '<html><body>Komisi transaksi dari pembelian {{buyer_name}} (Order #{{order_number}}) akan tersedia dalam {{holding_days}} hari, pada {{available_date}}.</body></html>',
+                'variables' => ['order_number','buyer_name','holding_days','available_date'],
+                'is_active' => true,
+                'type' => 'commission_transaction_pending',
+            ]
+        );
+
+        // Payouts
+        EmailTemplate::updateOrCreate(
+            ['key' => 'payout_requested'],
+            [
+                'name' => 'Payout Requested',
+                'subject' => 'Permintaan Pencairan {{payout_number}}',
+                'body' => '<html><body>Permintaan pencairan {{payout_number}} sebesar {{amount}} telah diterima dan akan segera diproses.</body></html>',
+                'variables' => ['payout_number','amount'],
+                'is_active' => true,
+                'type' => 'payout_requested',
+            ]
+        );
+
+        EmailTemplate::updateOrCreate(
+            ['key' => 'payout_processed'],
+            [
+                'name' => 'Payout Processed',
+                'subject' => 'Pencairan {{payout_number}} Diproses',
+                'body' => '<html><body>Pencairan {{payout_number}} sebesar {{amount}} sudah diproses. Kwitansi terlampir.</body></html>',
+                'variables' => ['payout_number','amount'],
+                'is_active' => true,
+                'type' => 'payout_processed',
+            ]
+        );
+
+        EmailTemplate::updateOrCreate(
+            ['key' => 'payout_rejected'],
+            [
+                'name' => 'Payout Rejected',
+                'subject' => 'Pencairan {{payout_number}} Ditolak',
+                'body' => '<html><body>Pencairan {{payout_number}} ditolak. Alasan: {{reason}}. Silakan ajukan ulang.</body></html>',
+                'variables' => ['payout_number','reason'],
+                'is_active' => true,
+                'type' => 'payout_rejected',
             ]
         );
     }

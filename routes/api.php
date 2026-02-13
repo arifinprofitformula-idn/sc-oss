@@ -20,3 +20,7 @@ Route::middleware(['auth:sanctum'])->prefix('user')->name('api.user.')->group(fu
     Route::get('/email-history', [\App\Http\Controllers\API\UserEmailHistoryController::class, 'index'])->name('email-history.index');
     Route::get('/email-history/{id}', [\App\Http\Controllers\API\UserEmailHistoryController::class, 'show'])->name('email-history.show');
 });
+
+// Public webhooks (provider-specific signatures should be validated per provider)
+Route::post('/webhooks/email/{provider}', [\App\Http\Controllers\Webhook\EmailWebhookController::class, 'handle'])
+    ->name('webhooks.email');
