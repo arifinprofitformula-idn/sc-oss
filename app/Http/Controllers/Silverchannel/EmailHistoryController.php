@@ -1,15 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Silverchannel;
 
 use App\Http\Controllers\Controller;
 use App\Models\EmailLog;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-use Illuminate\Http\Request;
-
-class UserEmailHistoryController extends Controller
+class EmailHistoryController extends Controller
 {
     public function index(Request $request)
     {
@@ -21,15 +21,18 @@ class UserEmailHistoryController extends Controller
                 $query->where('type', 'like', "%{$type}%");
             })
             ->orderByDesc('created_at')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        return response()->json($logs);
+        return view('silverchannel.email_history.index', compact('logs'));
     }
 
-    public function show(int $id)
+    public function show(EmailLog $emailLog)
     {
-        $log = EmailLog::where('user_id', Auth::id())->findOrFail($id);
-        return response()->json($log);
+        if ($emailLog->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        return view('silverchannel.email_history.show', compact('emailLog'));
     }
 }
-

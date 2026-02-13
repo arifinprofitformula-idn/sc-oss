@@ -158,7 +158,7 @@ class EmailService
         SendEmailJob::dispatch($payload)->onQueue($this->priorityQueue($type));
     }
 
-    public function sendRaw(string $to, string $subject, string $html, array $attachments = [], ?string $mailer = null): void
+    public function sendRaw(string $to, string $subject, string $html, array $attachments = [], ?string $mailer = null, array $context = []): void
     {
         if (!$mailer) {
              $mailer = $this->routing->getMailer('default'); 
@@ -170,7 +170,11 @@ class EmailService
             'content' => $html,
             'status' => 'queued',
             'queued_at' => now(),
-            'type' => 'test_email',
+            'type' => $context['type'] ?? 'test_email',
+            'user_id' => $context['user_id'] ?? null,
+            'related_type' => $context['related_type'] ?? null,
+            'related_id' => $context['related_id'] ?? null,
+            'metadata' => $context['metadata'] ?? [],
         ]);
 
         $payload = [
@@ -181,7 +185,7 @@ class EmailService
             'html' => $html,
             'attachments' => $attachments,
             'mailer' => $mailer,
-            'type' => 'test_email',
+            'type' => $context['type'] ?? 'test_email',
         ];
 
         SendEmailJob::dispatch($payload)->onQueue('default');

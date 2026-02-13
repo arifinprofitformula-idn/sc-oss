@@ -28,6 +28,11 @@ class SendOrderShippedToCustomer implements ShouldQueue
         $order = $event->order->load('user');
         $subject = "Pesanan #{$order->order_number} Sedang Dikirim";
         $html = View::make('emails.orders.shipped', compact('order'))->render();
-        $this->emails->sendRaw($order->user->email, $subject, $html, []);
+        $this->emails->sendRaw($order->user->email, $subject, $html, [], null, [
+            'type' => 'order_shipped',
+            'user_id' => $order->user_id,
+            'related_type' => \App\Models\Order::class,
+            'related_id' => $order->id,
+        ]);
     }
 }

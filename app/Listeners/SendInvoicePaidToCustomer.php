@@ -36,6 +36,11 @@ class SendInvoicePaidToCustomer implements ShouldQueue
         if ($att) {
             $attachments[] = $att;
         }
-        $this->emails->sendRaw($order->user->email, $subject, $html, $attachments);
+        $this->emails->sendRaw($order->user->email, $subject, $html, $attachments, null, [
+            'type' => 'order_invoice_paid',
+            'user_id' => $order->user_id,
+            'related_type' => \App\Models\Order::class,
+            'related_id' => $order->id,
+        ]);
     }
 }

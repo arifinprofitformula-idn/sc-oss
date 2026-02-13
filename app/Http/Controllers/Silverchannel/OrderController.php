@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
 class OrderController extends Controller
 {
     protected $orderService;
@@ -20,7 +23,9 @@ class OrderController extends Controller
 
     public function index()
     {
-        $orders = Auth::user()->orders()->orderBy('created_at', 'desc')->paginate(10);
+        $orders = \App\Models\Order::where('user_id', Auth::id())
+                                   ->orderBy('created_at', 'desc')
+                                   ->paginate(10);
         return view('silverchannel.orders.index', compact('orders'));
     }
 
@@ -66,12 +71,56 @@ class OrderController extends Controller
         }
 
         $request->validate([
-            'proof_of_delivery' => 'required|image|max:5120', // 5MB
+            'proof_of_delivery' => 'required|mimes:jpg,jpeg,png,bmp,gif,svg,webp,pdf|max:5120', // 5MB, allow images and PDF
         ]);
 
         try {
             DB::transaction(function () use ($request, $order) {
-                $path = $request->file('proof_of_delivery')->store('proofs', 'public');
+                // Robust file upload handling
+                $file = $request->file('proof_of_delivery');
+                // Removed 'proofs' directory to match requested structure: storage/app/public/delivered/{filename}
+                
+                // Ensure directory exists on 'delivered' disk
+                // Note: 'delivered' disk root is now storage_path('app/public/delivered')
+                // We don't need a subdirectory if we want it directly in .../delivered
+                
+                $filename = $file->hashName();
+                if (empty($filename)) {
+                    $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
+                }
+
+                // Get valid temp path
+                $tempPath = $file->getRealPath() ?: $file->getPathname();
+                if (!$tempPath || !file_exists($tempPath)) {
+                    throw new \Exception("Gagal membaca lokasi file sementara. Silakan coba lagi.");
+                }
+
+                $fileContent = file_get_contents($tempPath);
+                if ($fileContent === false) {
+                    throw new \Exception("Gagal membaca isi file bukti pengiriman.");
+                }
+
+                // Path relative to disk root
+                $path = $filename;
+                
+                if (empty($path) || trim($path) === '') {
+                    throw new \Exception("Internal Error: Generated file path is empty.");
+                }
+
+                try {
+                    // Store to 'delivered' disk
+                    $stored = Storage::disk('delivered')->put($path, $fileContent);
+                } catch (\ValueError $e) {
+                    \Illuminate\Support\Facades\Log::error('Storage::put failed (delivered disk)', [
+                        'path' => $path,
+                        'error' => $e->getMessage()
+                    ]);
+                    throw new \Exception("Gagal menyimpan file: " . $e->getMessage());
+                }
+
+                if (!$stored) {
+                    throw new \Exception("Gagal menyimpan bukti pengiriman ke storage.");
+                }
                 
                 $order->update(['proof_of_delivery' => $path]);
                 

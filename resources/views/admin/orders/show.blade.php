@@ -115,6 +115,23 @@
             100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
         }
 
+        /* Pulse Attention Animation for Close Button */
+        @keyframes pulse-attention {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+            50% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+        
+        .btn-close-animated {
+            animation: pulse-attention 2s infinite ease-in-out;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .btn-close-animated {
+                animation: none;
+            }
+        }
+
         .shimmer {
             position: relative;
             overflow: hidden;
@@ -143,7 +160,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12" x-data="{ showProofModal: false, proofUrl: null, proofType: 'image' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Order Info -->
@@ -250,6 +267,25 @@
 
                 <!-- Sidebar -->
                 <div class="space-y-6">
+                    <!-- Proof of Delivery -->
+                    @if($order->proof_of_delivery)
+                        <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                            <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Proof of Delivery</h3>
+                            @php
+                                $proofExt = strtolower(pathinfo($order->proof_of_delivery, PATHINFO_EXTENSION));
+                                $proofType = $proofExt === 'pdf' ? 'pdf' : 'image';
+                            @endphp
+                            <button @click="showProofModal = true; proofUrl = '{{ Storage::disk('delivered')->url($order->proof_of_delivery) }}'; proofType = '{{ $proofType }}'" 
+                                    class="btn-3d btn-3d-green shimmer w-full justify-center inline-flex items-center px-4 py-2 rounded-md font-semibold text-xs text-white uppercase tracking-widest">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                Lihat Bukti Terima
+                            </button>
+                        </div>
+                    @endif
+
                     <!-- Shipping & Tracking -->
                     <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
                         <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-gray-100">Shipping Information</h3>
@@ -350,6 +386,53 @@
                             </button>
                         </form>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proof Modal (Lightbox Style) -->
+        <div x-show="showProofModal" 
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+             style="display: none;"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+            
+            <!-- Close Button (Top Right) -->
+            <button @click="showProofModal = false" class="absolute top-4 right-4 z-50 p-3 text-white hover:text-gray-100 transition-all bg-red-600 rounded-full shadow-lg btn-close-animated hover:scale-110 focus:outline-none focus:ring-4 focus:ring-red-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <!-- Content Container -->
+            <div class="relative w-full h-full flex flex-col items-center justify-center p-4" @click.self="showProofModal = false">
+                
+                <!-- Image/PDF Display -->
+                <div class="relative w-full h-full flex items-center justify-center overflow-hidden">
+                    <template x-if="proofType === 'image'">
+                        <img :src="proofUrl" 
+                             alt="Bukti Terima" 
+                             class="max-w-full max-h-full object-contain shadow-2xl rounded-sm"
+                             loading="lazy"
+                             x-on:error="$el.src = '{{ asset('images/placeholder.png') }}'">
+                    </template>
+                    <template x-if="proofType === 'pdf'">
+                        <iframe :src="proofUrl" class="w-full h-full max-w-5xl bg-white shadow-2xl rounded-sm border-none"></iframe>
+                    </template>
+                </div>
+
+                <!-- Footer Actions (Floating Bottom) -->
+                <div class="absolute bottom-6 left-0 right-0 flex justify-center gap-4 z-50 px-4">
+                    <a :href="proofUrl" target="_blank" class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-lg transition-transform hover:scale-105 backdrop-blur-md bg-opacity-90">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Buka di Tab Baru
+                    </a>
                 </div>
             </div>
         </div>

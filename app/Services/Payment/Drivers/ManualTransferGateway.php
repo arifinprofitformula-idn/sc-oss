@@ -20,11 +20,26 @@ class ManualTransferGateway implements PaymentGatewayInterface
             
             if ($file instanceof \Illuminate\Http\UploadedFile && $file->isValid()) {
                 // Ensure directory exists
-                if (!Storage::disk('public')->exists('payment-proofs')) {
-                    Storage::disk('public')->makeDirectory('payment-proofs');
+                $directory = 'payment-proofs';
+                if (!Storage::disk('public')->exists($directory)) {
+                    Storage::disk('public')->makeDirectory($directory);
+                }
+
+                // Verify directory is writable (using local path check if possible)
+                $storageRoot = config('filesystems.disks.public.root');
+                $fullDirectoryPath = $storageRoot . DIRECTORY_SEPARATOR . $directory;
+                
+                if (file_exists($fullDirectoryPath) && !is_writable($fullDirectoryPath)) {
+                    \Illuminate\Support\Facades\Log::error('Upload directory is not writable', [
+                        'path' => $fullDirectoryPath
+                    ]);
+                    throw new \Exception("Direktori penyimpanan tidak dapat ditulis. Hubungi administrator.");
                 }
 
                 $filename = $file->hashName();
+                if (empty($filename)) {
+                    $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
+                }
                 
                 // Gunakan file_get_contents dan Storage::put untuk menghindari error "Path must not be empty" 
                 // yang terjadi pada FilesystemAdapter::putFileAs di beberapa lingkungan Windows/Laragon
@@ -52,11 +67,47 @@ class ManualTransferGateway implements PaymentGatewayInterface
                     throw new \Exception("Gagal membaca isi file bukti pembayaran.");
                 }
 
-                $path = 'payment-proofs/' . $filename;
-                $stored = Storage::disk('public')->put($path, $fileContent);
+                $path = $directory . '/' . $filename;
+                
+                // Ensure path is not empty (defensive check)
+                if (empty($path) || trim($path) === '') {
+                    \Illuminate\Support\Facades\Log::critical('Generated file path is empty', [
+                        'filename' => $filename,
+                        'directory' => $directory
+                    ]);
+                    throw new \Exception("Internal Error: Generated file path is empty.");
+                }
+
+                \Illuminate\Support\Facades\Log::info('Attempting to store payment proof', [
+                    'path' => $path,
+                    'size' => strlen($fileContent),
+                    'original_name' => $file->getClientOriginalName()
+                ]);
+
+                try {
+                    $stored = Storage::disk('public')->put($path, $fileContent);
+                } catch (\ValueError $e) {
+                    // Catch specific PHP 8.0+ ValueError: Path must not be empty
+                    \Illuminate\Support\Facades\Log::error('Storage::put failed with ValueError', [
+                        'path' => $path,
+                        'filename' => $filename,
+                        'error' => $e->getMessage()
+                    ]);
+                    throw new \Exception("Gagal menyimpan file (ValueError): " . $e->getMessage());
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Storage::put failed with Exception', [
+                        'path' => $path,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    throw new \Exception("Gagal menyimpan file (Storage Error): " . $e->getMessage());
+                }
                 
                 if (!$stored) {
-                    throw new \Exception("Gagal menyimpan bukti pembayaran ke storage.");
+                    \Illuminate\Support\Facades\Log::error('Storage::put returned false', [
+                        'path' => $path
+                    ]);
+                    throw new \Exception("Gagal menyimpan bukti pembayaran ke storage (Unknown Error).");
                 }
             } elseif ($file instanceof \Illuminate\Http\UploadedFile && !$file->isValid()) {
                 throw new \Exception("File bukti pembayaran tidak valid atau korup.");

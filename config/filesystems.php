@@ -47,6 +47,14 @@ return [
             'report' => false,
         ],
 
+        'delivered' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/delivered'),
+            'url' => env('APP_URL').'/storage/delivered',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
         'backup' => [
             'driver' => 'local',
             'root' => storage_path('app/backups'),

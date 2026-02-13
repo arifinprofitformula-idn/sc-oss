@@ -92,6 +92,10 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
 
         // Silverchannel Support Center
         Route::prefix('silverchannel')->name('silverchannel.')->group(function () {
+            // Email History
+            Route::get('/email-history', [\App\Http\Controllers\Silverchannel\EmailHistoryController::class, 'index'])->name('email-history.index');
+            Route::get('/email-history/{emailLog}', [\App\Http\Controllers\Silverchannel\EmailHistoryController::class, 'show'])->name('email-history.show');
+
             Route::get('/support', [\App\Http\Controllers\Silverchannel\SupportController::class, 'index'])->name('support.index');
             Route::get('/support/conversations', [\App\Http\Controllers\Silverchannel\SupportController::class, 'getConversations'])->name('support.conversations');
             Route::get('/support/messages/{order}', [\App\Http\Controllers\Silverchannel\SupportController::class, 'getMessages'])->name('support.messages');

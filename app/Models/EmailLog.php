@@ -26,6 +26,8 @@ class EmailLog extends Model
         'retry_count',
         'metadata',
         'error',
+        'related_type',
+        'related_id',
     ];
 
     protected $casts = [
@@ -35,4 +37,9 @@ class EmailLog extends Model
         'bounced_at' => 'datetime',
         'metadata' => 'array',
     ];
+
+    public function related()
+    {
+        return $this->morphTo();
+    }
 }
