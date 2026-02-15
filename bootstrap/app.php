@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'ensure_permission' => \App\Http\Middleware\EnsurePermission::class,
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
             'profile.completed' => \App\Http\Middleware\EnsureProfileCompleted::class,
             'validate.referral' => \App\Http\Middleware\ValidateReferral::class,

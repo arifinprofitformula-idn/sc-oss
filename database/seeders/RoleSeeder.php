@@ -17,11 +17,12 @@ class RoleSeeder extends Seeder
 
         // Create Roles
         $superAdmin = Role::firstOrCreate(['name' => 'SUPER_ADMIN']);
-        $admin = Role::firstOrCreate(['name' => 'ADMIN']);
+        $adminOperational = Role::firstOrCreate(['name' => 'ADMIN_OPERATIONAL']);
+        $adminFinance = Role::firstOrCreate(['name' => 'ADMIN_FINANCE']);
         $customerService = Role::firstOrCreate(['name' => 'CUSTOMER_SERVICE']);
         $silverChannel = Role::firstOrCreate(['name' => 'SILVERCHANNEL']);
         
-        $this->command->info('Roles checked/created: SUPER_ADMIN, ADMIN, CUSTOMER_SERVICE, SILVERCHANNEL');
+        $this->command->info('Roles checked/created: SUPER_ADMIN, ADMIN_OPERATIONAL, ADMIN_FINANCE, CUSTOMER_SERVICE, SILVERCHANNEL');
 
         // Create Permissions
         // Silverchannel permissions
@@ -36,27 +37,45 @@ class RoleSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission]);
         }
 
-        // Admin permissions
-        $adminPermissions = [
-            'approve_silverchannel',
-            'manage_products',
-            'manage_orders',
-            'manage_commissions',
-            'view_reports',
+        // Operational Admin permissions
+        $operationalPermissions = [
+            'inventory.manage',
+            'orders.manage',
+            'products.manage',
+            'vendors.manage',
+            'reports.operational.view',
         ];
 
-        foreach ($adminPermissions as $permission) {
+        foreach ($operationalPermissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
+
+        // Finance Admin permissions
+        $financePermissions = [
+            'finance.access',
+            'sales.reports.view',
+            'refund.manage',
+            'payout.manage',
+        ];
+
+        foreach ($financePermissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Assign Permissions
         $silverChannel->syncPermissions(Permission::whereIn('name', $scPermissions)->get());
         
-        // Admin gets admin permissions
-        $admin->syncPermissions(Permission::whereIn('name', $adminPermissions)->get());
+        // Admin Operational gets operational permissions
+        $adminOperational->syncPermissions(Permission::whereIn('name', $operationalPermissions)->get());
+
+        // Admin Finance gets finance permissions
+        $adminFinance->syncPermissions(Permission::whereIn('name', $financePermissions)->get());
 
         // Customer Service gets manage orders (chat) permissions (subset of admin)
-        $csPermissions = ['manage_orders'];
+        $csPermissions = ['complaints.manage', 'refund.request.manage', 'chat.access', 'faq.manage'];
+        foreach ($csPermissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
         $customerService->syncPermissions(Permission::whereIn('name', $csPermissions)->get());
 
         // Super Admin gets all permissions

@@ -35,6 +35,22 @@ Route::domain(env('ADMIN_DOMAIN'))->group(function () {
         Route::post('/email-templates/{emailTemplate}/duplicate', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'duplicate'])->name('email-templates.duplicate');
         Route::get('/email-templates/{emailTemplate}/export', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'export'])->name('email-templates.export');
         Route::post('/email-templates/{emailTemplate}/sync', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'sync'])->name('email-templates.sync');
+        // RBAC Management UI
+        Route::prefix('rbac')->name('rbac.')->middleware('throttle:role-management')->group(function () {
+            Route::get('/roles', [\App\Http\Controllers\Admin\Rbac\RoleController::class, 'index'])->name('roles.index');
+            Route::post('/roles', [\App\Http\Controllers\Admin\Rbac\RoleController::class, 'store'])->name('roles.store');
+            Route::get('/roles/{role}/edit', [\App\Http\Controllers\Admin\Rbac\RoleController::class, 'edit'])->name('roles.edit');
+            Route::put('/roles/{role}', [\App\Http\Controllers\Admin\Rbac\RoleController::class, 'update'])->name('roles.update');
+            Route::delete('/roles/{role}', [\App\Http\Controllers\Admin\Rbac\RoleController::class, 'destroy'])->name('roles.destroy');
+
+            Route::get('/permissions', [\App\Http\Controllers\Admin\Rbac\PermissionController::class, 'index'])->name('permissions.index');
+            Route::post('/permissions', [\App\Http\Controllers\Admin\Rbac\PermissionController::class, 'store'])->name('permissions.store');
+            Route::delete('/permissions/{permission}', [\App\Http\Controllers\Admin\Rbac\PermissionController::class, 'destroy'])->name('permissions.destroy');
+
+            Route::get('/user-roles', [\App\Http\Controllers\Admin\Rbac\UserRoleController::class, 'index'])->name('user-roles.index');
+            Route::get('/user-roles/{user}/edit', [\App\Http\Controllers\Admin\Rbac\UserRoleController::class, 'edit'])->name('user-roles.edit');
+            Route::put('/user-roles/{user}', [\App\Http\Controllers\Admin\Rbac\UserRoleController::class, 'update'])->name('user-roles.update');
+        });
     });
 });
 
@@ -106,9 +122,16 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::post('/support/messages/{order}', [\App\Http\Controllers\Silverchannel\SupportController::class, 'sendMessage'])->name('support.send');
         });
 
-        // Admin Routes
+        // Admin Dashboard (shared for all admin roles)
+        Route::domain(env('ADMIN_DOMAIN'))
+            ->middleware(['role:SUPER_ADMIN|ADMIN_OPERATIONAL|ADMIN_FINANCE|CUSTOMER_SERVICE'])
+            ->prefix('admin')
+            ->name('admin.')
+            ->get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])
+            ->name('dashboard');
+
+        // Admin Routes (full access - SUPER_ADMIN only)
         Route::domain(env('ADMIN_DOMAIN'))->middleware(['role:SUPER_ADMIN'])->prefix('admin')->name('admin.')->group(function () {
-            Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
             // ... Admin routes ...
             Route::get('/silverchannels/import', [\App\Http\Controllers\Admin\ImportSilverchannelController::class, 'create'])->name('silverchannels.import');
             Route::post('/silverchannels/import/preview', [\App\Http\Controllers\Admin\ImportSilverchannelController::class, 'preview'])->name('silverchannels.import.preview');
@@ -278,6 +301,35 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
             Route::get('external-apis/docs', [\App\Http\Controllers\Admin\ExternalApiController::class, 'docs'])->name('external-apis.docs');
             Route::resource('external-apis', \App\Http\Controllers\Admin\ExternalApiController::class);
         });
+
+        // Admin domain routes for Operational, Finance, Customer Service (module-scoped by permissions)
+        Route::domain(env('ADMIN_DOMAIN'))->middleware(['role:ADMIN_OPERATIONAL|ADMIN_FINANCE|CUSTOMER_SERVICE'])
+            ->prefix('admin')->name('admin.')->group(function () {
+                // Operational
+                Route::middleware('ensure_permission:products.manage')->group(function () {
+                    Route::resource('products', \App\Http\Controllers\Admin\ProductController::class)->only(['index','show','create','store','edit','update']);
+                });
+                Route::middleware('ensure_permission:orders.manage')->group(function () {
+                    Route::get('/orders', [\App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders.index');
+                    Route::get('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'show'])->name('orders.show');
+                });
+
+                // Finance
+                Route::middleware('ensure_permission:finance.access')->group(function () {
+                    Route::get('/payments', [\App\Http\Controllers\Admin\PaymentController::class, 'index'])->name('payments.index');
+                    Route::get('/payouts', [\App\Http\Controllers\Admin\PayoutController::class, 'index'])->name('payouts.index');
+                });
+
+                // Reports
+                Route::middleware('ensure_permission:reports.operational.view')->group(function () {
+                    Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+                });
+
+                // Customer Service
+                Route::middleware('ensure_permission:chat.access')->group(function () {
+                    Route::get('/chats', [\App\Http\Controllers\Admin\ChatController::class, 'index'])->name('chats.index');
+                });
+            });
 
         // Payment Routes
         Route::middleware(['role:SILVERCHANNEL'])->prefix('payment')->name('payment.')->group(function () {

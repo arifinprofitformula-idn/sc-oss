@@ -166,15 +166,6 @@
             </button>
         </div>
 
-        <!-- Register Silverchannel Link -->
-        <div class="mt-6 text-center">
-            <p class="text-sm text-gray-400">
-                {{ __("Don't have an account?") }}
-                <a href="{{ route('register.silver') }}" class="text-cyan-400 hover:text-cyan-300 transition-colors duration-200 underline font-medium">
-                    {{ __('Register as Silverchannel') }}
-                </a>
-            </p>
-        </div>
     </form>
         </div>
     </div>

@@ -4,6 +4,17 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use App\Models\Rbac\Permission as PermissionModel;
+use App\Models\Rbac\Role as RoleModel;
+use App\Observers\PermissionObserver;
+use App\Observers\RoleObserver;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Events\RoleAttached;
+use Spatie\Permission\Events\RoleDetached;
+use Spatie\Permission\Events\PermissionAttached;
+use Spatie\Permission\Events\PermissionDetached;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -123,6 +134,63 @@ class AppServiceProvider extends ServiceProvider
 
         \Illuminate\Support\Facades\RateLimiter::for('password.reset', function (\Illuminate\Http\Request $request) {
             return \Illuminate\Cache\RateLimiting\Limit::perHour(3)->by($request->email);
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('role-management', function (\Illuminate\Http\Request $request) {
+            $userId = optional($request->user())->id;
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(30)->by($userId ?: $request->ip());
+        });
+
+        // RBAC Observers & Activity Logs
+        PermissionModel::observe(PermissionObserver::class);
+        RoleModel::observe(RoleObserver::class);
+
+        Event::listen(RoleAttached::class, function (RoleAttached $event) {
+            DB::table('admin_activity_logs')->insert([
+                'user_id' => Auth::id(),
+                'action' => 'role_attached',
+                'entity_type' => $event->model::class,
+                'entity_id' => $event->model->getKey(),
+                'meta' => json_encode(['event' => 'RoleAttached']),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        Event::listen(RoleDetached::class, function (RoleDetached $event) {
+            DB::table('admin_activity_logs')->insert([
+                'user_id' => Auth::id(),
+                'action' => 'role_detached',
+                'entity_type' => $event->model::class,
+                'entity_id' => $event->model->getKey(),
+                'meta' => json_encode(['event' => 'RoleDetached']),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        Event::listen(PermissionAttached::class, function (PermissionAttached $event) {
+            DB::table('admin_activity_logs')->insert([
+                'user_id' => Auth::id(),
+                'action' => 'permission_attached',
+                'entity_type' => $event->model::class,
+                'entity_id' => $event->model->getKey(),
+                'meta' => json_encode(['event' => 'PermissionAttached']),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        Event::listen(PermissionDetached::class, function (PermissionDetached $event) {
+            DB::table('admin_activity_logs')->insert([
+                'user_id' => Auth::id(),
+                'action' => 'permission_detached',
+                'entity_type' => $event->model::class,
+                'entity_id' => $event->model->getKey(),
+                'meta' => json_encode(['event' => 'PermissionDetached']),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
         });
     }
 }
