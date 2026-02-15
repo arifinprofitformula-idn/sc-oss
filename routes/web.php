@@ -76,6 +76,10 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
     Route::middleware('active')->group(function () {
         
         Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/pricelist', [\App\Http\Controllers\DashboardController::class, 'getPricelist'])->name('dashboard.pricelist');
+        Route::get('/dashboard/pricelist/export', [\App\Http\Controllers\DashboardController::class, 'exportPricelist'])->name('dashboard.pricelist.export');
+        Route::get('/dashboard/pricelist/export-pdf', [\App\Http\Controllers\DashboardController::class, 'exportPricelistPdf'])->name('dashboard.pricelist.export-pdf');
+        Route::get('/dashboard/pricelist/last-update', [\App\Http\Controllers\DashboardController::class, 'lastPriceUpdate'])->name('dashboard.pricelist.last-update');
 
         // Profile Routes
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -292,6 +296,7 @@ Route::middleware(['auth', 'profile.completed'])->group(function () {
         Route::middleware(['role:SILVERCHANNEL'])->prefix('silverchannel')->name('silverchannel.')->group(function () {
             // Catalog
             Route::get('/products', [\App\Http\Controllers\Silverchannel\ProductController::class, 'index'])->name('products.index');
+            Route::get('/products/{product:slug}', [\App\Http\Controllers\Silverchannel\ProductController::class, 'show'])->name('products.show');
             Route::post('/products/check-prices', [\App\Http\Controllers\Silverchannel\ProductController::class, 'checkPrices'])->name('products.check-prices');
 
             Route::get('/store/operational-status', [\App\Http\Controllers\Silverchannel\StoreStatusController::class, 'show'])->name('store.operational-status');

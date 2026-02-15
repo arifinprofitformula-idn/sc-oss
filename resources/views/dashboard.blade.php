@@ -277,6 +277,217 @@
             </div>
             @endif
 
+            <!-- Pricelist Update & Product Table -->
+            <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-6" x-data="pricelistManager()">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                        <div x-data="lastUpdateStatus()">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Update Pricelist Product</h3>
+                            <div class="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                <span>Last Update: </span>
+                                <span class="ml-1 font-semibold" :class="textColor" x-text="text"></span>
+                                <span class="ml-2 w-3 h-3 rounded-full animate-pulse" :class="colorClass"></span>
+                                <span x-show="loading" class="ml-3 inline-flex items-center">
+                                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Memuat...
+                                </span>
+                                <span x-show="error" class="ml-3 text-red-600" x-text="error"></span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2 w-full md:w-auto">
+                            <a href="{{ route('dashboard.pricelist.export') }}" class="btn-3d btn-3d-green w-full md:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.586l4 4a1 1 0 01.586 1.414V19a2 2 0 01-2 2z"></path></svg>
+                                Export Excel
+                            </a>
+                            <a href="{{ route('dashboard.pricelist.export-pdf') }}" class="w-full md:w-auto inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                Export PDF
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                        <div class="w-full md:w-1/3">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </div>
+                                <input type="text" x-model.debounce.500ms="search" placeholder="Cari produk (Nama/SKU)..." class="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors">
+                            </div>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                            <span x-show="loading" class="mr-2 flex items-center">
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Updating...
+                            </span>
+                            <div x-show="!loading && nextRefresh > 0" class="flex items-center">
+                                <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Refresh in <span x-text="nextRefresh" class="font-mono mx-1"></span>s
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table Container -->
+                    <div class="relative min-h-[200px]">
+                            <div x-show="loading" class="absolute inset-0 bg-white/50 dark:bg-gray-800/50 flex items-center justify-center z-10 backdrop-blur-sm transition-all rounded-lg">
+                            <div class="flex flex-col items-center">
+                                <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="mt-2 text-sm text-gray-600 font-medium">Memuat data...</span>
+                            </div>
+                            </div>
+                            <div x-html="htmlContent" @click.prevent="handlePagination($event)"></div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+            function pricelistManager() {
+                return {
+                    htmlContent: '',
+                    search: '',
+                    sortField: 'name',
+                    sortDirection: 'asc',
+                    loading: false,
+                    nextRefresh: 300,
+                    refreshTimer: null,
+                    countdownTimer: null,
+
+                    async fetchPricelist(url = null) {
+                        this.loading = true;
+                        let endpoint = url || "{{ route('dashboard.pricelist') }}";
+                        
+                        const params = new URLSearchParams();
+                        if (!url) {
+                            if (this.search) params.append('search', this.search);
+                            params.append('sort_field', this.sortField);
+                            params.append('sort_direction', this.sortDirection);
+                            endpoint += '?' + params.toString();
+                        }
+
+                        try {
+                            const res = await fetch(endpoint, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            });
+                            if (!res.ok) throw new Error('Network response was not ok');
+                            this.htmlContent = await res.text();
+                        } catch (error) {
+                            console.error('Error fetching pricelist:', error);
+                            this.htmlContent = '<div class="text-center text-red-500 p-8 border-2 border-dashed border-red-300 rounded-lg bg-red-50"><p class="font-bold">Gagal memuat data.</p><p class="text-sm mt-2">Silakan periksa koneksi internet Anda atau coba lagi nanti.</p><button @click="fetchPricelist()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Coba Lagi</button></div>';
+                        } finally {
+                            this.loading = false;
+                            this.resetTimer();
+                        }
+                    },
+                    
+                    sortBy(field) {
+                        if (this.sortField === field) {
+                            this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            this.sortField = field;
+                            this.sortDirection = 'asc';
+                        }
+                        this.fetchPricelist();
+                    },
+
+                    handlePagination(e) {
+                        const link = e.target.closest('a');
+                        // Ensure it's a pagination link (usually has page query param or is inside pagination nav)
+                        if (link && link.href && !link.href.includes('#') && !link.target) {
+                            this.fetchPricelist(link.href);
+                        }
+                    },
+                    
+                    resetTimer() {
+                        this.nextRefresh = 300;
+                    },
+
+                    init() {
+                        this.fetchPricelist();
+                        
+                        this.$watch('search', () => {
+                            this.fetchPricelist();
+                        });
+
+                        this.countdownTimer = setInterval(() => {
+                            if (this.nextRefresh > 0) {
+                                this.nextRefresh--;
+                            } else {
+                                this.fetchPricelist();
+                            }
+                        }, 1000);
+                    }
+                }
+            }
+            function lastUpdateStatus() {
+                return {
+                    loading: true,
+                    error: '',
+                    text: 'Belum ada data',
+                    colorClass: 'bg-red-500',
+                    textColor: 'text-red-600',
+                    async refresh() {
+                        this.loading = true;
+                        try {
+                            const res = await fetch("{{ route('dashboard.pricelist.last-update') }}", { headers: { 'Accept': 'application/json' } });
+                            if (!res.ok) throw new Error('Gagal memuat pembaruan');
+                            const data = await res.json();
+                            const ts = data.last_update ? new Date(data.last_update) : null;
+                            if (!ts) {
+                                this.text = 'Belum ada data';
+                                this.colorClass = 'bg-red-500';
+                                this.textColor = 'text-red-600';
+                                this.error = '';
+                                return;
+                            }
+                            const formatter = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+                            const parts = formatter.formatToParts(ts);
+                            const get = (type) => parts.find(p => p.type === type)?.value || '';
+                            const weekday = get('weekday');
+                            const day = get('day');
+                            const month = get('month');
+                            const year = get('year');
+                            const hour = get('hour');
+                            const minute = get('minute');
+                            this.text = `${weekday}, ${day} ${month} ${year} - Pkl. ${hour}.${minute} WIB`;
+                            const diffMs = Date.now() - ts.getTime();
+                            const diffHours = diffMs / (1000 * 60 * 60);
+                            if (diffHours < 1) {
+                                this.colorClass = 'bg-green-500';
+                                this.textColor = 'text-green-600';
+                            } else if (diffHours < 24) {
+                                this.colorClass = 'bg-yellow-500';
+                                this.textColor = 'text-yellow-600';
+                            } else {
+                                this.colorClass = 'bg-red-500';
+                                this.textColor = 'text-red-600';
+                            }
+                            this.error = '';
+                        } catch (e) {
+                            this.error = 'Gagal memuat Last Update';
+                        } finally {
+                            this.loading = false;
+                        }
+                    },
+                    init() {
+                        this.refresh();
+                        setInterval(() => this.refresh(), 60000);
+                    }
+                }
+            }
+            </script>
+
             <!-- Referral Card -->
             <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-indigo-500">
                 <div class="p-6 text-gray-900 dark:text-gray-100">
@@ -463,7 +674,7 @@
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($recentOrders as $order)
                                     <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">#{{ $order->unique_code ?? $order->id }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{{ $order->order_number ?? ('#' . $order->id) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Rp {{ number_format($order->total_amount, 0, ',', '.') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -472,7 +683,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $order->created_at->format('d M Y') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{{ route('silverchannel.store.operational-status') }}" class="text-indigo-600 hover:text-indigo-900">Detail</a>
+                                            <a href="{{ route('silverchannel.orders.show', $order) }}" class="text-indigo-600 hover:text-indigo-900">Detail</a>
                                         </td>
                                     </tr>
                                 @endforeach

@@ -147,23 +147,24 @@
                                     </div>
                                 </template>
 
-                                <!-- Scroll to Bottom / New Message Button -->
-                                <div x-show="userScrolledUp" 
+                                <!-- Scroll to Bottom Icon-Only -->
+                                <div x-show="userScrolledUp"
                                      x-transition:enter="transition ease-out duration-300"
-                                     x-transition:enter-start="opacity-0 translate-y-4"
+                                     x-transition:enter-start="opacity-0 translate-y-2"
                                      x-transition:enter-end="opacity-100 translate-y-0"
                                      x-transition:leave="transition ease-in duration-200"
                                      x-transition:leave-start="opacity-100 translate-y-0"
-                                     x-transition:leave-end="opacity-0 translate-y-4"
-                                     class="sticky bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center z-10">
-                                    <button @click="scrollToBottom('smooth', true)" 
-                                            class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 shadow-lg flex items-center space-x-2 text-xs font-medium transition-colors">
-                                        <span x-show="showNewMessageBadge" class="flex h-2 w-2 relative mr-1">
+                                     x-transition:leave-end="opacity-0 translate-y-2"
+                                     class="absolute bottom-4 right-4 z-10">
+                                    <button @click="scrollToBottom('smooth', true)"
+                                            class="group bg-blue-600 hover:bg-blue-700 text-white rounded-full h-10 w-10 shadow-lg flex items-center justify-center transition-colors"
+                                            aria-label="Gulir ke pesan terbaru"
+                                            title="Ke pesan terbaru">
+                                        <span x-show="showNewMessageBadge" class="absolute -top-1 -right-1 h-3 w-3">
                                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-200 opacity-75"></span>
-                                            <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                                            <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
                                         </span>
-                                        <span x-text="showNewMessageBadge ? 'Pesan Baru' : 'Ke Bawah'"></span>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                                         </svg>
                                     </button>

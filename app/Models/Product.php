@@ -73,4 +73,25 @@ class Product extends Model
     {
         return $this->hasMany(ProductPriceHistory::class);
     }
+
+    public function latestPriceHistory()
+    {
+        return $this->hasOne(ProductPriceHistory::class)->latestOfMany();
+    }
+
+    public function getPriceTrendAttribute()
+    {
+        $lastHistory = $this->latestPriceHistory;
+        if (!$lastHistory) {
+            return 'stable';
+        }
+
+        if ($lastHistory->new_price > $lastHistory->old_price) {
+            return 'up';
+        } elseif ($lastHistory->new_price < $lastHistory->old_price) {
+            return 'down';
+        }
+
+        return 'stable';
+    }
 }

@@ -152,6 +152,9 @@
                     <div class="flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-gray-50 dark:bg-gray-900 relative" 
                          x-ref="chatContainer"
                          @scroll="handleChatScroll">
+                        <div x-show="!wsConnected" class="absolute top-2 left-1/2 -translate-x-1/2 bg-red-100 text-red-700 text-xs px-3 py-1 rounded shadow" style="display:none;">
+                            Koneksi realtime terputus. Menggunakan mode polling...
+                        </div>
                         <template x-if="loadingPrevious">
                              <div class="flex justify-center py-2"><svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>
                         </template>
@@ -193,6 +196,18 @@
                             </div>
                         </template>
 
+                        <!-- Typing Indicator -->
+                        <div x-show="isTyping" class="flex w-full justify-start">
+                            <div class="max-w-[50%] px-3 py-2 rounded-2xl bg-white dark:bg-gray-700 border border-gray-100 dark:border-gray-600 text-gray-600 dark:text-gray-200 text-[12px] shadow-sm">
+                                <span x-text="typingUserName ? (typingUserName + ' sedang mengetik...') : 'Sedang mengetik...'"></span>
+                                <span class="inline-flex ml-1">
+                                    <span class="h-1 w-1 bg-gray-400 rounded-full mr-0.5 animate-bounce" style="animation-delay:0ms"></span>
+                                    <span class="h-1 w-1 bg-gray-400 rounded-full mr-0.5 animate-bounce" style="animation-delay:150ms"></span>
+                                    <span class="h-1 w-1 bg-gray-400 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+                                </span>
+                            </div>
+                        </div>
+
                         <!-- Scroll to Bottom / New Message Button -->
                         <div x-show="userScrolledUp" 
                              x-transition:enter="transition ease-out duration-300"
@@ -232,6 +247,7 @@
                                     </div>
                                     <textarea x-model="newMessage" 
                                               @keydown.enter="if(!$event.shiftKey) { $event.preventDefault(); sendMessage(); }"
+                                              @input.debounce.300ms="emitTyping()"
                                               rows="1" 
                                               placeholder="Tulis pesan..." 
                                               class="w-full bg-transparent border-none focus:ring-0 text-gray-800 dark:text-gray-200 resize-none max-h-32 text-[13px] p-0 disabled:opacity-50"
@@ -328,19 +344,24 @@
                 error: null,
                 userScrolledUp: false,
                 showNewMessageBadge: false,
+                wsConnected: true,
+                isTyping: false,
+                typingUserName: '',
+                typingTimeoutId: null,
 
                 init() {
                     this.fetchConversations();
                     // Poll for new messages every 10 seconds (Fallback)
                     this.pollInterval = setInterval(() => {
-                        // Only poll if Echo is not active or for redundancy
-                        if (typeof window.Echo === 'undefined') {
+                        // Poll when realtime is not connected
+                        if (typeof window.Echo === 'undefined' || !this.wsConnected) {
                             if (this.activeConversation) {
                                 this.fetchMessages(this.activeConversation.id, true);
                             }
                             this.fetchConversations(true);
                         }
                     }, 10000);
+                    this.bindConnectionEvents();
                 },
 
                 setupEcho(orderId) {
@@ -351,7 +372,8 @@
                         }
                         
                         this.echoChannel = `orders.${orderId}`;
-                        window.Echo.private(this.echoChannel)
+                        const channel = window.Echo.private(this.echoChannel);
+                        channel
                             .listen('MessageSent', (e) => {
                                 console.log('New message received:', e.message);
                                 // Determine if is_sender (should be false for incoming)
@@ -386,6 +408,18 @@
                                              conv.unread_count = (conv.unread_count || 0) + 1;
                                          }
                                      }
+                                }
+                            })
+                            .listenForWhisper('typing', (e) => {
+                                if (e.user_id !== this.currentUserId) {
+                                    this.isTyping = true;
+                                    this.typingUserName = e.user_name || 'CS';
+                                    if (this.typingTimeoutId) clearTimeout(this.typingTimeoutId);
+                                    this.typingTimeoutId = setTimeout(() => {
+                                        this.isTyping = false;
+                                        this.typingUserName = '';
+                                        this.typingTimeoutId = null;
+                                    }, 2000);
                                 }
                             });
                     }
@@ -602,6 +636,36 @@
                     this.file = null;
                     this.previewFile = null;
                     this.$refs.fileInput.value = '';
+                },
+
+                emitTyping() {
+                    if (!this.activeConversation || typeof window.Echo === 'undefined') return;
+                    try {
+                        window.Echo.private(this.echoChannel)
+                            .whisper('typing', {
+                                user_id: this.currentUserId,
+                                user_name: '{{ Auth::user()->name }}'
+                            });
+                    } catch (e) {
+                        // Silently ignore whisper errors
+                    }
+                },
+
+                bindConnectionEvents() {
+                    if (typeof window.Echo === 'undefined') {
+                        this.wsConnected = false;
+                        return;
+                    }
+                    const conn = window.Echo.connector.pusher?.connection;
+                    if (!conn) return;
+                    const setState = (state) => {
+                        this.wsConnected = state === 'connected';
+                    };
+                    conn.bind('state_change', (states) => setState(states.current));
+                    conn.bind('connected', () => setState('connected'));
+                    conn.bind('disconnected', () => setState('disconnected'));
+                    conn.bind('failed', () => setState('failed'));
+                    conn.bind('unavailable', () => setState('unavailable'));
                 },
 
                 sendMessage() {

@@ -80,4 +80,12 @@ class ProductController extends Controller
 
         return response()->json($data);
     }
+
+    public function show(Product $product)
+    {
+        if (!$product->is_active) {
+            abort(404);
+        }
+        return view('silverchannel.products.show', compact('product'));
+    }
 }
