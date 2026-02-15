@@ -2,6 +2,66 @@
 
 @section('content')
     <div class="flex flex-col items-center justify-center min-h-screen">
+        @php
+            $storeAdmin = \App\Models\User::role('SUPER_ADMIN')->orderBy('id')->first();
+            $waNumberRaw = $storeAdmin && !empty($storeAdmin->phone) ? $storeAdmin->phone : env('WHATSAPP_CS_NUMBER', '+6281234567890');
+            $waDigits = preg_replace('/\\D/', '', ltrim($waNumberRaw, '+'));
+            $latestOrder = \App\Models\Order::where('user_id', Auth::id())->orderByDesc('id')->first();
+            $orderNumber = $latestOrder ? $latestOrder->order_number : null;
+            $autoText = $orderNumber 
+                ? urlencode("Halo saya sudah melakukan konfirmasi pembayaran tolong dicek untuk nomor order {$orderNumber}") 
+                : urlencode("Halo saya sudah melakukan konfirmasi pembayaran tolong dicek untuk nomor order");
+            $waLink = "https://wa.me/{$waDigits}?text={$autoText}";
+        @endphp
+        <style>
+            .button-shine-red {
+                position: relative;
+                transition: all 0.3s ease-in-out;
+                box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+                padding-block: 0.5rem;
+                padding-inline: 1.25rem;
+                background: linear-gradient(to right, #ef4444, #dc2626);
+                border-radius: 6px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                color: #ffff;
+                gap: 10px;
+                font-weight: bold;
+                border: 3px solid #ffffff4d;
+                outline: none;
+                overflow: hidden;
+                font-size: 14px;
+                cursor: pointer;
+            }
+            .button-shine-red:hover {
+                transform: scale(1.05);
+                border-color: #fff9;
+            }
+            .button-shine-red::before {
+                content: "";
+                position: absolute;
+                width: 100px;
+                height: 100%;
+                background-image: linear-gradient(
+                    120deg,
+                    rgba(255, 255, 255, 0) 30%,
+                    rgba(255, 255, 255, 0.8),
+                    rgba(255, 255, 255, 0) 70%
+                );
+                top: 0;
+                left: -100px;
+                opacity: 0.6;
+            }
+            .button-shine-red:hover::before {
+                animation: shine 1.5s ease-out infinite;
+            }
+            @keyframes shine {
+                0% { left: -100px; }
+                60% { left: 100%; }
+                to { left: 100%; }
+            }
+        </style>
         <!-- Logo -->
         <div class="mb-8">
             <a href="/" class="flex items-center space-x-2">
@@ -38,14 +98,18 @@
 
                 <div class="text-xs text-gray-500 mb-6">
                     Butuh bantuan mendesak? Hubungi kami di <br>
-                    <a href="https://wa.me/6281234567890" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors">WhatsApp Support</a>
+                    @if($orderNumber)
+                        <a href="{{ $waLink }}" target="_blank" class="text-blue-400 hover:text-blue-300 transition-colors">WhatsApp Support</a>
+                    @else
+                        <span class="text-gray-400">Nomor order belum tersedia.</span>
+                    @endif
                 </div>
             </div>
 
             <div class="mt-6 flex flex-col space-y-4">
                 <form method="POST" action="{{ route('logout') }}" class="text-center">
                     @csrf
-                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-gray-700 rounded-md font-semibold text-xs text-gray-300 uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
+                    <button type="submit" class="button-shine-red">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                         </svg>

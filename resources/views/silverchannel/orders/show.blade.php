@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12" x-data="{ showUploadModal: false, showViewModal: false, previewUrl: null, uploading: false }">
+    <div class="py-12" x-data="{ showUploadModal: false, showViewModal: false, previewUrl: null, viewType: 'image', viewError: false, uploading: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Order Info -->
@@ -284,11 +284,16 @@
                                 @endif
                             </p>
 
-                            @if($order->proof_of_delivery)
+                            @php
+                                $hasProof = $order->proof_of_delivery && \Illuminate\Support\Facades\Storage::disk('delivered')->exists($order->proof_of_delivery);
+                                $proofExt = $hasProof ? strtolower(pathinfo($order->proof_of_delivery, PATHINFO_EXTENSION)) : null;
+                                $proofType = $proofExt === 'pdf' ? 'pdf' : 'image';
+                            @endphp
+                            @if($hasProof)
                                 <div class="mt-4 w-full px-4">
-                                    <button @click="showViewModal = true; previewUrl = '{{ Storage::disk('delivered')->url($order->proof_of_delivery) }}'" 
+                                    <button @click="showViewModal = true; previewUrl = '{{ Storage::disk('delivered')->url($order->proof_of_delivery) }}'; viewType = '{{ $proofType }}'; viewError = false" 
                                             class="button-shine green w-full">
-                                        Lihat Bukti Pengiriman
+                                        Lihat Bukti Terima
                                     </button>
                                 </div>
                             @endif
@@ -554,10 +559,19 @@
                     <div class="sm:flex sm:items-start">
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                             <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="modal-title">
-                                Bukti Pengiriman
+                                Bukti Terima
                             </h3>
                             <div class="mt-4 flex justify-center">
-                                <img :src="previewUrl" alt="Proof of Delivery" class="max-h-[70vh] w-auto rounded-lg shadow-md">
+                                <template x-if="viewType === 'image'">
+                                    <img :src="previewUrl" alt="Bukti Terima" class="max-h-[70vh] w-auto rounded-lg shadow-md"
+                                         x-on:error="viewError = true">
+                                </template>
+                                <template x-if="viewType === 'pdf'">
+                                    <iframe :src="previewUrl" class="w-full h-[70vh] bg-white shadow-md rounded border-none"></iframe>
+                                </template>
+                            </div>
+                            <div x-show="viewError" class="mt-3 text-center">
+                                <p class="text-sm text-red-600">File bukti tidak ditemukan atau gagal dimuat.</p>
                             </div>
                         </div>
                     </div>

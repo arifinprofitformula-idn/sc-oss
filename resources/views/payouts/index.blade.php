@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-12" x-data="{ showWithdrawModal: false, withdrawAmount: {{ $balance }} }">
+    <div class="py-12" x-data="{ showWithdrawModal: false, withdrawAmount: {{ $balance }}, showProofModal: false, proofUrl: null, proofType: 'image', proofMeta: {}, proofError: false, imageLoading: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
             <!-- Custom CSS for 3D Buttons -->
@@ -126,6 +126,52 @@
                     animation: shimmer 2s infinite;
                     pointer-events: none;
                 }
+            </style>
+            <style>
+                /* Proof Modal Responsive Media */
+                .proof-media {
+                    width: 100vw;
+                    max-width: 100vw;
+                    height: 88vh;
+                    max-height: 88vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    overflow: hidden;
+                    background: #111827; /* dark background for contrast */
+                }
+                .proof-img, .proof-pdf {
+                    max-width: 100vw;
+                    max-height: 88vh;
+                    width: auto;
+                    height: auto;
+                    object-fit: contain;
+                }
+                /* Mobile */
+                @media (max-width: 640px) {
+                    .proof-media { height: 86svh; max-height: 86svh; }
+                    .proof-img, .proof-pdf { max-height: 86svh; }
+                }
+                /* Tablet */
+                @media (min-width: 641px) and (max-width: 1024px) {
+                    .proof-media { height: 88svh; max-height: 88svh; }
+                    .proof-img, .proof-pdf { max-height: 88svh; }
+                }
+                /* Desktop Large */
+                @media (min-width: 1025px) {
+                    .proof-media { height: 90vh; max-height: 90vh; }
+                    .proof-img, .proof-pdf { max-height: 90vh; }
+                }
+                /* Loading Spinner */
+                .spinner {
+                    width: 42px;
+                    height: 42px;
+                    border: 4px solid rgba(255,255,255,0.25);
+                    border-top-color: #2563EB;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                }
+                @keyframes spin { to { transform: rotate(360deg); } }
             </style>
 
             <!-- Wallet Stats -->
@@ -307,8 +353,9 @@
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Number</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Bank</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -318,13 +365,27 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $payout->created_at->format('d M Y') }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">Rp {{ number_format($payout->amount, 0, ',', '.') }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                            @if($payout->status === 'PROCESSED') bg-green-100 text-green-800 
-                                            @elseif($payout->status === 'REQUESTED') bg-yellow-100 text-yellow-800 
-                                            @elseif($payout->status === 'REJECTED') bg-red-100 text-red-800 
-                                            @else bg-gray-100 text-gray-800 @endif">
-                                            {{ $payout->status }}
-                                        </span>
+                                        @php
+                                            $isPaid = in_array($payout->status, ['PROCESSED', 'PAID']);
+                                            $hasProof = $isPaid && !empty($payout->proof_file) && \Illuminate\Support\Facades\Storage::disk('public')->exists($payout->proof_file);
+                                        @endphp
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                @if($payout->status === 'PROCESSED' || $payout->status === 'PAID') bg-green-100 text-green-800 
+                                                @elseif($payout->status === 'REQUESTED') bg-yellow-100 text-yellow-800 
+                                                @elseif($payout->status === 'REJECTED') bg-red-100 text-red-800 
+                                                @else bg-gray-100 text-gray-800 @endif">
+                                                {{ $payout->status }}
+                                            </span>
+                                            @if($hasProof)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                    Bukti Terverifikasi
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if(!empty($payout->bank_details) && is_array($payout->bank_details))
@@ -335,10 +396,48 @@
                                             -
                                         @endif
                                     </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        @php
+                                            $proofExt = ($hasProof) ? strtolower(pathinfo($payout->proof_file, PATHINFO_EXTENSION)) : null;
+                                            $ptype = $proofExt === 'pdf' ? 'pdf' : 'image';
+                                            $companyBanks = app(\App\Services\IntegrationService::class)->get('store_payment_banks', []);
+                                            if (is_string($companyBanks)) { $companyBanks = json_decode($companyBanks, true) ?: []; }
+                                            $companyBank = is_array($companyBanks) && count($companyBanks) ? $companyBanks[0] : [];
+                                            $senderName = $companyBank['account_name'] ?? ($companyBank['name'] ?? config('app.name') . ' Finance');
+                                            $senderAccount = $companyBank['account_number'] ?? ($companyBank['number'] ?? '-');
+                                            $senderBank = $companyBank['bank_name'] ?? ($companyBank['bank'] ?? '-');
+                                        @endphp
+                                        @if($isPaid && $hasProof)
+                                            <button class="btn-3d btn-3d-blue shimmer inline-flex items-center px-3 py-1.5 rounded-md text-xs text-white"
+                                                @click="
+                                                    showProofModal = true; 
+                                                    proofUrl = '{{ \Illuminate\Support\Facades\Storage::disk('public')->url($payout->proof_file) }}'; 
+                                                    proofType = '{{ $ptype }}';
+                                                    proofError = false;
+                                                    imageLoading = true;
+                                                    proofMeta = {{ \Illuminate\Support\Js::from([
+                                                        'date' => optional($payout->processed_at)->format('d M Y H:i'),
+                                                        'amount' => 'Rp ' . number_format((float) $payout->amount, 0, ',', '.'),
+                                                        'sender_name' => $senderName,
+                                                        'sender_account' => $senderAccount,
+                                                        'sender_bank' => $senderBank,
+                                                        'destination_bank' => $payout->user->bank_name ?? '-',
+                                                        'destination_account' => $payout->user->bank_account_no ?? '-',
+                                                        'destination_name' => $payout->user->bank_account_name ?? '-',
+                                                        'notes' => $payout->notes ?? '-',
+                                                        'payout_number' => $payout->payout_number,
+                                                    ]) }};
+                                                ">
+                                                Lihat Bukti Transfer
+                                            </button>
+                                        @else
+                                            <span class="text-gray-400">-</span>
+                                        @endif
+                                    </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">No payout history found.</td>
+                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">No payout history found.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -350,6 +449,78 @@
                 </div>
             </div>
 
+            <!-- Proof Modal -->
+            <div x-show="showProofModal" 
+                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+                 style="display: none;"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0">
+                 
+                <button @click="showProofModal = false" class="absolute top-4 right-4 z-50 p-3 text-white transition-all bg-red-600 rounded-full shadow-lg hover:scale-110 focus:outline-none focus:ring-4 focus:ring-red-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <div class="relative w-full h-full flex flex-col items-center justify-center p-4" @click.self="showProofModal = false">
+                    <div class="bg-white dark:bg-gray-800 rounded-md shadow-2xl max-w-5xl w-full overflow-hidden">
+                        <div class="px-6 pt-6">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100">Bukti Transfer — <span x-text="proofMeta.payout_number"></span></h3>
+                            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded p-3">
+                                    <div class="flex justify-between"><span class="text-gray-500">Tanggal Transfer</span><span class="font-medium" x-text="proofMeta.date"></span></div>
+                                    <div class="flex justify-between mt-2"><span class="text-gray-500">Jumlah</span><span class="font-medium" x-text="proofMeta.amount"></span></div>
+                                    <div class="flex justify-between mt-2"><span class="text-gray-500">Catatan</span><span class="font-medium" x-text="proofMeta.notes"></span></div>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded p-3">
+                                    <div class="flex justify-between"><span class="text-gray-500">Nama Pengirim</span><span class="font-medium" x-text="proofMeta.sender_name"></span></div>
+                                    <div class="flex justify-between mt-2"><span class="text-gray-500">Rekening Pengirim</span><span class="font-medium" x-text="proofMeta.sender_bank + ' • ' + proofMeta.sender_account"></span></div>
+                                    <div class="flex justify-between mt-2"><span class="text-gray-500">Rekening Tujuan</span><span class="font-medium" x-text="proofMeta.destination_bank + ' • ' + proofMeta.destination_account + ' a.n ' + proofMeta.destination_name"></span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relative w-full mt-4">
+                            <div class="proof-media">
+                                <template x-if="proofType === 'image'">
+                                    <img :src="proofUrl" 
+                                         alt="Bukti Transfer" 
+                                         class="proof-img shadow-2xl rounded-sm"
+                                         loading="eager"
+                                         x-on:load="imageLoading = false"
+                                         x-on:error="proofError = true; imageLoading = false">
+                                </template>
+                                <template x-if="proofType === 'pdf'">
+                                    <iframe :src="proofUrl" class="proof-pdf bg-white shadow-2xl rounded-sm border-none"></iframe>
+                                </template>
+                                <div x-show="imageLoading && !proofError" class="absolute inset-0 flex items-center justify-center">
+                                    <div class="spinner" aria-label="Loading proof image"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div x-show="proofError" class="px-6 mt-3">
+                            <p class="text-sm text-red-600">File bukti tidak ditemukan atau gagal dimuat.</p>
+                        </div>
+                        <div class="px-6 py-4 flex justify-between items-center">
+                            <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Pembayaran selesai • Bukti dapat diverifikasi
+                            </div>
+                            <a :href="proofUrl" target="_blank" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-lg transition-transform hover:scale-105">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                                Buka di Tab Baru
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <!-- Commission History -->
             <div class="mx-[10px] sm:mx-0 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900 dark:text-gray-100">

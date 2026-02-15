@@ -412,6 +412,86 @@ class EmailTemplateSeeder extends Seeder
             ]
         );
 
+        EmailTemplate::updateOrCreate(
+            ['key' => 'registration_approved'],
+            [
+                'name' => 'Registration Approved',
+                'subject' => 'Pendaftaran Diterima — Akun Anda Aktif',
+                'body' => '
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+' . $commonStyles . '
+</style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="outer">
+            <div style="padding: 20px 0; text-align: center;">
+                <img src="{{logo_url}}" alt="{{app_name}}" width="150" style="display: inline-block;">
+            </div>
+            <div class="webkit">
+                <div class="header">
+                    <h1 class="header-title">Pendaftaran Diterima</h1>
+                    <p class="header-subtitle">Akun Silverchannel Anda telah aktif.</p>
+                </div>
+                <div class="content">
+                    <p class="text-dark" style="font-size: 16px; line-height: 1.6;">
+                        Halo {{name}},<br>
+                        Selamat! Pendaftaran Anda sebagai Silverchannel di <strong>{{app_name}}</strong> telah diterima dan akun Anda aktif.
+                    </p>
+                    <div class="info-box">
+                        <table width="100%" cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td width="50%" class="mobile-block" style="vertical-align: top; padding-right: 10px;">
+                                    <h3 class="text-dark" style="margin: 0 0 10px 0; font-size: 16px;">Detail Akun</h3>
+                                    <p class="text-gray" style="margin: 0; font-size: 14px; line-height: 1.6;">
+                                        ID Silverchannel: <strong class="text-dark">{{silver_channel_id}}</strong><br>
+                                        Kode Referral: <strong class="text-dark">{{referral_code}}</strong><br>
+                                        No. Order Pendaftaran: <strong class="text-dark">{{order_number}}</strong>
+                                    </p>
+                                </td>
+                                <td width="50%" class="mobile-block" style="vertical-align: top; padding-left: 10px;">
+                                    <h3 class="text-dark" style="margin: 0 0 10px 0; font-size: 16px;">Langkah Selanjutnya</h3>
+                                    <ul class="text-gray" style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6;">
+                                        <li>Login ke dashboard untuk mulai berjualan.</li>
+                                        <li>Lengkapi profil dan preferensi pengiriman.</li>
+                                        <li>Lihat katalog dan harga khusus Silverchannel.</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="text-center">
+                        <a href="{{login_url}}" class="btn">Masuk Dashboard</a>
+                    </div>
+                    <p class="text-gray" style="font-size: 14px; margin-top: 30px; text-align: center;">
+                        Jika membutuhkan bantuan, hubungi tim support kami: <a href="mailto:{{support_email}}" class="text-primary">{{support_email}}</a>
+                    </p>
+                </div>
+                <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+                    <p class="text-gray" style="margin: 0; font-size: 14px;">
+                        Terima kasih telah bergabung dengan {{app_name}}.
+                    </p>
+                </div>
+            </div>
+            <div class="footer">
+                <p>&copy; {{year}} {{app_name}}. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>',
+                'variables' => [
+                    'logo_url', 'app_name', 'name', 'login_url', 'support_email', 'year', 'order_number', 'silver_channel_id', 'referral_code'
+                ],
+                'is_active' => true,
+                'type' => 'registration_approved',
+            ]
+        );
+
         // 4. Order Registration Template
         EmailTemplate::updateOrCreate(
             ['key' => 'order_registration'],
@@ -581,6 +661,42 @@ class EmailTemplateSeeder extends Seeder
                 'variables' => ['order_number'],
                 'is_active' => true,
                 'type' => 'order_status_delivered',
+            ]
+        );
+
+        EmailTemplate::updateOrCreate(
+            ['key' => 'order_status_cancelled'],
+            [
+                'name' => 'Order Cancelled',
+                'subject' => 'Order #{{order_number}} Dibatalkan',
+                'body' => '<html><body>Order #{{order_number}} telah dibatalkan. Jika ini tidak sesuai, silakan hubungi support.</body></html>',
+                'variables' => ['order_number'],
+                'is_active' => true,
+                'type' => 'order_status_cancelled',
+            ]
+        );
+
+        EmailTemplate::updateOrCreate(
+            ['key' => 'order_status_returned'],
+            [
+                'name' => 'Order Returned',
+                'subject' => 'Order #{{order_number}} Dikembalikan',
+                'body' => '<html><body>Order #{{order_number}} sedang dalam proses pengembalian. Tim kami akan menghubungi Anda untuk tindak lanjut.</body></html>',
+                'variables' => ['order_number'],
+                'is_active' => true,
+                'type' => 'order_status_returned',
+            ]
+        );
+
+        EmailTemplate::updateOrCreate(
+            ['key' => 'order_status_refunded'],
+            [
+                'name' => 'Order Refunded',
+                'subject' => 'Order #{{order_number}} Dikembalikan Dana',
+                'body' => '<html><body>Pengembalian dana untuk Order #{{order_number}} telah diproses. Silakan cek rekening/akun Anda.</body></html>',
+                'variables' => ['order_number'],
+                'is_active' => true,
+                'type' => 'order_status_refunded',
             ]
         );
 

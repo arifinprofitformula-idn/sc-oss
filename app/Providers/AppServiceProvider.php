@@ -106,6 +106,10 @@ class AppServiceProvider extends ServiceProvider
             \App\Events\PayoutRequested::class,
             \App\Listeners\SendPayoutRequestedEmail::class,
         );
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\PayoutRequested::class,
+            \App\Listeners\NotifyAdminPayoutRequested::class,
+        );
 
         \Illuminate\Support\Facades\Event::listen(
             \App\Events\PayoutProcessed::class,

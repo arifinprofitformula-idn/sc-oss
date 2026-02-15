@@ -22,11 +22,18 @@ class SendWelcomeSilverchannelEmail implements ShouldQueue
     public function handle(SilverchannelApproved $event): void
     {
         $user = $event->user;
+        $order = \App\Models\Order::where('user_id', $user->id)
+            ->where('order_number', 'like', 'REG-%')
+            ->latest('id')
+            ->first();
+
         $data = [
             'login_url' => url('/login'),
+            'order_number' => $order?->order_number ?? '',
+            'silver_channel_id' => $user->silver_channel_id ?? '',
+            'referral_code' => $user->referral_code ?? '',
         ];
-        // Template key/type: welcome_silverchannel
-        $this->emails->send('welcome_silverchannel', $user, $data, 'ID');
+
+        $this->emails->send('registration_approved', $user, $data, 'ID');
     }
 }
-

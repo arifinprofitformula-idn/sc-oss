@@ -23,6 +23,13 @@
                 background-position: 200% center;
             }
         }
+        img, video {
+            max-width: 100%;
+            height: 75px;
+        }
+        .md\:w-15 {
+            width: 9rem;
+        }
     </style>
     <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
         <!-- Logo -->
@@ -40,7 +47,7 @@
             <div x-show="!expired" class="flex flex-row justify-center items-center gap-3 md:gap-8 px-4">
                 <!-- Days -->
                 <div class="flex flex-col items-center group">
-                    <div class="relative w-20 h-20 md:w-36 md:h-36 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
+                    <div class="relative w-20 h-20 md:w-20 md:h-20 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
                         <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
                         <span class="text-2xl md:text-[30px] font-bold text-white animate-shimmer-text drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" x-text="days">00</span>
                     </div>
@@ -49,7 +56,7 @@
 
                 <!-- Hours -->
                 <div class="flex flex-col items-center group">
-                    <div class="relative w-20 h-20 md:w-36 md:h-36 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
+                    <div class="relative w-20 h-20 md:w-20 md:h-20 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
                         <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
                         <span class="text-2xl md:text-[30px] font-bold text-white animate-shimmer-text drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" x-text="hours">00</span>
                     </div>
@@ -58,7 +65,7 @@
                 
                 <!-- Minutes -->
                 <div class="flex flex-col items-center group">
-                    <div class="relative w-20 h-20 md:w-36 md:h-36 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
+                    <div class="relative w-20 h-20 md:w-20 md:h-20 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
                         <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
                         <span class="text-2xl md:text-[30px] font-bold text-white animate-shimmer-text drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" x-text="minutes">00</span>
                     </div>
@@ -67,7 +74,7 @@
                 
                 <!-- Seconds -->
                 <div class="flex flex-col items-center group">
-                    <div class="relative w-20 h-20 md:w-36 md:h-36 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
+                    <div class="relative w-20 h-20 md:w-20 md:h-20 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-600 rounded-xl shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.1)] flex items-center justify-center overflow-hidden transform transition-transform duration-300 hover:scale-105 hover:shadow-cyan-500/20">
                         <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
                         <span class="text-2xl md:text-[30px] font-bold text-white animate-shimmer-text drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" x-text="seconds">00</span>
                     </div>

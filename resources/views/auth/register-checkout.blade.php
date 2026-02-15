@@ -230,7 +230,7 @@
                                     box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2); 
                                     padding-block: 0.5rem; 
                                     padding-inline: 1.25rem; 
-                                    background: linear-gradient(to right, #22c55e, #059669); /* green-500 to emerald-600 */
+                                    background: linear-gradient(to right, #06b6d4, #2563eb); /* cyan-500 to blue-600 */
                                     border-radius: 6px; 
                                     display: flex; 
                                     align-items: center; 
